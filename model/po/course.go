@@ -4,8 +4,12 @@ import "gorm.io/gorm"
 
 type CoursePO struct {
 	gorm.Model
-	BaseCourseID  int64 `gorm:"index"`
-	MainTeacherID int64 `gorm:"index"`
+	Code            string  `gorm:"index"`
+	Name            string  `gorm:"index"`
+	Credit          float32 `gorm:"index"`
+	BaseCourseID    int64   `gorm:"index"`
+	MainTeacherID   int64   `gorm:"index"`
+	MainTeacherName string  `gorm:"index"`
 }
 
 func (po *CoursePO) TableName() string {
@@ -14,12 +18,13 @@ func (po *CoursePO) TableName() string {
 
 type OfferedCoursePO struct {
 	gorm.Model
-	CoursePO
-	Semester   string `gorm:"index"`
-	Department string `gorm:"index"`
-	Location   string
-	Language   string `gorm:"index"`
-	Grade      string `gorm:"index"`
+	BaseCourseID  int64  `gorm:"index"`
+	CourseID      int64  `gorm:"index"`
+	MainTeacherID int64  `gorm:"index"`
+	Semester      string `gorm:"index"`
+	Department    string `gorm:"index"`
+	Language      string `gorm:"index"`
+	Grade         string `gorm:"index"`
 }
 
 func (po *OfferedCoursePO) TableName() string {
@@ -28,32 +33,36 @@ func (po *OfferedCoursePO) TableName() string {
 
 type OfferedCourseTeacherPO struct {
 	gorm.Model
-	OfferedCourseID int64 `gorm:"index"`
-	TeacherID       int64 `gorm:"index"`
+	BaseCourseID    int64  `gorm:"index"`
+	CourseID        int64  `gorm:"index"`
+	OfferedCourseID int64  `gorm:"index"`
+	TeacherID       int64  `gorm:"index"`
+	TeacherName     string `gorm:"index"`
 }
 
 func (po *OfferedCourseTeacherPO) TableName() string {
 	return "offered_courses_teachers"
 }
 
-type CourseCategoryPO struct {
+type OfferedCourseCategoryPO struct {
 	gorm.Model
+	BaseCourseID    int64  `gorm:"index"`
+	CourseID        int64  `gorm:"index"`
 	OfferedCourseID int64  `gorm:"index"`
+	MainTeacherID   int64  `gorm:"index"`
 	Category        string `gorm:"index"`
 }
 
-func (po *CourseCategoryPO) TableName() string {
+func (po *OfferedCourseCategoryPO) TableName() string {
 	return "offered_course_categories"
 }
 
 type TrainingPlanPO struct {
 	gorm.Model
-	Degree     string
-	Major      string
-	Department string
-	EntryYear  string
-
-	Version int64 `gorm:"index"`
+	Degree     string `gorm:"index"`
+	Major      string `gorm:"index"`
+	Department string `gorm:"index"`
+	EntryYear  string `gorm:"index"`
 }
 
 func (po *TrainingPlanPO) TableName() string {
@@ -62,8 +71,8 @@ func (po *TrainingPlanPO) TableName() string {
 
 type TrainingPlanCoursePO struct {
 	gorm.Model
-	CourseID       int64
-	TrainingPlanID int64
+	CourseID       int64 `gorm:"index"`
+	TrainingPlanID int64 `gorm:"index"`
 }
 
 func (po *TrainingPlanCoursePO) TableName() string {
@@ -74,7 +83,7 @@ type BaseCoursePO struct {
 	gorm.Model
 	Code   string  `gorm:"index"`
 	Name   string  `gorm:"index"`
-	Credit float32 `gorm:"index"`
+	Credit float64 `gorm:"index"`
 }
 
 func (po *BaseCoursePO) TableName() string {
@@ -84,8 +93,11 @@ func (po *BaseCoursePO) TableName() string {
 type TeacherPO struct {
 	gorm.Model
 	Name       string `gorm:"index"`
+	Code       string `gorm:"index"`
 	Department string `gorm:"index"`
 	Title      string
+	Pinyin     string `gorm:"index"`
+	PinyinAbbr string `gorm:"index"`
 }
 
 func (po *TeacherPO) TableName() string {

@@ -69,6 +69,8 @@ func parseOfferedCourseFromLine(line []string) domain.OfferedCourse {
 		Semester:     Semester,
 		Department:   line[5],
 		Categories:   strings.Split(line[13], ","),
+		Language:     line[11],
+		Grade:        strings.Split(line[14], ","),
 	}
 }
 
@@ -115,72 +117,91 @@ func main() {
 
 	println(len(offeredCourseMap), len(teacherMap), len(baseCourseMap), len(courseMap))
 
-	outputBaseCourse("./data/base_course.csv", baseCourseMap)
-	outputTeacher("./data/teacher.csv", teacherMap)
-	outputCourse("./data/course.csv", courseMap)
-	outputOfferedCourse("./data/offered_course.csv", offeredCourseMap)
+	outputCSV("./data/base_course.csv", outputBaseCourse, baseCourseMap)
+	outputCSV("./data/teacher.csv", outputTeacher, teacherMap)
+	outputCSV("./data/course.csv", outputCourse, courseMap)
+	outputCSV("./data/offered_course.csv", outputOfferedCourse, offeredCourseMap)
+	outputCSV("./data/offered_course_category.csv", outputOfferedCourseCategory, offeredCourseMap)
+	outputCSV("./data/offered_course_teacher_group.csv", outputOfferedCourseTeacherGroup, offeredCourseMap)
 }
 
-func outputBaseCourse(filename string, courses map[string]domain.BaseCourse) {
-	fs, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0666)
+func outputCSV(filename string, writeFunc func(writer *csv.Writer, data any), data any) {
+	fs, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
 	defer fs.Close()
 	if err != nil {
 		return
 	}
 	writer := csv.NewWriter(fs)
+	writeFunc(writer, data)
+	writer.Flush()
+}
+
+func outputBaseCourse(writer *csv.Writer, data any) {
+	courses := data.(map[string]domain.BaseCourse)
 	for _, course := range courses {
-		err = writer.Write([]string{course.Code, course.Name, strconv.FormatFloat(float64(course.Credit), 'g', 2, 32)})
+		err := writer.Write([]string{course.Code, course.Name, strconv.FormatFloat(float64(course.Credit), 'g', 2, 32)})
 		if err != nil {
 			continue
 		}
 	}
-	writer.Flush()
+
 }
 
-func outputCourse(filename string, courses map[string]domain.Course) {
-	fs, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0666)
-	defer fs.Close()
-	if err != nil {
-		return
-	}
-	writer := csv.NewWriter(fs)
+func outputCourse(writer *csv.Writer, data any) {
+	courses := data.(map[string]domain.Course)
 	for _, course := range courses {
-		err = writer.Write([]string{course.Code, course.MainTeacher.Code})
+		err := writer.Write([]string{course.Code, course.MainTeacher.Code})
 		if err != nil {
 			continue
 		}
 	}
-	writer.Flush()
 }
 
-func outputTeacher(filename string, teachers map[string]domain.Teacher) {
-	fs, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0666)
-	defer fs.Close()
-	if err != nil {
-		return
-	}
-	writer := csv.NewWriter(fs)
+func outputTeacher(writer *csv.Writer, data any) {
+	teachers := data.(map[string]domain.Teacher)
 	for _, teacher := range teachers {
-		err = writer.Write([]string{teacher.Code, teacher.Name, teacher.Department, teacher.Title})
+		err := writer.Write([]string{teacher.Code, teacher.Name, teacher.Department, teacher.Title})
 		if err != nil {
 			continue
 		}
 	}
-	writer.Flush()
+
 }
 
-func outputOfferedCourse(filename string, offeredCourse map[string]domain.OfferedCourse) {
-	fs, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0666)
-	defer fs.Close()
-	if err != nil {
-		return
-	}
-	writer := csv.NewWriter(fs)
+func outputOfferedCourse(writer *csv.Writer, data any) {
+	offeredCourse := data.(map[string]domain.OfferedCourse)
 	for _, course := range offeredCourse {
-		err = writer.Write([]string{course.Code, course.MainTeacher.Code, course.Department, course.Semester, course.Grade, course.Language, course.Location})
+		err := writer.Write([]string{course.Code, course.MainTeacher.Code, course.Semester, course.Department, strings.Join(course.Grade, ","), course.Language})
 		if err != nil {
 			continue
 		}
 	}
-	writer.Flush()
+
+}
+
+func outputOfferedCourseCategory(writer *csv.Writer, data any) {
+	offeredCourse := data.(map[string]domain.OfferedCourse)
+	for _, course := range offeredCourse {
+		for _, category := range course.Categories {
+			if category == "" {
+				continue
+			}
+			err := writer.Write([]string{course.Code, course.MainTeacher.Code, course.Semester, category})
+			if err != nil {
+				continue
+			}
+		}
+	}
+}
+
+func outputOfferedCourseTeacherGroup(writer *csv.Writer, data any) {
+	offeredCourse := data.(map[string]domain.OfferedCourse)
+	for _, course := range offeredCourse {
+		for _, teacher := range course.TeacherGroup {
+			err := writer.Write([]string{course.Code, course.MainTeacher.Code, course.Semester, teacher.Code})
+			if err != nil {
+				continue
+			}
+		}
+	}
 }

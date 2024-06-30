@@ -14,9 +14,8 @@ type OfferedCourse struct {
 	Semester     string
 	Department   string
 	Categories   []string
-	Location     string
 	Language     string
-	Grade        string
+	Grade        []string
 }
 
 type Course struct {
@@ -37,7 +36,7 @@ type BaseCourse struct {
 	ID     int64
 	Code   string
 	Name   string
-	Credit float32
+	Credit float64
 }
 
 func (c *BaseCourse) GetCode() string {
@@ -48,7 +47,7 @@ func (c *BaseCourse) GetName() string {
 	return c.Name
 }
 
-func (c *BaseCourse) GetCredit() float32 {
+func (c *BaseCourse) GetCredit() float64 {
 	return c.Credit
 }
 
