@@ -339,6 +339,7 @@ func importOfferedCourseCategory(data [][]string) {
 			MainTeacherID:   int64(teacher.ID),
 			OfferedCourseID: int64(offeredCourse.ID),
 			Category:        category,
+			Semester:        semester,
 		}
 		newOfferedCourseCategories = append(newOfferedCourseCategories, offeredCourseCategory)
 	}
@@ -380,6 +381,7 @@ func importOfferedCourseTeacherGroup(data [][]string) {
 			OfferedCourseID: int64(offeredCourse.ID),
 			TeacherID:       int64(thisTeacher.ID),
 			TeacherName:     thisTeacher.Name,
+			Semester:        semester,
 		}
 		newOfferedCourseTeachers = append(newOfferedCourseTeachers, offeredCourseTeacher)
 	}
