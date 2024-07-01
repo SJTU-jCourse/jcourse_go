@@ -14,8 +14,6 @@ import (
 	"jcourse_go/model/po"
 )
 
-const Semester = "2024-2025-1"
-
 var (
 	db                         *gorm.DB
 	baseCourseKeyMap           = make(map[string]po.BaseCoursePO)
@@ -35,11 +33,35 @@ func main() {
 	dal.InitDBClient()
 	db = dal.GetDBClient()
 
+	// import first level
 	queryAllBaseCourse()
 	readCSV("./data/base_course.csv", importBaseCourse)
 	queryAllTeacher()
 	readCSV("./data/teacher.csv", importTeacher)
-	// queryAllCourse()
+
+	// refresh
+	queryAllBaseCourse()
+	queryAllTeacher()
+
+	// import second level
+	queryAllCourse()
+	readCSV("./data/course.csv", importCourse)
+
+	// refresh
+	queryAllCourse()
+	queryAllOfferedCourse()
+
+	// import
+	readCSV("./data/offered_course.csv", importOfferedCourse)
+
+	// refresh
+	queryAllOfferedCourse()
+	queryAllOfferedCourseCategory()
+	queryAllOfferedCourseTeacherGroup()
+
+	// import
+	readCSV("./data/offered_course_category.csv", importOfferedCourseCategory)
+	readCSV("./data/offered_course_teacher_group.csv", importOfferedCourseTeacherGroup)
 }
 
 func makeBaseCourseKey(courseCode string) string {
@@ -113,7 +135,7 @@ func queryAllOfferedCourse() {
 		if !ok {
 			continue
 		}
-		offeredCourseKeyMap[makeOfferedCourseKey(course.Code, teacher.Name, Semester)] = offeredCourse
+		offeredCourseKeyMap[makeOfferedCourseKey(course.Code, teacher.Name, offeredCourse.Semester)] = offeredCourse
 	}
 	return
 }
@@ -138,7 +160,7 @@ func queryAllOfferedCourseTeacherGroup() {
 		if !ok {
 			continue
 		}
-		offeredCourseTeacherKeyMap[makeOfferedCourseTeacherKey(course.Code, teacher.Name, Semester)] = offeredCourseTeacher
+		offeredCourseTeacherKeyMap[makeOfferedCourseTeacherKey(course.Code, teacher.Name, offeredCourseTeacher.Semester)] = offeredCourseTeacher
 	}
 	return
 }
@@ -162,7 +184,7 @@ func queryAllOfferedCourseCategory() {
 		if !ok {
 			continue
 		}
-		offeredCourseCategoryMap[makeOfferedCourseCategoryKey(course.Code, teacher.Name, offeredCourseCategory.Category, Semester)] = offeredCourseCategory
+		offeredCourseCategoryMap[makeOfferedCourseCategoryKey(course.Code, teacher.Name, offeredCourseCategory.Category, offeredCourseCategory.Semester)] = offeredCourseCategory
 	}
 	return
 }
@@ -223,4 +245,144 @@ func generatePinyin(name string) string {
 func generatePinyinAbbr(name string) string {
 	result := pinyin2.LazyPinyin(name, pinyin2.Args{Style: pinyin2.FirstLetter})
 	return strings.Join(result, "")
+}
+
+func importCourse(data [][]string) {
+	newCourses := make([]po.CoursePO, 0)
+	for _, line := range data {
+		courseCode := line[0]
+		teacherCode := line[1]
+		baseCourse, ok := baseCourseKeyMap[makeBaseCourseKey(courseCode)]
+		if !ok {
+			continue
+		}
+		teacher, ok := teacherKeyMap[makeTeacherKey(teacherCode)]
+		if !ok {
+			continue
+		}
+		if _, exists := courseKeyMap[makeCourseKey(courseCode, teacher.Name)]; exists {
+			continue
+		}
+		course := po.CoursePO{
+			Code:            baseCourse.Code,
+			Name:            baseCourse.Name,
+			Credit:          baseCourse.Credit,
+			BaseCourseID:    int64(baseCourse.ID),
+			MainTeacherID:   int64(teacher.ID),
+			MainTeacherName: teacher.Name,
+		}
+		newCourses = append(newCourses, course)
+	}
+	println("new course length:", len(newCourses))
+	db.Model(&po.CoursePO{}).CreateInBatches(&newCourses, 100)
+}
+
+func importOfferedCourse(data [][]string) {
+	newOfferedCourses := make([]po.OfferedCoursePO, 0)
+	for _, line := range data {
+		courseCode := line[0]
+		teacherCode := line[1]
+		semester := line[2]
+		teacher, ok := teacherKeyMap[makeTeacherKey(teacherCode)]
+		if !ok {
+			continue
+		}
+
+		course, ok := courseKeyMap[makeCourseKey(courseCode, teacher.Name)]
+		if !ok {
+			continue
+		}
+
+		if _, exists := offeredCourseKeyMap[makeOfferedCourseKey(courseCode, teacher.Name, semester)]; exists {
+			continue
+		}
+
+		offeredCourse := po.OfferedCoursePO{
+			CourseID:      int64(course.ID),
+			BaseCourseID:  course.BaseCourseID,
+			MainTeacherID: int64(teacher.ID),
+			Semester:      semester,
+			Department:    line[3],
+			Grade:         line[4],
+			Language:      line[5],
+		}
+		newOfferedCourses = append(newOfferedCourses, offeredCourse)
+	}
+	println("new offered course length:", len(newOfferedCourses))
+	db.Model(&po.OfferedCoursePO{}).CreateInBatches(&newOfferedCourses, 100)
+}
+
+func importOfferedCourseCategory(data [][]string) {
+	newOfferedCourseCategories := make([]po.OfferedCourseCategoryPO, 0)
+	for _, line := range data {
+		courseCode := line[0]
+		teacherCode := line[1]
+		semester := line[2]
+		category := line[3]
+		teacher, ok := teacherKeyMap[makeTeacherKey(teacherCode)]
+		if !ok {
+			continue
+		}
+
+		offeredCourse, ok := offeredCourseKeyMap[makeOfferedCourseKey(courseCode, teacher.Name, semester)]
+		if !ok {
+			continue
+		}
+
+		if _, exists := offeredCourseCategoryMap[makeOfferedCourseCategoryKey(courseCode, teacher.Name, category, semester)]; exists {
+			continue
+		}
+
+		offeredCourseCategory := po.OfferedCourseCategoryPO{
+			CourseID:        offeredCourse.CourseID,
+			BaseCourseID:    offeredCourse.BaseCourseID,
+			MainTeacherID:   int64(teacher.ID),
+			OfferedCourseID: int64(offeredCourse.ID),
+			Category:        category,
+		}
+		newOfferedCourseCategories = append(newOfferedCourseCategories, offeredCourseCategory)
+	}
+	println("new offered course category length:", len(newOfferedCourseCategories))
+	db.Model(&po.OfferedCourseCategoryPO{}).CreateInBatches(&newOfferedCourseCategories, 100)
+}
+
+func importOfferedCourseTeacherGroup(data [][]string) {
+	newOfferedCourseTeachers := make([]po.OfferedCourseTeacherPO, 0)
+	for _, line := range data {
+		courseCode := line[0]
+		mainTeacherCode := line[1]
+		semester := line[2]
+
+		mainTeacher, ok := teacherKeyMap[makeTeacherKey(mainTeacherCode)]
+		if !ok {
+			continue
+		}
+
+		offeredCourse, ok := offeredCourseKeyMap[makeOfferedCourseKey(courseCode, mainTeacher.Name, semester)]
+		if !ok {
+			continue
+		}
+
+		thisTeacherCode := line[3]
+		thisTeacher, ok := teacherKeyMap[makeTeacherKey(thisTeacherCode)]
+		if !ok {
+			continue
+		}
+
+		if _, exists := offeredCourseTeacherKeyMap[makeOfferedCourseTeacherKey(courseCode, thisTeacher.Name, semester)]; exists {
+			continue
+		}
+
+		offeredCourseTeacher := po.OfferedCourseTeacherPO{
+			CourseID:        offeredCourse.CourseID,
+			BaseCourseID:    offeredCourse.BaseCourseID,
+			MainTeacherID:   int64(mainTeacher.ID),
+			OfferedCourseID: int64(offeredCourse.ID),
+			TeacherID:       int64(thisTeacher.ID),
+			TeacherName:     thisTeacher.Name,
+		}
+		newOfferedCourseTeachers = append(newOfferedCourseTeachers, offeredCourseTeacher)
+	}
+	println("new offered course teacher length:", len(newOfferedCourseTeachers))
+	db.Model(&po.OfferedCourseTeacherPO{}).CreateInBatches(&newOfferedCourseTeachers, 100)
 }
