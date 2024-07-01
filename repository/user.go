@@ -17,6 +17,7 @@ type DBOption func(*gorm.DB) *gorm.DB
 
 type IUserQuery interface {
 	GetUserDetail(ctx context.Context, opts ...DBOption) (*domain.User, error)
+	GetUserList(ctx context.Context, opts ...DBOption) ([]domain.User, error)
 	WithID(id uint) DBOption
 	WithEmail(email string) DBOption
 	WithPassword(password string) DBOption
