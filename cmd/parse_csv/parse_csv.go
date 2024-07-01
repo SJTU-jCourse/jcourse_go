@@ -18,7 +18,7 @@ func parseBaseCourseFromLine(line []string) domain.BaseCourse {
 	return domain.BaseCourse{
 		Code:   line[0],
 		Name:   line[1],
-		Credit: float32(credit),
+		Credit: credit,
 	}
 }
 
