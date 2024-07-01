@@ -11,7 +11,11 @@ import (
 // Cache 接口定义了缓存的基本操作
 type Cache interface {
 	Get(ctx context.Context, key string) (string, error)
+	MGet(ctx context.Context, keys []string) (map[string]string, error)
 	Set(ctx context.Context, key string, value string, expiration time.Duration) error
+	MSet(ctx context.Context, keys []string, values map[string]string, expiration time.Duration) error
+	Del(ctx context.Context, key string) error
+	MDel(ctx context.Context, keys []string) error
 }
 
 // RedisCache 实现了 Cache 接口
