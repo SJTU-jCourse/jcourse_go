@@ -15,3 +15,15 @@ func ConvertBaseCourseDomainToPO(course *domain.BaseCourse) *po.BaseCoursePO {
 		Credit: course.Credit,
 	}
 }
+
+func ConvertBaseCoursePOToDomain(course *po.BaseCoursePO) *domain.BaseCourse {
+	if course == nil {
+		return nil
+	}
+	return &domain.BaseCourse{
+		ID:     int64(course.ID),
+		Code:   course.Code,
+		Name:   course.Name,
+		Credit: course.Credit,
+	}
+}
