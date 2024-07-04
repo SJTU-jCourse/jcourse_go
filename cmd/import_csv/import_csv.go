@@ -22,9 +22,9 @@ var (
 	courseIDMap                = make(map[uint]po.CoursePO)
 	teacherKeyMap              = make(map[string]po.TeacherPO)
 	teacherIDMap               = make(map[uint]po.TeacherPO)
+	courseCategoryMap          = make(map[string]po.CourseCategoryPO)
 	offeredCourseKeyMap        = make(map[string]po.OfferedCoursePO)
 	offeredCourseIDMap         = make(map[uint]po.OfferedCoursePO)
-	offeredCourseCategoryMap   = make(map[string]po.OfferedCourseCategoryPO)
 	offeredCourseTeacherKeyMap = make(map[string]po.OfferedCourseTeacherPO)
 )
 
@@ -165,26 +165,26 @@ func queryAllOfferedCourseTeacherGroup() {
 	return
 }
 
-func makeOfferedCourseCategoryKey(courseCode string, teacherName string, category string, semester string) string {
-	return fmt.Sprintf("%s:%s:%s:%s", courseCode, teacherName, category, semester)
+func makeCourseCategoryKey(courseCode string, teacherName string, category string) string {
+	return fmt.Sprintf("%s:%s:%s:%s", courseCode, teacherName, category)
 }
 
 func queryAllOfferedCourseCategory() {
-	offeredCourseCategories := make([]po.OfferedCourseCategoryPO, 0)
-	result := db.Model(&po.OfferedCourseCategoryPO{}).Find(&offeredCourseCategories)
+	courseCategories := make([]po.CourseCategoryPO, 0)
+	result := db.Model(&po.CourseCategoryPO{}).Find(&courseCategories)
 	if result.Error != nil {
 		return
 	}
-	for _, offeredCourseCategory := range offeredCourseCategories {
-		course, ok := courseIDMap[uint(offeredCourseCategory.CourseID)]
+	for _, courseCategory := range courseCategories {
+		course, ok := courseIDMap[uint(courseCategory.CourseID)]
 		if !ok {
 			continue
 		}
-		teacher, ok := teacherIDMap[uint(offeredCourseCategory.MainTeacherID)]
+		teacher, ok := teacherIDMap[uint(courseCategory.MainTeacherID)]
 		if !ok {
 			continue
 		}
-		offeredCourseCategoryMap[makeOfferedCourseCategoryKey(course.Code, teacher.Name, offeredCourseCategory.Category, offeredCourseCategory.Semester)] = offeredCourseCategory
+		courseCategoryMap[makeCourseCategoryKey(course.Code, teacher.Name, courseCategory.Category)] = courseCategory
 	}
 	return
 }
@@ -313,7 +313,7 @@ func importOfferedCourse(data [][]string) {
 }
 
 func importOfferedCourseCategory(data [][]string) {
-	newOfferedCourseCategories := make([]po.OfferedCourseCategoryPO, 0)
+	newCourseCategories := make([]po.CourseCategoryPO, 0)
 	for _, line := range data {
 		courseCode := line[0]
 		teacherCode := line[1]
@@ -329,22 +329,20 @@ func importOfferedCourseCategory(data [][]string) {
 			continue
 		}
 
-		if _, exists := offeredCourseCategoryMap[makeOfferedCourseCategoryKey(courseCode, teacher.Name, category, semester)]; exists {
+		if _, exists := courseCategoryMap[makeCourseCategoryKey(courseCode, teacher.Name, category)]; exists {
 			continue
 		}
 
-		offeredCourseCategory := po.OfferedCourseCategoryPO{
-			CourseID:        offeredCourse.CourseID,
-			BaseCourseID:    offeredCourse.BaseCourseID,
-			MainTeacherID:   int64(teacher.ID),
-			OfferedCourseID: int64(offeredCourse.ID),
-			Category:        category,
-			Semester:        semester,
+		offeredCourseCategory := po.CourseCategoryPO{
+			CourseID:      offeredCourse.CourseID,
+			BaseCourseID:  offeredCourse.BaseCourseID,
+			MainTeacherID: int64(teacher.ID),
+			Category:      category,
 		}
-		newOfferedCourseCategories = append(newOfferedCourseCategories, offeredCourseCategory)
+		newCourseCategories = append(newCourseCategories, offeredCourseCategory)
 	}
-	println("new offered course category length:", len(newOfferedCourseCategories))
-	db.Model(&po.OfferedCourseCategoryPO{}).CreateInBatches(&newOfferedCourseCategories, 100)
+	println("new course category length:", len(newCourseCategories))
+	db.Model(&po.CourseCategoryPO{}).CreateInBatches(&newCourseCategories, 100)
 }
 
 func importOfferedCourseTeacherGroup(data [][]string) {

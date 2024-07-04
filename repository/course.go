@@ -22,6 +22,7 @@ type ICourseQuery interface {
 	WithCode(code string) DBOption
 	WithName(name string) DBOption
 	WithCredit(credit float64) DBOption
+	WithCategory(category string) DBOption
 	WithMainTeacherName(name string) DBOption
 	WithMainTeacherID(id int64) DBOption
 }
@@ -35,6 +36,5 @@ type IOfferedCourseQuery interface {
 	WithMainTeacherID(id int64) DBOption
 	WithSemester(semester string) DBOption
 	WithDepartment(department string) DBOption
-	WithCategory(category string) DBOption
 	WithLanguage(language string) DBOption
 }

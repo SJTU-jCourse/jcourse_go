@@ -10,7 +10,7 @@ func main() {
 	_ = godotenv.Load()
 	dal.InitDBClient()
 	db := dal.GetDBClient()
-	err := db.AutoMigrate(&po.UserPO{}, &po.BaseCoursePO{}, &po.CoursePO{}, &po.TeacherPO{}, &po.OfferedCourseCategoryPO{}, &po.OfferedCoursePO{}, &po.OfferedCourseTeacherPO{})
+	err := db.AutoMigrate(&po.UserPO{}, &po.BaseCoursePO{}, &po.CoursePO{}, &po.TeacherPO{}, &po.CourseCategoryPO{}, &po.OfferedCoursePO{}, &po.OfferedCourseTeacherPO{})
 	if err != nil {
 		panic(err)
 	}

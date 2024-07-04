@@ -46,18 +46,16 @@ func (po *OfferedCourseTeacherPO) TableName() string {
 	return "offered_courses_teachers"
 }
 
-type OfferedCourseCategoryPO struct {
+type CourseCategoryPO struct {
 	gorm.Model
-	BaseCourseID    int64  `gorm:"index"`
-	CourseID        int64  `gorm:"index"`
-	OfferedCourseID int64  `gorm:"index;index:uniq_offered_course_category,unique"`
-	MainTeacherID   int64  `gorm:"index"`
-	Category        string `gorm:"index;index:uniq_offered_course_category,unique"`
-	Semester        string `gorm:"index;index:uniq_offered_course_category,unique"`
+	BaseCourseID  int64  `gorm:"index"`
+	CourseID      int64  `gorm:"index;index:uniq_offered_course_category,unique"`
+	MainTeacherID int64  `gorm:"index"`
+	Category      string `gorm:"index;index:uniq_offered_course_category,unique"`
 }
 
-func (po *OfferedCourseCategoryPO) TableName() string {
-	return "offered_course_categories"
+func (po *CourseCategoryPO) TableName() string {
+	return "course_categories"
 }
 
 type TrainingPlanPO struct {

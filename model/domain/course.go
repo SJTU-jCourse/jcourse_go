@@ -13,7 +13,6 @@ type OfferedCourse struct {
 	TeacherGroup []Teacher
 	Semester     string
 	Department   string
-	Categories   []string
 	Language     string
 	Grade        []string
 }
@@ -22,6 +21,7 @@ type Course struct {
 	BaseCourse
 	ID          int64
 	MainTeacher Teacher
+	Categories  []string
 }
 
 type TrainingPlan struct {
