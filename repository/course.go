@@ -107,13 +107,31 @@ func (c *CourseQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
 }
 
 func (c *CourseQuery) GetCourse(ctx context.Context, opts ...DBOption) (*domain.Course, error) {
-	// TODO implement me
-	panic("implement me")
+	db := c.optionDB(ctx, opts...)
+	course := po.CoursePO{}
+	result := db.Debug().First(&course)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return converter.ConvertCoursePOToDomain(&course), nil
 }
 
 func (c *CourseQuery) GetCourseList(ctx context.Context, opts ...DBOption) ([]domain.Course, error) {
-	// TODO implement me
-	panic("implement me")
+	db := c.optionDB(ctx, opts...)
+	coursePOs := make([]po.CoursePO, 0)
+	courses := make([]domain.Course, 0)
+	result := db.Debug().Find(&coursePOs)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	for _, coursePO := range coursePOs {
+		course := converter.ConvertCoursePOToDomain(&coursePO)
+		courses = append(courses, *course)
+	}
+	return courses, nil
 }
 
 func (c *CourseQuery) WithID(id int64) DBOption {
@@ -190,13 +208,31 @@ func (o *OfferedCourseQuery) optionDB(ctx context.Context, opts ...DBOption) *go
 }
 
 func (o *OfferedCourseQuery) GetOfferedCourse(ctx context.Context, opts ...DBOption) (*domain.OfferedCourse, error) {
-	// TODO implement me
-	panic("implement me")
+	db := o.optionDB(ctx, opts...)
+	course := po.OfferedCoursePO{}
+	result := db.Debug().First(&course)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return converter.ConvertOfferedCoursePOToDomain(&course), nil
 }
 
 func (o *OfferedCourseQuery) GetOfferedCourseList(ctx context.Context, opts ...DBOption) ([]domain.OfferedCourse, error) {
-	// TODO implement me
-	panic("implement me")
+	db := o.optionDB(ctx, opts...)
+	coursePOs := make([]po.OfferedCoursePO, 0)
+	courses := make([]domain.OfferedCourse, 0)
+	result := db.Debug().Find(&coursePOs)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	for _, coursePO := range coursePOs {
+		course := converter.ConvertOfferedCoursePOToDomain(&coursePO)
+		courses = append(courses, *course)
+	}
+	return courses, nil
 }
 
 func (o *OfferedCourseQuery) WithID(id int64) DBOption {
