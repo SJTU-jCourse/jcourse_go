@@ -6,14 +6,12 @@ import (
 
 	"gorm.io/gorm"
 	"jcourse_go/dal"
-	"jcourse_go/model/converter"
-	"jcourse_go/model/domain"
 	"jcourse_go/model/po"
 )
 
 type IBaseCourseQuery interface {
-	GetBaseCourse(ctx context.Context, opts ...DBOption) (*domain.BaseCourse, error)
-	GetBaseCourseList(ctx context.Context, opts ...DBOption) ([]domain.BaseCourse, error)
+	GetBaseCourse(ctx context.Context, opts ...DBOption) (*po.BaseCoursePO, error)
+	GetBaseCourseList(ctx context.Context, opts ...DBOption) ([]po.BaseCoursePO, error)
 	WithCode(code string) DBOption
 	WithName(name string) DBOption
 	WithCredit(credit float64) DBOption
@@ -31,7 +29,7 @@ func (b *BaseCourseQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.
 	return db
 }
 
-func (b *BaseCourseQuery) GetBaseCourse(ctx context.Context, opts ...DBOption) (*domain.BaseCourse, error) {
+func (b *BaseCourseQuery) GetBaseCourse(ctx context.Context, opts ...DBOption) (*po.BaseCoursePO, error) {
 	db := b.optionDB(ctx, opts...)
 	course := po.BaseCoursePO{}
 	result := db.Debug().First(&course)
@@ -41,22 +39,17 @@ func (b *BaseCourseQuery) GetBaseCourse(ctx context.Context, opts ...DBOption) (
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return converter.ConvertBaseCoursePOToDomain(&course), nil
+	return &course, nil
 }
 
-func (b *BaseCourseQuery) GetBaseCourseList(ctx context.Context, opts ...DBOption) ([]domain.BaseCourse, error) {
+func (b *BaseCourseQuery) GetBaseCourseList(ctx context.Context, opts ...DBOption) ([]po.BaseCoursePO, error) {
 	db := b.optionDB(ctx, opts...)
 	coursePOs := make([]po.BaseCoursePO, 0)
-	courses := make([]domain.BaseCourse, 0)
 	result := db.Debug().Find(&coursePOs)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
-	for _, coursePO := range coursePOs {
-		course := converter.ConvertBaseCoursePOToDomain(&coursePO)
-		courses = append(courses, *course)
-	}
-	return courses, nil
+	return coursePOs, nil
 }
 
 func (b *BaseCourseQuery) WithCode(code string) DBOption {
@@ -82,10 +75,9 @@ func NewBaseCourseQuery() IBaseCourseQuery {
 }
 
 type ICourseQuery interface {
-	GetCourse(ctx context.Context, opts ...DBOption) (*domain.Course, error)
-	GetCourseList(ctx context.Context, opts ...DBOption) ([]domain.Course, error)
+	GetCourse(ctx context.Context, opts ...DBOption) (*po.CoursePO, error)
+	GetCourseList(ctx context.Context, opts ...DBOption) ([]po.CoursePO, error)
 	WithID(id int64) DBOption
-	WithBaseCourseID(id int64) DBOption
 	WithCode(code string) DBOption
 	WithName(name string) DBOption
 	WithCredit(credit float64) DBOption
@@ -106,7 +98,7 @@ func (c *CourseQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
 	return db
 }
 
-func (c *CourseQuery) GetCourse(ctx context.Context, opts ...DBOption) (*domain.Course, error) {
+func (c *CourseQuery) GetCourse(ctx context.Context, opts ...DBOption) (*po.CoursePO, error) {
 	db := c.optionDB(ctx, opts...)
 	course := po.CoursePO{}
 	result := db.Debug().First(&course)
@@ -116,33 +108,22 @@ func (c *CourseQuery) GetCourse(ctx context.Context, opts ...DBOption) (*domain.
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return converter.ConvertCoursePOToDomain(&course), nil
+	return &course, nil
 }
 
-func (c *CourseQuery) GetCourseList(ctx context.Context, opts ...DBOption) ([]domain.Course, error) {
+func (c *CourseQuery) GetCourseList(ctx context.Context, opts ...DBOption) ([]po.CoursePO, error) {
 	db := c.optionDB(ctx, opts...)
 	coursePOs := make([]po.CoursePO, 0)
-	courses := make([]domain.Course, 0)
 	result := db.Debug().Find(&coursePOs)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
-	for _, coursePO := range coursePOs {
-		course := converter.ConvertCoursePOToDomain(&coursePO)
-		courses = append(courses, *course)
-	}
-	return courses, nil
+	return coursePOs, nil
 }
 
 func (c *CourseQuery) WithID(id int64) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("id = ?", id)
-	}
-}
-
-func (c *CourseQuery) WithBaseCourseID(id int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("base_course_id = ?", id)
 	}
 }
 
@@ -187,8 +168,8 @@ func NewCourseQuery() ICourseQuery {
 }
 
 type IOfferedCourseQuery interface {
-	GetOfferedCourse(ctx context.Context, opts ...DBOption) (*domain.OfferedCourse, error)
-	GetOfferedCourseList(ctx context.Context, opts ...DBOption) ([]domain.OfferedCourse, error)
+	GetOfferedCourse(ctx context.Context, opts ...DBOption) (*po.OfferedCoursePO, error)
+	GetOfferedCourseList(ctx context.Context, opts ...DBOption) ([]po.OfferedCoursePO, error)
 	WithID(id int64) DBOption
 	WithCourseID(id int64) DBOption
 	WithMainTeacherID(id int64) DBOption
@@ -207,7 +188,7 @@ func (o *OfferedCourseQuery) optionDB(ctx context.Context, opts ...DBOption) *go
 	return db
 }
 
-func (o *OfferedCourseQuery) GetOfferedCourse(ctx context.Context, opts ...DBOption) (*domain.OfferedCourse, error) {
+func (o *OfferedCourseQuery) GetOfferedCourse(ctx context.Context, opts ...DBOption) (*po.OfferedCoursePO, error) {
 	db := o.optionDB(ctx, opts...)
 	course := po.OfferedCoursePO{}
 	result := db.Debug().First(&course)
@@ -217,22 +198,17 @@ func (o *OfferedCourseQuery) GetOfferedCourse(ctx context.Context, opts ...DBOpt
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return converter.ConvertOfferedCoursePOToDomain(&course), nil
+	return &course, nil
 }
 
-func (o *OfferedCourseQuery) GetOfferedCourseList(ctx context.Context, opts ...DBOption) ([]domain.OfferedCourse, error) {
+func (o *OfferedCourseQuery) GetOfferedCourseList(ctx context.Context, opts ...DBOption) ([]po.OfferedCoursePO, error) {
 	db := o.optionDB(ctx, opts...)
 	coursePOs := make([]po.OfferedCoursePO, 0)
-	courses := make([]domain.OfferedCourse, 0)
 	result := db.Debug().Find(&coursePOs)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
-	for _, coursePO := range coursePOs {
-		course := converter.ConvertOfferedCoursePOToDomain(&coursePO)
-		courses = append(courses, *course)
-	}
-	return courses, nil
+	return coursePOs, nil
 }
 
 func (o *OfferedCourseQuery) WithID(id int64) DBOption {

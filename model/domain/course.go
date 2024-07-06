@@ -7,8 +7,8 @@ type CourseLike interface {
 }
 
 type OfferedCourse struct {
+	ID int64
 	Course
-	ID           int64
 	MainTeacher  Teacher
 	TeacherGroup []Teacher
 	Semester     string
@@ -18,8 +18,10 @@ type OfferedCourse struct {
 }
 
 type Course struct {
-	BaseCourse
 	ID          int64
+	Code        string
+	Name        string
+	Credit      float64
 	MainTeacher Teacher
 	Categories  []string
 }

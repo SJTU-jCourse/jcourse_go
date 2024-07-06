@@ -9,6 +9,7 @@ import (
 	"regexp"
 
 	"jcourse_go/constant"
+	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
 	"jcourse_go/pkg/password_hasher"
 	"jcourse_go/repository"
@@ -25,7 +26,7 @@ func Login(ctx context.Context, email string, password string) (*domain.User, er
 	if err != nil {
 		return nil, err
 	}
-	return user, nil
+	return converter.UserPOToDomain(user), nil
 }
 
 func Register(ctx context.Context, email string, password string, code string) (*domain.User, error) {
@@ -53,7 +54,7 @@ func Register(ctx context.Context, email string, password string, code string) (
 		return nil, err
 	}
 	_ = repository.ClearVerifyCodeHistory(ctx, email)
-	return user, nil
+	return converter.UserPOToDomain(user), nil
 }
 
 func ResetPassword(ctx context.Context, email string, password string, code string) error {
@@ -76,7 +77,7 @@ func ResetPassword(ctx context.Context, email string, password string, code stri
 	if err != nil {
 		return err
 	}
-	err = query.ResetUserPassword(ctx, user, passwordStore)
+	err = query.ResetUserPassword(ctx, int64(user.ID), passwordStore)
 	if err != nil {
 		return err
 	}

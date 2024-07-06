@@ -33,8 +33,10 @@ func ConvertCoursePOToDomain(course *po.CoursePO) *domain.Course {
 		return nil
 	}
 	return &domain.Course{
-		ID:         int64(course.ID),
-		BaseCourse: domain.BaseCourse{ID: course.BaseCourseID, Code: course.Code, Name: course.Name, Credit: course.Credit},
+		ID:     int64(course.ID),
+		Code:   course.Code,
+		Name:   course.Name,
+		Credit: course.Credit,
 	}
 }
 

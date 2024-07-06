@@ -8,21 +8,19 @@ import (
 	"gorm.io/gorm"
 	"jcourse_go/constant"
 	"jcourse_go/dal"
-	"jcourse_go/model/converter"
-	"jcourse_go/model/domain"
 	"jcourse_go/model/po"
 )
 
 type DBOption func(*gorm.DB) *gorm.DB
 
 type IUserQuery interface {
-	GetUserDetail(ctx context.Context, opts ...DBOption) (*domain.User, error)
-	GetUserList(ctx context.Context, opts ...DBOption) ([]domain.User, error)
-	WithID(id uint) DBOption
+	GetUserDetail(ctx context.Context, opts ...DBOption) (*po.UserPO, error)
+	GetUserList(ctx context.Context, opts ...DBOption) ([]po.UserPO, error)
+	WithID(id int64) DBOption
 	WithEmail(email string) DBOption
 	WithPassword(password string) DBOption
-	CreateUser(ctx context.Context, email string, password string) (*domain.User, error)
-	ResetUserPassword(ctx context.Context, user *domain.User, password string) error
+	CreateUser(ctx context.Context, email string, password string) (*po.UserPO, error)
+	ResetUserPassword(ctx context.Context, userID int64, password string) error
 }
 
 func NewUserQuery() IUserQuery {
@@ -41,7 +39,7 @@ func (q *UserQuery) WithEmail(email string) DBOption {
 	}
 }
 
-func (q *UserQuery) WithID(id uint) DBOption {
+func (q *UserQuery) WithID(id int64) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("id = ?", id)
 	}
@@ -61,7 +59,7 @@ func (q *UserQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
 	return db
 }
 
-func (q *UserQuery) GetUserDetail(ctx context.Context, opts ...DBOption) (*domain.User, error) {
+func (q *UserQuery) GetUserDetail(ctx context.Context, opts ...DBOption) (*po.UserPO, error) {
 	db := q.optionDB(ctx, opts...)
 	user := po.UserPO{}
 	result := db.Debug().First(&user)
@@ -71,25 +69,20 @@ func (q *UserQuery) GetUserDetail(ctx context.Context, opts ...DBOption) (*domai
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return converter.UserPOToDomain(&user), nil
+	return &user, nil
 }
 
-func (q *UserQuery) GetUserList(ctx context.Context, opts ...DBOption) ([]domain.User, error) {
+func (q *UserQuery) GetUserList(ctx context.Context, opts ...DBOption) ([]po.UserPO, error) {
 	db := q.optionDB(ctx, opts...)
 	userPOs := make([]po.UserPO, 0)
-	users := make([]domain.User, 0)
 	result := db.Find(&userPOs)
 	if result.Error != nil {
-		return users, result.Error
+		return userPOs, result.Error
 	}
-	for _, userPO := range userPOs {
-		user := converter.UserPOToDomain(&userPO)
-		users = append(users, *user)
-	}
-	return users, nil
+	return userPOs, nil
 }
 
-func (q *UserQuery) CreateUser(ctx context.Context, email string, passwordStore string) (*domain.User, error) {
+func (q *UserQuery) CreateUser(ctx context.Context, email string, passwordStore string) (*po.UserPO, error) {
 	user := po.UserPO{
 		Username:   email,
 		Email:      email,
@@ -101,10 +94,10 @@ func (q *UserQuery) CreateUser(ctx context.Context, email string, passwordStore 
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return converter.UserPOToDomain(&user), nil
+	return &user, nil
 }
 
-func (q *UserQuery) ResetUserPassword(ctx context.Context, user *domain.User, passwordStore string) error {
-	result := q.optionDB(ctx, q.WithID(user.ID)).Debug().Update("password", passwordStore)
+func (q *UserQuery) ResetUserPassword(ctx context.Context, userID int64, passwordStore string) error {
+	result := q.optionDB(ctx, q.WithID(userID)).Debug().Update("password", passwordStore)
 	return result.Error
 }

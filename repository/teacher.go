@@ -6,14 +6,12 @@ import (
 
 	"gorm.io/gorm"
 	"jcourse_go/dal"
-	"jcourse_go/model/converter"
-	"jcourse_go/model/domain"
 	"jcourse_go/model/po"
 )
 
 type ITeacherQuery interface {
-	GetTeacher(ctx context.Context, opts ...DBOption) (*domain.Teacher, error)
-	GetTeacherList(ctx context.Context, opts ...DBOption) ([]domain.Teacher, error)
+	GetTeacher(ctx context.Context, opts ...DBOption) (*po.TeacherPO, error)
+	GetTeacherList(ctx context.Context, opts ...DBOption) ([]po.TeacherPO, error)
 	WithID(id int64) DBOption
 	WithCode(code string) DBOption
 	WithName(name string) DBOption
@@ -41,7 +39,7 @@ func (q *TeacherQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB 
 	return db
 }
 
-func (q *TeacherQuery) GetTeacher(ctx context.Context, opts ...DBOption) (*domain.Teacher, error) {
+func (q *TeacherQuery) GetTeacher(ctx context.Context, opts ...DBOption) (*po.TeacherPO, error) {
 	db := q.optionDB(ctx, opts...)
 	teacher := po.TeacherPO{}
 	result := db.Debug().First(&teacher)
@@ -51,22 +49,17 @@ func (q *TeacherQuery) GetTeacher(ctx context.Context, opts ...DBOption) (*domai
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return converter.ConvertTeacherPOToDomain(&teacher), nil
+	return &teacher, nil
 }
 
-func (q *TeacherQuery) GetTeacherList(ctx context.Context, opts ...DBOption) ([]domain.Teacher, error) {
+func (q *TeacherQuery) GetTeacherList(ctx context.Context, opts ...DBOption) ([]po.TeacherPO, error) {
 	db := q.optionDB(ctx, opts...)
 	teacherPOs := make([]po.TeacherPO, 0)
-	teachers := make([]domain.Teacher, 0)
 	result := db.Debug().Find(&teacherPOs)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
-	for _, teacherPO := range teacherPOs {
-		teacher := converter.ConvertTeacherPOToDomain(&teacherPO)
-		teachers = append(teachers, *teacher)
-	}
-	return teachers, nil
+	return teacherPOs, nil
 }
 
 func (q *TeacherQuery) WithID(id int64) DBOption {
