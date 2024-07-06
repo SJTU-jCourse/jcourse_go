@@ -12,7 +12,6 @@ type OfferedCourse struct {
 	MainTeacher  Teacher
 	TeacherGroup []Teacher
 	Semester     string
-	Department   string
 	Language     string
 	Grade        []string
 }
@@ -23,6 +22,7 @@ type Course struct {
 	Name        string
 	Credit      float64
 	MainTeacher Teacher
+	Department  string
 	Categories  []string
 }
 

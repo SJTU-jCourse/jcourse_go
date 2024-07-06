@@ -241,6 +241,7 @@ func parseCourseFromLine(line []string) po.CoursePO {
 		Credit:          baseCourse.Credit,
 		MainTeacherID:   int64(mainTeacher.ID),
 		MainTeacherName: mainTeacher.Name,
+		Department:      line[5],
 	}
 	if courseFromDB, ok := courseKeyMap[makeCourseKey(course.Code, mainTeacher.Name)]; ok {
 		course.ID = courseFromDB.ID
@@ -272,9 +273,9 @@ func parseOfferedCourseFromLine(line []string) po.OfferedCoursePO {
 		CourseID:      int64(course.ID),
 		MainTeacherID: int64(mainTeacher.ID),
 		Semester:      Semester,
-		Department:    line[5],
-		Language:      line[11],
-		Grade:         line[14],
+		// Department:    line[5],
+		Language: line[11],
+		Grade:    line[14],
 	}
 	if offeredCourseFromDB, ok := offeredCourseKeyMap[makeOfferedCourseKey(int64(course.ID), Semester)]; ok {
 		offeredCourse.ID = offeredCourseFromDB.ID

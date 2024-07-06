@@ -80,14 +80,29 @@ type ICourseQuery interface {
 	WithID(id int64) DBOption
 	WithCode(code string) DBOption
 	WithName(name string) DBOption
-	WithCredit(credit float64) DBOption
-	WithCategory(category string) DBOption
+	WithCredits(credits []float64) DBOption
+	WithCategories(categories []string) DBOption
+	WithDepartments(departments []string) DBOption
 	WithMainTeacherName(name string) DBOption
 	WithMainTeacherID(id int64) DBOption
+	WithLimit(limit int64) DBOption
+	WithOffset(offset int64) DBOption
 }
 
 type CourseQuery struct {
 	db *gorm.DB
+}
+
+func (c *CourseQuery) WithLimit(limit int64) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Limit(int(limit))
+	}
+}
+
+func (c *CourseQuery) WithOffset(offset int64) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Offset(int(offset))
+	}
 }
 
 func (c *CourseQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
@@ -139,15 +154,21 @@ func (c *CourseQuery) WithName(name string) DBOption {
 	}
 }
 
-func (c *CourseQuery) WithCredit(credit float64) DBOption {
+func (c *CourseQuery) WithCredits(credits []float64) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("credit = ?", credit)
+		return db.Where("credit in ?", credits)
 	}
 }
 
-func (c *CourseQuery) WithCategory(category string) DBOption {
+func (c *CourseQuery) WithDepartments(departments []string) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Joins("inner join course_categories on course_categories.course_id = courses.id").Where("category = ?", category)
+		return db.Where("department in ?", departments)
+	}
+}
+
+func (c *CourseQuery) WithCategories(categories []string) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Joins("inner join course_categories on course_categories.course_id = courses.id").Where("category in ?", categories)
 	}
 }
 

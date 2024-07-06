@@ -34,6 +34,7 @@ type CoursePO struct {
 	Credit          float64 `gorm:"index"`
 	MainTeacherID   int64   `gorm:"index;index:uniq_course,unique"`
 	MainTeacherName string  `gorm:"index"`
+	Department      string  `gorm:"index;index:uniq_course,unique"`
 }
 
 func (po *CoursePO) TableName() string {
@@ -55,7 +56,6 @@ type OfferedCoursePO struct {
 	CourseID      int64  `gorm:"index;index:uniq_offered_course,unique"`
 	MainTeacherID int64  `gorm:"index"`
 	Semester      string `gorm:"index;index:uniq_offered_course,unique"`
-	Department    string `gorm:"index"`
 	Language      string `gorm:"index"`
 	Grade         string `gorm:"index"`
 }
