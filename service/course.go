@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 
-	"jcourse_go/constant"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
 	"jcourse_go/repository"
@@ -14,11 +13,7 @@ func GetCourseList(ctx context.Context, filter domain.CourseListFilter) ([]domai
 	query := repository.NewCourseQuery()
 	opts := make([]repository.DBOption, 0)
 
-	pageSize := constant.DefaultPageSize
-	if filter.PageSize > 0 {
-		pageSize = filter.PageSize
-	}
-	opts = append(opts, query.WithLimit(pageSize), query.WithOffset(util.CalcOffset(filter.Page, pageSize)))
+	opts = append(opts, query.WithLimit(filter.PageSize), query.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
 	if len(filter.Categories) > 0 {
 		opts = append(opts, query.WithCategories(filter.Categories))
 	}
@@ -46,7 +41,7 @@ func GetCourseList(ctx context.Context, filter domain.CourseListFilter) ([]domai
 
 	courses := make([]domain.Course, 0, len(coursePOs))
 	for _, coursePO := range coursePOs {
-		courses = append(courses, *converter.ConvertCoursePOToDomain(&coursePO, courseCategories[int64(coursePO.ID)]))
+		courses = append(courses, converter.ConvertCoursePOToDomain(coursePO, courseCategories[int64(coursePO.ID)]))
 	}
 	return courses, nil
 }

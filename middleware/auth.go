@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"jcourse_go/constant"
 	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
 )
@@ -12,7 +13,7 @@ import (
 func RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
-		user := session.Get("user")
+		user := session.Get(constant.SessionUserAuthKey)
 		if user == nil {
 			c.JSON(http.StatusUnauthorized, dto.BaseResponse{Message: "未授权的请求"})
 			c.Abort()
@@ -24,7 +25,7 @@ func RequireAuth() gin.HandlerFunc {
 func RequireAdmin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
-		user := session.Get("user")
+		user := session.Get(constant.SessionUserAuthKey)
 		if user == nil {
 			c.JSON(http.StatusUnauthorized, dto.BaseResponse{Message: "未授权的请求"})
 			c.Abort()

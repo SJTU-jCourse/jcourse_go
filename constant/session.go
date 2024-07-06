@@ -1,8 +1,9 @@
 package constant
 
 const (
-	CookieSessionKey = "SessionID"
-	SessionAuthKey   = "user-auth"
-	CSRFSecretKey    = "CSRF_KEY"
-	CSRFHeader       = "X-CSRF-TOKEN"
+	CookieSessionKey   = "session_id"
+	SessionUserAuthKey = "user_auth"
+	CSRFSecretKey      = "CSRF_KEY"
+	CSRFHeader         = "X-CSRF-TOKEN"
+	CSRFCookieKey      = "csrf_token"
 )

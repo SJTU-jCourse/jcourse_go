@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"jcourse_go/constant"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/service"
@@ -14,8 +15,11 @@ func GetCourseDetailHandler(c *gin.Context) {
 }
 
 func GetCourseListHandler(c *gin.Context) {
-	var request dto.CourseListRequest
-	if err := c.ShouldBind(&request); err != nil {
+	request := dto.CourseListRequest{
+		Page:     constant.DefaultPage,
+		PageSize: constant.DefaultPageSize,
+	}
+	if err := c.ShouldBindQuery(&request); err != nil {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}

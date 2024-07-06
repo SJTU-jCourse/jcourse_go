@@ -1,3 +1,6 @@
 package constant
 
-const DefaultPageSize int64 = 20
+const (
+	DefaultPage     int64 = 1
+	DefaultPageSize int64 = 20
+)

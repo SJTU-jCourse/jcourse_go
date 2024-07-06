@@ -100,14 +100,14 @@ func storeAuthSession(c *gin.Context, user *domain.User) error {
 		return errors.New("user is nil")
 	}
 	session := sessions.Default(c)
-	session.Set(constant.SessionAuthKey, user)
+	session.Set(constant.SessionUserAuthKey, user)
 	err := session.Save()
 	return err
 }
 
 func GetCurrentUser(c *gin.Context) *domain.User {
 	session := sessions.Default(c)
-	sessionValue := session.Get(constant.SessionAuthKey)
+	sessionValue := session.Get(constant.SessionUserAuthKey)
 	if sessionValue == nil {
 		return nil
 	}

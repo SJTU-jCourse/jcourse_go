@@ -36,9 +36,9 @@ type BaseCourse struct {
 }
 
 type CourseListFilter struct {
-	Page        int64     `json:"page"`
-	PageSize    int64     `json:"page_size"`
-	Departments []string  `json:"departments"`
-	Categories  []string  `json:"categories"`
-	Credits     []float64 `json:"credits"`
+	Page        int64     `json:"page" form:"page"`
+	PageSize    int64     `json:"page_size" form:"page_size"`
+	Departments []string  `json:"departments" form:"departments"`
+	Categories  []string  `json:"categories" form:"categories"`
+	Credits     []float64 `json:"credits" form:"credits"`
 }

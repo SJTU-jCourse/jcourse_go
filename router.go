@@ -10,8 +10,6 @@ func registerRouter(r *gin.Engine) {
 	middleware.InitSession(r)
 
 	api := r.Group("/api")
-	api.Use(middleware.CSRFToken())
-	api.Use(middleware.CSRF())
 
 	csrfExemption := api.Group("")
 	authGroup := csrfExemption.Group("/auth")
