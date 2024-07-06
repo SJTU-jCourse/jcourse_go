@@ -11,8 +11,7 @@ func registerRouter(r *gin.Engine) {
 
 	api := r.Group("/api")
 
-	csrfExemption := api.Group("")
-	authGroup := csrfExemption.Group("/auth")
+	authGroup := api.Group("/auth")
 	authGroup.POST("/login", handler.LoginHandler)
 	authGroup.POST("/logout", handler.LogoutHandler)
 	authGroup.POST("/register", handler.RegisterHandler)
