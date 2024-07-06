@@ -1,15 +1,8 @@
 package domain
 
-type CourseLike interface {
-	GetCode() string
-	GetName() string
-	GetCredit() float32
-}
-
 type OfferedCourse struct {
-	ID int64
-	Course
-	MainTeacher  Teacher
+	ID           int64
+	Course       *Course
 	TeacherGroup []Teacher
 	Semester     string
 	Language     string
@@ -17,13 +10,14 @@ type OfferedCourse struct {
 }
 
 type Course struct {
-	ID          int64
-	Code        string
-	Name        string
-	Credit      float64
-	MainTeacher Teacher
-	Department  string
-	Categories  []string
+	ID             int64
+	Code           string
+	Name           string
+	Credit         float64
+	MainTeacher    Teacher
+	Department     string
+	Categories     []string
+	OfferedCourses []OfferedCourse
 }
 
 type TrainingPlan struct {
@@ -41,22 +35,10 @@ type BaseCourse struct {
 	Credit float64
 }
 
-func (c *BaseCourse) GetCode() string {
-	return c.Code
-}
-
-func (c *BaseCourse) GetName() string {
-	return c.Name
-}
-
-func (c *BaseCourse) GetCredit() float64 {
-	return c.Credit
-}
-
-type Teacher struct {
-	ID         int64
-	Name       string
-	Code       string
-	Department string
-	Title      string
+type CourseListFilter struct {
+	Page        int64     `json:"page"`
+	PageSize    int64     `json:"page_size"`
+	Departments []string  `json:"departments"`
+	Categories  []string  `json:"categories"`
+	Credits     []float64 `json:"credits"`
 }

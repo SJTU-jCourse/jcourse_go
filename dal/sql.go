@@ -2,12 +2,15 @@ package dal
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"jcourse_go/util"
 )
 
 var dbClient *gorm.DB
@@ -41,7 +44,17 @@ func InitMockDBClient() (sqlmock.Sqlmock, error) {
 	if err != nil {
 		return nil, err
 	}
-	dbClient, err = gorm.Open(postgres.New(postgres.Config{Conn: db}), &gorm.Config{})
+	config := &gorm.Config{}
+	if util.IsDebug() {
+		newLogger := logger.New(
+			log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
+			logger.Config{
+				LogLevel: logger.Silent, // Log level
+			},
+		)
+		config.Logger = newLogger
+	}
+	dbClient, err = gorm.Open(postgres.New(postgres.Config{Conn: db}), config)
 	if err != nil {
 		return nil, err
 	}

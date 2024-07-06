@@ -62,7 +62,7 @@ func (q *UserQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
 func (q *UserQuery) GetUserDetail(ctx context.Context, opts ...DBOption) (*po.UserPO, error) {
 	db := q.optionDB(ctx, opts...)
 	user := po.UserPO{}
-	result := db.Debug().First(&user)
+	result := db.First(&user)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}

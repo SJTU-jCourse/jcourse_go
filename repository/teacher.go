@@ -42,7 +42,7 @@ func (q *TeacherQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB 
 func (q *TeacherQuery) GetTeacher(ctx context.Context, opts ...DBOption) (*po.TeacherPO, error) {
 	db := q.optionDB(ctx, opts...)
 	teacher := po.TeacherPO{}
-	result := db.Debug().First(&teacher)
+	result := db.First(&teacher)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
@@ -55,7 +55,7 @@ func (q *TeacherQuery) GetTeacher(ctx context.Context, opts ...DBOption) (*po.Te
 func (q *TeacherQuery) GetTeacherList(ctx context.Context, opts ...DBOption) ([]po.TeacherPO, error) {
 	db := q.optionDB(ctx, opts...)
 	teacherPOs := make([]po.TeacherPO, 0)
-	result := db.Debug().Find(&teacherPOs)
+	result := db.Find(&teacherPOs)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}

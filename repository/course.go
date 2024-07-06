@@ -77,6 +77,8 @@ func NewBaseCourseQuery() IBaseCourseQuery {
 type ICourseQuery interface {
 	GetCourse(ctx context.Context, opts ...DBOption) (*po.CoursePO, error)
 	GetCourseList(ctx context.Context, opts ...DBOption) ([]po.CoursePO, error)
+	GetCourseCount(ctx context.Context, opts ...DBOption) (int64, error)
+	GetCourseCategories(ctx context.Context, courseIDs []int64) (map[int64][]string, error)
 	WithID(id int64) DBOption
 	WithCode(code string) DBOption
 	WithName(name string) DBOption
@@ -113,10 +115,29 @@ func (c *CourseQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
 	return db
 }
 
+func (c *CourseQuery) GetCourseCategories(ctx context.Context, courseIDs []int64) (map[int64][]string, error) {
+	db := c.db.WithContext(ctx).Model(po.CourseCategoryPO{})
+	courseCategoryPOs := make([]po.CourseCategoryPO, 0)
+	result := db.Where("course_id in ?", courseIDs).Find(&courseCategoryPOs)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	courseCategoryMap := make(map[int64][]string)
+	for _, courseCategoryPO := range courseCategoryPOs {
+		categories, ok := courseCategoryMap[courseCategoryPO.CourseID]
+		if !ok {
+			categories = make([]string, 0)
+		}
+		categories = append(categories, courseCategoryPO.Category)
+		courseCategoryMap[courseCategoryPO.CourseID] = categories
+	}
+	return courseCategoryMap, nil
+}
+
 func (c *CourseQuery) GetCourse(ctx context.Context, opts ...DBOption) (*po.CoursePO, error) {
 	db := c.optionDB(ctx, opts...)
 	course := po.CoursePO{}
-	result := db.Debug().First(&course)
+	result := db.First(&course)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
@@ -129,11 +150,21 @@ func (c *CourseQuery) GetCourse(ctx context.Context, opts ...DBOption) (*po.Cour
 func (c *CourseQuery) GetCourseList(ctx context.Context, opts ...DBOption) ([]po.CoursePO, error) {
 	db := c.optionDB(ctx, opts...)
 	coursePOs := make([]po.CoursePO, 0)
-	result := db.Debug().Find(&coursePOs)
+	result := db.Find(&coursePOs)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
 	return coursePOs, nil
+}
+
+func (c *CourseQuery) GetCourseCount(ctx context.Context, opts ...DBOption) (int64, error) {
+	db := c.optionDB(ctx, opts...)
+	var count int64
+	result := db.Model(&po.CoursePO{}).Count(&count)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return count, nil
 }
 
 func (c *CourseQuery) WithID(id int64) DBOption {
@@ -212,7 +243,7 @@ func (o *OfferedCourseQuery) optionDB(ctx context.Context, opts ...DBOption) *go
 func (o *OfferedCourseQuery) GetOfferedCourse(ctx context.Context, opts ...DBOption) (*po.OfferedCoursePO, error) {
 	db := o.optionDB(ctx, opts...)
 	course := po.OfferedCoursePO{}
-	result := db.Debug().First(&course)
+	result := db.First(&course)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
@@ -225,7 +256,7 @@ func (o *OfferedCourseQuery) GetOfferedCourse(ctx context.Context, opts ...DBOpt
 func (o *OfferedCourseQuery) GetOfferedCourseList(ctx context.Context, opts ...DBOption) ([]po.OfferedCoursePO, error) {
 	db := o.optionDB(ctx, opts...)
 	coursePOs := make([]po.OfferedCoursePO, 0)
-	result := db.Debug().Find(&coursePOs)
+	result := db.Find(&coursePOs)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
