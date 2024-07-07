@@ -2,28 +2,40 @@ package po
 
 import "gorm.io/gorm"
 
-type CourseReviewPO struct {
+type ReviewPO struct {
 	gorm.Model
-	CourseID        int64
-	OfferedCourseID int64
-	UserID          int64
-	Comment         string
-	Rate            int64
-	Semester        string
-	IsAnonymous     bool
-	Version         int64
+	CourseID    int64 `gorm:"index;index:uniq_course_review,unique"`
+	UserID      int64 `gorm:"index;index:uniq_course_review,unique"`
+	Comment     string
+	Rate        int64  `gorm:"index"`
+	Semester    string `gorm:"index;index:uniq_course_review,unique"`
+	IsAnonymous bool
 }
 
-func (po *CourseReviewPO) TableName() string {
-	return "course_reviews"
+func (po *ReviewPO) TableName() string {
+	return "reviews"
+}
+
+type ReviewRevisionPO struct {
+	gorm.Model
+	ReviewID    int64 `gorm:"index"`
+	UserID      int64 `gorm:"index"`
+	Comment     string
+	Rate        int64
+	Semester    string `gorm:"index"`
+	IsAnonymous bool
+}
+
+func (po *ReviewRevisionPO) TableName() string {
+	return "review_revisions"
 }
 
 type ReviewReactionPO struct {
 	gorm.Model
-	CourseReviewID int64
-	UserID         int64
-	IsAnonymous    bool
-	Reaction       string
+	ReviewID    int64  `gorm:"index"`
+	UserID      int64  `gorm:"index"`
+	Reaction    string `gorm:"index"`
+	IsAnonymous bool
 }
 
 func (po *ReviewReactionPO) TableName() string {
@@ -32,13 +44,11 @@ func (po *ReviewReactionPO) TableName() string {
 
 type ReviewReplyPO struct {
 	gorm.Model
-	CourseReviewID int64
-	UserID         int64
-	ReplyToReplyID int64
+	ReviewID       int64 `gorm:"index"`
+	UserID         int64 `gorm:"index"`
+	ReplyToReplyID int64 `gorm:"index"`
 	Comment        string
 	IsAnonymous    bool
-
-	Version int64
 }
 
 func (po *ReviewReplyPO) TableName() string {

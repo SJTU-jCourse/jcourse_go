@@ -19,15 +19,17 @@ func (po *UserPO) TableName() string {
 	return "users"
 }
 
-type UserProfile struct {
+type UserProfilePO struct {
 	gorm.Model
-	UserID int64
-	Type   string // 用户在学校的身份
-	Major  string
-	Degree string
-	Grade  string
+	UserID     int64
+	Avatar     string
+	Department string
+	Type       string // 用户在学校的身份
+	Major      string
+	Degree     string
+	Grade      string
 }
 
-func (profile *UserProfile) TableName() string {
+func (profile *UserProfilePO) TableName() string {
 	return "user_profiles"
 }

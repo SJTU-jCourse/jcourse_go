@@ -3,7 +3,7 @@ package domain
 type UserActivity struct {
 	User User
 
-	CourseReviews []CourseReview
+	CourseReviews []Review
 	ReviewReplies []ReviewReply
 
 	ReviewedCourse []OfferedCourse

@@ -77,13 +77,14 @@ func GetCourseListHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
+	filter := convertCourseListFilter(request)
 
-	courses, err := service.GetCourseList(c, convertCourseListFilter(request))
+	courses, err := service.GetCourseList(c, filter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 		return
 	}
-	total, err := service.GetCourseCount(c)
+	total, err := service.GetCourseCount(c, filter)
 
 	resp := dto.CourseListResponse{
 		Total:    total,

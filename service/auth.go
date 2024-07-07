@@ -22,11 +22,12 @@ func Login(ctx context.Context, email string, password string) (*domain.User, er
 		return nil, err
 	}
 	query := repository.NewUserQuery()
-	user, err := query.GetUserDetail(ctx, query.WithEmail(email), query.WithPassword(passwordStore))
+	userPO, err := query.GetUserDetail(ctx, query.WithEmail(email), query.WithPassword(passwordStore))
 	if err != nil {
 		return nil, err
 	}
-	return converter.UserPOToDomain(user), nil
+	user := converter.ConvertUserPOToDomain(*userPO)
+	return &user, nil
 }
 
 func Register(ctx context.Context, email string, password string, code string) (*domain.User, error) {
@@ -38,23 +39,24 @@ func Register(ctx context.Context, email string, password string, code string) (
 		return nil, errors.New("verify code is wrong")
 	}
 	query := repository.NewUserQuery()
-	user, err := query.GetUserDetail(ctx, query.WithEmail(email))
+	userPO, err := query.GetUserDetail(ctx, query.WithEmail(email))
 	if err != nil {
 		return nil, err
 	}
-	if user != nil {
+	if userPO != nil {
 		return nil, errors.New("user exists for this email")
 	}
 	passwordStore, err := password_hasher.MakeHashedPasswordStore(password)
 	if err != nil {
 		return nil, err
 	}
-	user, err = query.CreateUser(ctx, email, passwordStore)
+	userPO, err = query.CreateUser(ctx, email, passwordStore)
 	if err != nil {
 		return nil, err
 	}
 	_ = repository.ClearVerifyCodeHistory(ctx, email)
-	return converter.UserPOToDomain(user), nil
+	user := converter.ConvertUserPOToDomain(*userPO)
+	return &user, nil
 }
 
 func ResetPassword(ctx context.Context, email string, password string, code string) error {

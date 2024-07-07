@@ -17,21 +17,22 @@ const (
 )
 
 type User struct {
-	ID         uint
+	ID         int64
 	Username   string
 	Email      string
-	Role       UserType // 用户在选课社区的身份
+	Role       UserRole // 用户在选课社区的身份
 	CreatedAt  time.Time
 	LastSeenAt time.Time
+
+	Profile UserProfile
 }
 
 type UserProfile struct {
-	UserID   uint
-	Username string
-	Email    string
-	Avatar   string
-	Type     string // 用户在学校的身份
-	Major    string
-	Degree   string
-	Grade    string
+	UserID     int64
+	Avatar     string
+	Department string
+	Type       UserType // 用户在学校的身份
+	Major      string
+	Degree     string
+	Grade      string
 }

@@ -40,11 +40,14 @@ func GetCourseDetail(ctx context.Context, courseID int64) (*domain.Course, error
 	return &course, nil
 }
 
-func GetCourseList(ctx context.Context, filter domain.CourseListFilter) ([]domain.Course, error) {
-	query := repository.NewCourseQuery()
+func buildCourseDBOptionFromFilter(query repository.ICourseQuery, filter domain.CourseListFilter) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
-
-	opts = append(opts, query.WithLimit(filter.PageSize), query.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
+	if filter.PageSize > 0 {
+		opts = append(opts, query.WithLimit(filter.PageSize))
+	}
+	if filter.Page > 0 {
+		opts = append(opts, query.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
+	}
 	if len(filter.Categories) > 0 {
 		opts = append(opts, query.WithCategories(filter.Categories))
 	}
@@ -54,6 +57,12 @@ func GetCourseList(ctx context.Context, filter domain.CourseListFilter) ([]domai
 	if len(filter.Credits) > 0 {
 		opts = append(opts, query.WithCredits(filter.Credits))
 	}
+	return opts
+}
+
+func GetCourseList(ctx context.Context, filter domain.CourseListFilter) ([]domain.Course, error) {
+	query := repository.NewCourseQuery()
+	opts := buildCourseDBOptionFromFilter(query, filter)
 
 	coursePOs, err := query.GetCourseList(ctx, opts...)
 	if err != nil {
@@ -79,7 +88,22 @@ func GetCourseList(ctx context.Context, filter domain.CourseListFilter) ([]domai
 	return courses, nil
 }
 
-func GetCourseCount(ctx context.Context) (int64, error) {
+func GetCourseCount(ctx context.Context, filter domain.CourseListFilter) (int64, error) {
 	query := repository.NewCourseQuery()
-	return query.GetCourseCount(ctx)
+	filter.Page, filter.PageSize = 0, 0
+	opts := buildCourseDBOptionFromFilter(query, filter)
+	return query.GetCourseCount(ctx, opts...)
+}
+
+func GetCourseByIDs(ctx context.Context, courseIDs []int64) (map[int64]domain.Course, error) {
+	courseQuery := repository.NewCourseQuery()
+	courseMap, err := courseQuery.GetCourseByIDs(ctx, courseIDs)
+	if err != nil {
+		return nil, err
+	}
+	result := make(map[int64]domain.Course)
+	for _, course := range courseMap {
+		result[int64(course.ID)] = converter.ConvertCoursePOToDomain(course)
+	}
+	return result, nil
 }

@@ -65,20 +65,27 @@ func PackOfferedCourseToCourse(course *domain.Course, offeredCoursePOs []po.Offe
 	course.OfferedCourses = offeredCourses
 }
 
-func ConvertCourseDomainToListDTO(course domain.Course) dto.CourseListDTO {
-	return dto.CourseListDTO{
-		ID:              course.ID,
-		Code:            course.Code,
-		Name:            course.Name,
-		Credit:          course.Credit,
-		MainTeacherName: course.MainTeacher.Name,
-		Categories:      course.Categories,
-		Department:      course.Department,
+func ConvertCourseDomainToListDTO(course domain.Course) dto.CourseListItemDTO {
+	mainTeacherDTO := dto.TeacherDTO{
+		ID:         course.MainTeacher.ID,
+		Code:       course.MainTeacher.Code,
+		Name:       course.MainTeacher.Name,
+		Department: course.MainTeacher.Department,
+		Title:      course.MainTeacher.Title,
+	}
+	return dto.CourseListItemDTO{
+		ID:          course.ID,
+		Code:        course.Code,
+		Name:        course.Name,
+		Credit:      course.Credit,
+		MainTeacher: mainTeacherDTO,
+		Categories:  course.Categories,
+		Department:  course.Department,
 	}
 }
 
-func ConvertCourseListDomainToDTO(courses []domain.Course) []dto.CourseListDTO {
-	result := make([]dto.CourseListDTO, 0, len(courses))
+func ConvertCourseListDomainToDTO(courses []domain.Course) []dto.CourseListItemDTO {
+	result := make([]dto.CourseListItemDTO, 0, len(courses))
 	if len(courses) == 0 {
 		return result
 	}

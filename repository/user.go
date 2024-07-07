@@ -16,11 +16,48 @@ type DBOption func(*gorm.DB) *gorm.DB
 type IUserQuery interface {
 	GetUserDetail(ctx context.Context, opts ...DBOption) (*po.UserPO, error)
 	GetUserList(ctx context.Context, opts ...DBOption) ([]po.UserPO, error)
+	GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]po.UserPO, error)
 	WithID(id int64) DBOption
 	WithEmail(email string) DBOption
 	WithPassword(password string) DBOption
 	CreateUser(ctx context.Context, email string, password string) (*po.UserPO, error)
 	ResetUserPassword(ctx context.Context, userID int64, password string) error
+}
+
+type IUserProfileQuery interface {
+	GetUserProfileByIDs(ctx context.Context, userIDs []int64) (map[int64]po.UserProfilePO, error)
+}
+
+type UserProfileQuery struct {
+	db *gorm.DB
+}
+
+func (u *UserProfileQuery) GetUserProfileByIDs(ctx context.Context, userIDs []int64) (map[int64]po.UserProfilePO, error) {
+	db := u.optionDB(ctx)
+	userProfiles := make(map[int64]po.UserProfilePO)
+	result := db.Where("user_id in ?", userIDs).Find(&userProfiles)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return userProfiles, nil
+}
+
+func (u *UserProfileQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
+	db := u.db.WithContext(ctx).Model(&po.UserProfilePO{})
+	for _, opt := range opts {
+		db = opt(db)
+	}
+	return db
+}
+
+func (u *UserProfileQuery) WithUserIDs(userIDs []int64) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("user_id in ?", userIDs)
+	}
+}
+
+func NewUserProfileQuery() IUserProfileQuery {
+	return &UserProfileQuery{db: dal.GetDBClient()}
 }
 
 func NewUserQuery() IUserQuery {
@@ -31,6 +68,16 @@ func NewUserQuery() IUserQuery {
 
 type UserQuery struct {
 	db *gorm.DB
+}
+
+func (q *UserQuery) GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]po.UserPO, error) {
+	db := q.optionDB(ctx)
+	userPOs := make(map[int64]po.UserPO)
+	result := db.Where("user_id in ?", userIDs).Find(&userPOs)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return userPOs, nil
 }
 
 func (q *UserQuery) WithEmail(email string) DBOption {

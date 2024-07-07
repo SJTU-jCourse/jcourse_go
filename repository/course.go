@@ -80,6 +80,7 @@ type ICourseQuery interface {
 	GetCourseList(ctx context.Context, opts ...DBOption) ([]po.CoursePO, error)
 	GetCourseCount(ctx context.Context, opts ...DBOption) (int64, error)
 	GetCourseCategories(ctx context.Context, courseIDs []int64) (map[int64][]string, error)
+	GetCourseByIDs(ctx context.Context, courseIDs []int64) (map[int64]po.CoursePO, error)
 	WithID(id int64) DBOption
 	WithCode(code string) DBOption
 	WithName(name string) DBOption
@@ -94,6 +95,16 @@ type ICourseQuery interface {
 
 type CourseQuery struct {
 	db *gorm.DB
+}
+
+func (c *CourseQuery) GetCourseByIDs(ctx context.Context, courseIDs []int64) (map[int64]po.CoursePO, error) {
+	db := c.optionDB(ctx)
+	courses := make(map[int64]po.CoursePO)
+	result := db.Where("id in ?", courseIDs).Find(&courses)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return courses, nil
 }
 
 func (c *CourseQuery) WithLimit(limit int64) DBOption {

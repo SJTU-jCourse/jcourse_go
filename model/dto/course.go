@@ -29,14 +29,14 @@ type CourseDetailRequest struct {
 	CourseID int64 `uri:"courseID" binding:"required"`
 }
 
-type CourseListDTO struct {
-	ID              int64    `json:"id"`
-	Code            string   `json:"code"`
-	Name            string   `json:"name"`
-	Credit          float64  `json:"credit"`
-	MainTeacherName string   `json:"main_teacher_name"`
-	Categories      []string `json:"categories"`
-	Department      string   `json:"department"`
+type CourseListItemDTO struct {
+	ID          int64      `json:"id"`
+	Code        string     `json:"code"`
+	Name        string     `json:"name"`
+	Credit      float64    `json:"credit"`
+	MainTeacher TeacherDTO `json:"main_teacher"`
+	Categories  []string   `json:"categories"`
+	Department  string     `json:"department"`
 }
 
 type CourseListRequest struct {
@@ -47,4 +47,4 @@ type CourseListRequest struct {
 	Credits     string `json:"credits" form:"credits"`
 }
 
-type CourseListResponse = BasePaginateResponse[CourseListDTO]
+type CourseListResponse = BasePaginateResponse[CourseListItemDTO]
