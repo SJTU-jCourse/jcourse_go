@@ -2,7 +2,6 @@ package domain
 
 type OfferedCourse struct {
 	ID           int64
-	Course       *Course
 	TeacherGroup []Teacher
 	Semester     string
 	Language     string
@@ -36,9 +35,9 @@ type BaseCourse struct {
 }
 
 type CourseListFilter struct {
-	Page        int64     `json:"page" form:"page"`
-	PageSize    int64     `json:"page_size" form:"page_size"`
-	Departments []string  `json:"departments" form:"departments"`
-	Categories  []string  `json:"categories" form:"categories"`
-	Credits     []float64 `json:"credits" form:"credits"`
+	Page        int64
+	PageSize    int64
+	Departments []string
+	Categories  []string
+	Credits     []float64
 }

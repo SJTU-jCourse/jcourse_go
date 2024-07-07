@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"gorm.io/gorm"
 	"jcourse_go/dal"
@@ -222,14 +223,48 @@ func NewCourseQuery() ICourseQuery {
 type IOfferedCourseQuery interface {
 	GetOfferedCourse(ctx context.Context, opts ...DBOption) (*po.OfferedCoursePO, error)
 	GetOfferedCourseList(ctx context.Context, opts ...DBOption) ([]po.OfferedCoursePO, error)
+	GetOfferedCourseTeacherGroup(ctx context.Context, offeredCourseIDs []int64) (map[int64][]po.TeacherPO, error)
 	WithID(id int64) DBOption
 	WithCourseID(id int64) DBOption
 	WithMainTeacherID(id int64) DBOption
 	WithSemester(semester string) DBOption
+	WithOrderBy(field string, ascending bool) DBOption
 }
 
 type OfferedCourseQuery struct {
 	db *gorm.DB
+}
+
+func (o *OfferedCourseQuery) WithOrderBy(field string, ascending bool) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		if ascending {
+			field = fmt.Sprintf("%s %s", field, "asc")
+		} else {
+			field = fmt.Sprintf("%s %s", field, "desc")
+		}
+		return db.Order(field)
+	}
+}
+
+func (o *OfferedCourseQuery) GetOfferedCourseTeacherGroup(ctx context.Context, offeredCourseIDs []int64) (map[int64][]po.TeacherPO, error) {
+	db := o.db.WithContext(ctx).Model(&po.OfferedCourseTeacherPO{})
+	courseTeacherPOs := make([]po.OfferedCourseTeacherPO, 0)
+	result := db.Where("offered_course_id in ?", offeredCourseIDs).Find(&courseTeacherPOs)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	courseTeacherMap := make(map[int64][]po.TeacherPO)
+	for _, courseTeacher := range courseTeacherPOs {
+		val, ok := courseTeacherMap[courseTeacher.OfferedCourseID]
+		if !ok {
+			val = make([]po.TeacherPO, 0)
+		}
+		teacher := po.TeacherPO{Name: courseTeacher.TeacherName}
+		teacher.ID = uint(courseTeacher.TeacherID)
+		val = append(val, teacher)
+		courseTeacherMap[courseTeacher.OfferedCourseID] = val
+	}
+	return courseTeacherMap, nil
 }
 
 func (o *OfferedCourseQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {

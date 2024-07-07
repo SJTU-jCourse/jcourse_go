@@ -9,6 +9,37 @@ import (
 	"jcourse_go/util"
 )
 
+func GetCourseDetail(ctx context.Context, courseID int64) (*domain.Course, error) {
+	courseQuery := repository.NewCourseQuery()
+	coursePO, err := courseQuery.GetCourse(ctx, courseQuery.WithID(courseID))
+	if err != nil {
+		return nil, err
+	}
+
+	courseCategories, err := courseQuery.GetCourseCategories(ctx, []int64{int64(coursePO.ID)})
+	if err != nil {
+		return nil, err
+	}
+
+	teacherQuery := repository.NewTeacherQuery()
+	teacherPO, err := teacherQuery.GetTeacher(ctx, teacherQuery.WithID(coursePO.MainTeacherID))
+	if err != nil {
+		return nil, err
+	}
+
+	offeredCourseQuery := repository.NewOfferedCourseQuery()
+	offeredCoursePOs, err := offeredCourseQuery.GetOfferedCourseList(ctx, offeredCourseQuery.WithCourseID(courseID), offeredCourseQuery.WithOrderBy("semester", false))
+	if err != nil {
+		return nil, err
+	}
+
+	course := converter.ConvertCoursePOToDomain(*coursePO)
+	converter.PackMainTeacherToCourse(&course, *teacherPO)
+	converter.PackOfferedCourseToCourse(&course, offeredCoursePOs)
+	converter.PackCategoriesToCourse(&course, courseCategories[course.ID])
+	return &course, nil
+}
+
 func GetCourseList(ctx context.Context, filter domain.CourseListFilter) ([]domain.Course, error) {
 	query := repository.NewCourseQuery()
 	opts := make([]repository.DBOption, 0)
@@ -41,7 +72,9 @@ func GetCourseList(ctx context.Context, filter domain.CourseListFilter) ([]domai
 
 	courses := make([]domain.Course, 0, len(coursePOs))
 	for _, coursePO := range coursePOs {
-		courses = append(courses, converter.ConvertCoursePOToDomain(coursePO, courseCategories[int64(coursePO.ID)]))
+		course := converter.ConvertCoursePOToDomain(coursePO)
+		converter.PackCategoriesToCourse(&course, courseCategories[int64(coursePO.ID)])
+		courses = append(courses, course)
 	}
 	return courses, nil
 }
