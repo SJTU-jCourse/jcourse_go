@@ -9,12 +9,12 @@ import (
 )
 
 type IReviewQuery interface {
-	GetCourseReviewCount(ctx context.Context, opts ...DBOption) (int64, error)
-	GetCourseReviewDetail(ctx context.Context, opts ...DBOption) (*po.ReviewPO, error)
-	GetCourseReviewList(ctx context.Context, opts ...DBOption) ([]po.ReviewPO, error)
-	CreateCourseReview(ctx context.Context, review po.ReviewPO) (int64, error)
-	UpdateCourseReview(ctx context.Context, review po.ReviewPO) (int64, error)
-	DeleteCourseReview(ctx context.Context, opts ...DBOption) (int64, error)
+	GetReviewCount(ctx context.Context, opts ...DBOption) (int64, error)
+	GetReviewDetail(ctx context.Context, opts ...DBOption) (*po.ReviewPO, error)
+	GetReviewList(ctx context.Context, opts ...DBOption) ([]po.ReviewPO, error)
+	CreateReview(ctx context.Context, review po.ReviewPO) (int64, error)
+	UpdateReview(ctx context.Context, review po.ReviewPO) (int64, error)
+	DeleteReview(ctx context.Context, opts ...DBOption) (int64, error)
 	WithID(id int64) DBOption
 	WithCourseID(courseID int64) DBOption
 	WithUserID(userID int64) DBOption
@@ -28,7 +28,7 @@ type ReviewQuery struct {
 	db *gorm.DB
 }
 
-func (c *ReviewQuery) GetCourseReviewCount(ctx context.Context, opts ...DBOption) (int64, error) {
+func (c *ReviewQuery) GetReviewCount(ctx context.Context, opts ...DBOption) (int64, error) {
 	db := c.optionDB(ctx, opts...)
 	count := int64(0)
 	result := db.Count(&count)
@@ -58,7 +58,7 @@ func (c *ReviewQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
 	return db
 }
 
-func (c *ReviewQuery) GetCourseReviewDetail(ctx context.Context, opts ...DBOption) (*po.ReviewPO, error) {
+func (c *ReviewQuery) GetReviewDetail(ctx context.Context, opts ...DBOption) (*po.ReviewPO, error) {
 	db := c.optionDB(ctx, opts...)
 	review := po.ReviewPO{}
 	result := db.WithContext(ctx).First(&review)
@@ -68,7 +68,7 @@ func (c *ReviewQuery) GetCourseReviewDetail(ctx context.Context, opts ...DBOptio
 	return &review, nil
 }
 
-func (c *ReviewQuery) GetCourseReviewList(ctx context.Context, opts ...DBOption) ([]po.ReviewPO, error) {
+func (c *ReviewQuery) GetReviewList(ctx context.Context, opts ...DBOption) ([]po.ReviewPO, error) {
 	db := c.optionDB(ctx, opts...)
 	reviews := make([]po.ReviewPO, 0)
 	result := db.WithContext(ctx).Find(&reviews)
@@ -78,18 +78,18 @@ func (c *ReviewQuery) GetCourseReviewList(ctx context.Context, opts ...DBOption)
 	return reviews, nil
 }
 
-func (c *ReviewQuery) CreateCourseReview(ctx context.Context, review po.ReviewPO) (int64, error) {
+func (c *ReviewQuery) CreateReview(ctx context.Context, review po.ReviewPO) (int64, error) {
 	db := c.optionDB(ctx)
 	result := db.Create(&review)
 	return int64(review.ID), result.Error
 }
 
-func (c *ReviewQuery) UpdateCourseReview(ctx context.Context, review po.ReviewPO) (int64, error) {
+func (c *ReviewQuery) UpdateReview(ctx context.Context, review po.ReviewPO) (int64, error) {
 	result := c.db.WithContext(ctx).Save(&review)
 	return result.RowsAffected, result.Error
 }
 
-func (c *ReviewQuery) DeleteCourseReview(ctx context.Context, opts ...DBOption) (int64, error) {
+func (c *ReviewQuery) DeleteReview(ctx context.Context, opts ...DBOption) (int64, error) {
 	db := c.optionDB(ctx, opts...)
 	result := db.Delete(&po.ReviewPO{})
 	return result.RowsAffected, result.Error
@@ -130,6 +130,6 @@ func (c *ReviewQuery) WithOrderBy(orderBy string, ascending bool) DBOption {
 	}
 }
 
-func NewCourseReviewQuery() IReviewQuery {
+func NewReviewQuery() IReviewQuery {
 	return &ReviewQuery{db: dal.GetDBClient()}
 }

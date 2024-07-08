@@ -12,7 +12,7 @@ import (
 )
 
 func InitSession(r *gin.Engine) {
-	secret := os.Getenv("SESSION_SECRET")
+	secret := os.Getenv(constant.SessionSecret)
 	store, err := sessions.NewRedisStore(10, "tcp", dal.GetRedisDSN(), "", []byte(secret))
 	if err != nil {
 		panic(err)

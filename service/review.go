@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
+	"jcourse_go/model/dto"
 	"jcourse_go/repository"
 	"jcourse_go/util"
 )
@@ -26,13 +28,16 @@ func buildReviewDBOptionFromFilter(query repository.IReviewQuery, filter domain.
 	if filter.UserID != 0 {
 		opts = append(opts, query.WithUserID(filter.UserID))
 	}
+	if filter.ReviewID != 0 {
+		opts = append(opts, query.WithID(filter.ReviewID))
+	}
 	return opts
 }
 
 func GetReviewList(ctx context.Context, filter domain.ReviewFilter) ([]domain.Review, error) {
-	reviewQuery := repository.NewCourseReviewQuery()
+	reviewQuery := repository.NewReviewQuery()
 	opts := buildReviewDBOptionFromFilter(reviewQuery, filter)
-	reviewPOs, err := reviewQuery.GetCourseReviewList(ctx, opts...)
+	reviewPOs, err := reviewQuery.GetReviewList(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -67,18 +72,51 @@ func GetReviewList(ctx context.Context, filter domain.ReviewFilter) ([]domain.Re
 		if ok {
 			converter.PackReviewWithUser(&review, user)
 		}
+		result = append(result, review)
 	}
 
 	return result, nil
 }
 
 func GetReviewCount(ctx context.Context, filter domain.ReviewFilter) (int64, error) {
-	query := repository.NewCourseReviewQuery()
+	query := repository.NewReviewQuery()
 	filter.Page, filter.PageSize = 0, 0
 	opts := buildReviewDBOptionFromFilter(query, filter)
-	return query.GetCourseReviewCount(ctx, opts...)
+	return query.GetReviewCount(ctx, opts...)
 }
 
-func CreateReview(ctx context.Context, review domain.Review) error {
+func CreateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.User) (int64, error) {
+	query := repository.NewReviewQuery()
+	reviewPO := converter.ConvertUpdateReviewDTOToPO(review, user.ID)
+	reviewID, err := query.CreateReview(ctx, reviewPO)
+	if err != nil {
+		return 0, err
+	}
+	return reviewID, nil
+}
+
+func UpdateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.User) error {
+	if review.ID == 0 {
+		return errors.New("no review id")
+	}
+	query := repository.NewReviewQuery()
+	reviewPO := converter.ConvertUpdateReviewDTOToPO(review, user.ID)
+	_, err := query.UpdateReview(ctx, reviewPO)
+	if err != nil {
+		return err
+	}
 	return nil
+}
+
+func DeleteReview(ctx context.Context, reviewID int64) error {
+	query := repository.NewReviewQuery()
+	_, err := query.DeleteReview(ctx, query.WithID(reviewID))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.User) bool {
+	return true
 }

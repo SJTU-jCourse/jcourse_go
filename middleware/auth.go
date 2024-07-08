@@ -10,6 +10,14 @@ import (
 	"jcourse_go/model/dto"
 )
 
+func GetUser(c *gin.Context) *domain.User {
+	user, exists := c.Get(constant.CtxKeyUser)
+	if !exists {
+		return nil
+	}
+	return user.(*domain.User)
+}
+
 func RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
@@ -18,6 +26,7 @@ func RequireAuth() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, dto.BaseResponse{Message: "未授权的请求"})
 			c.Abort()
 		}
+		c.Set(constant.CtxKeyUser, user)
 		c.Next()
 	}
 }
@@ -39,6 +48,7 @@ func RequireAdmin() gin.HandlerFunc {
 			c.JSON(http.StatusForbidden, dto.BaseResponse{Message: "未授权的请求"})
 			c.Abort()
 		}
+		c.Set(constant.CtxKeyUser, user)
 		c.Next()
 	}
 }

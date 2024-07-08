@@ -99,12 +99,16 @@ type CourseQuery struct {
 
 func (c *CourseQuery) GetCourseByIDs(ctx context.Context, courseIDs []int64) (map[int64]po.CoursePO, error) {
 	db := c.optionDB(ctx)
-	courses := make(map[int64]po.CoursePO)
+	courses := make([]po.CoursePO, 0)
+	coursesMap := make(map[int64]po.CoursePO)
 	result := db.Where("id in ?", courseIDs).Find(&courses)
 	if result.Error != nil {
-		return nil, result.Error
+		return coursesMap, result.Error
 	}
-	return courses, nil
+	for _, course := range courses {
+		coursesMap[int64(course.ID)] = course
+	}
+	return coursesMap, nil
 }
 
 func (c *CourseQuery) WithLimit(limit int64) DBOption {

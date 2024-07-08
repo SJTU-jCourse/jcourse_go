@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
@@ -10,6 +11,9 @@ import (
 )
 
 func GetCourseDetail(ctx context.Context, courseID int64) (*domain.Course, error) {
+	if courseID == 0 {
+		return nil, errors.New("course id is 0")
+	}
 	courseQuery := repository.NewCourseQuery()
 	coursePO, err := courseQuery.GetCourse(ctx, courseQuery.WithID(courseID))
 	if err != nil {
@@ -96,12 +100,15 @@ func GetCourseCount(ctx context.Context, filter domain.CourseListFilter) (int64,
 }
 
 func GetCourseByIDs(ctx context.Context, courseIDs []int64) (map[int64]domain.Course, error) {
+	result := make(map[int64]domain.Course)
+	if len(courseIDs) == 0 {
+		return result, nil
+	}
 	courseQuery := repository.NewCourseQuery()
 	courseMap, err := courseQuery.GetCourseByIDs(ctx, courseIDs)
 	if err != nil {
 		return nil, err
 	}
-	result := make(map[int64]domain.Course)
 	for _, course := range courseMap {
 		result[int64(course.ID)] = converter.ConvertCoursePOToDomain(course)
 	}

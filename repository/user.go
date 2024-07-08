@@ -34,12 +34,16 @@ type UserProfileQuery struct {
 
 func (u *UserProfileQuery) GetUserProfileByIDs(ctx context.Context, userIDs []int64) (map[int64]po.UserProfilePO, error) {
 	db := u.optionDB(ctx)
-	userProfiles := make(map[int64]po.UserProfilePO)
+	userProfiles := make([]po.UserProfilePO, 0)
+	userProfileMap := make(map[int64]po.UserProfilePO)
 	result := db.Where("user_id in ?", userIDs).Find(&userProfiles)
 	if result.Error != nil {
-		return nil, result.Error
+		return userProfileMap, result.Error
 	}
-	return userProfiles, nil
+	for _, userProfile := range userProfiles {
+		userProfileMap[userProfile.UserID] = userProfile
+	}
+	return userProfileMap, nil
 }
 
 func (u *UserProfileQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
@@ -72,12 +76,16 @@ type UserQuery struct {
 
 func (q *UserQuery) GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]po.UserPO, error) {
 	db := q.optionDB(ctx)
-	userPOs := make(map[int64]po.UserPO)
-	result := db.Where("user_id in ?", userIDs).Find(&userPOs)
+	userPOs := make([]po.UserPO, 0)
+	userMap := make(map[int64]po.UserPO)
+	result := db.Where("id in ?", userIDs).Find(&userPOs)
 	if result.Error != nil {
-		return nil, result.Error
+		return userMap, result.Error
 	}
-	return userPOs, nil
+	for _, userPO := range userPOs {
+		userMap[int64(userPO.ID)] = userPO
+	}
+	return userMap, nil
 }
 
 func (q *UserQuery) WithEmail(email string) DBOption {

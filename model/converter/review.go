@@ -45,7 +45,7 @@ func ConvertReviewDomainToDTO(review domain.Review, hideUser bool) dto.ReviewDTO
 		UpdatedAt:   review.UpdatedAt,
 		CreatedAt:   review.CreatedAt,
 	}
-	if !hideUser && review.IsAnonymous {
+	if !hideUser || !review.IsAnonymous {
 		reviewDTO.User = ConvertUserDomainToReviewDTO(review.User)
 	}
 	return reviewDTO
@@ -57,4 +57,19 @@ func ConvertReviewDomainToListDTO(reviews []domain.Review, hideUser bool) []dto.
 		result = append(result, ConvertReviewDomainToDTO(review, hideUser))
 	}
 	return result
+}
+
+func ConvertUpdateReviewDTOToPO(review dto.UpdateReviewDTO, userID int64) po.ReviewPO {
+	reviewPO := po.ReviewPO{
+		CourseID:    review.CourseID,
+		UserID:      userID,
+		Comment:     review.Comment,
+		Rate:        review.Rate,
+		Semester:    review.Semester,
+		IsAnonymous: review.IsAnonymous,
+	}
+	if review.ID != 0 {
+		reviewPO.ID = uint(review.ID)
+	}
+	return reviewPO
 }

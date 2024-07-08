@@ -9,6 +9,11 @@ import (
 )
 
 func GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]domain.User, error) {
+	result := make(map[int64]domain.User)
+	if len(userIDs) == 0 {
+		return result, nil
+	}
+
 	userQuery := repository.NewUserQuery()
 	userMap, err := userQuery.GetUserByIDs(ctx, userIDs)
 	if err != nil {
@@ -21,7 +26,6 @@ func GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]domain.User, 
 		return nil, err
 	}
 
-	result := make(map[int64]domain.User)
 	for _, userPO := range userMap {
 		user := converter.ConvertUserPOToDomain(userPO)
 		profilePO, ok := userProfileMap[user.ID]

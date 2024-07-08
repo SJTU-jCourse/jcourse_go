@@ -8,6 +8,7 @@ type ReviewFilter struct {
 	CourseID int64
 	Semester string
 	UserID   int64
+	ReviewID int64
 }
 
 type Review struct {

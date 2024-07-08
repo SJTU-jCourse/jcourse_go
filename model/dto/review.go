@@ -20,12 +20,17 @@ type ReviewDTO struct {
 	UpdatedAt   time.Time         `json:"updated_at,omitempty"`
 }
 
-type CourseReviewWriteDTO struct {
-	CourseID    int64  `json:"course_id"`
-	Rate        int64  `json:"rate"`
-	Comment     string `json:"comment"`
-	Semester    string `json:"semester"`
+type UpdateReviewDTO struct {
+	ID          int64  `json:"id"`
+	CourseID    int64  `json:"course_id" binding:"required"`
+	Rate        int64  `json:"rate" binding:"required"`
+	Comment     string `json:"comment" binding:"required"`
+	Semester    string `json:"semester" binding:"required"`
 	IsAnonymous bool   `json:"is_anonymous"`
+}
+
+type CreateReviewResponse struct {
+	ReviewID int64 `json:"review_id"`
 }
 
 type ReviewListRequest struct {
@@ -34,3 +39,17 @@ type ReviewListRequest struct {
 }
 
 type ReviewListResponse = BasePaginateResponse[ReviewDTO]
+
+type ReviewDetailRequest struct {
+	ReviewID int64 `uri:"reviewID" binding:"required"`
+}
+
+type UpdateReviewRequest struct {
+	ReviewID int64 `uri:"reviewID" binding:"required"`
+}
+
+type DeleteReviewRequest = UpdateReviewRequest
+
+type UpdateReviewResponse = CreateReviewResponse
+
+type DeleteReviewResponse = CreateReviewResponse
