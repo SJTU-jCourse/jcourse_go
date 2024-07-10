@@ -86,6 +86,9 @@ func GetReviewCount(ctx context.Context, filter domain.ReviewFilter) (int64, err
 }
 
 func CreateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.User) (int64, error) {
+	if !validateReview(ctx, review, user) {
+		return 0, errors.New("validate review error")
+	}
 	query := repository.NewReviewQuery()
 	reviewPO := converter.ConvertUpdateReviewDTOToPO(review, user.ID)
 	reviewID, err := query.CreateReview(ctx, reviewPO)
@@ -98,6 +101,9 @@ func CreateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.
 func UpdateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.User) error {
 	if review.ID == 0 {
 		return errors.New("no review id")
+	}
+	if !validateReview(ctx, review, user) {
+		return errors.New("validate review error")
 	}
 	query := repository.NewReviewQuery()
 	reviewPO := converter.ConvertUpdateReviewDTOToPO(review, user.ID)
@@ -118,5 +124,16 @@ func DeleteReview(ctx context.Context, reviewID int64) error {
 }
 
 func validateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.User) bool {
+	// 1. validate course and semester exists
+	offeredCourseQuery := repository.NewOfferedCourseQuery()
+	offeredCourse, err := offeredCourseQuery.GetOfferedCourse(ctx, offeredCourseQuery.WithCourseID(review.CourseID), offeredCourseQuery.WithSemester(review.Semester))
+	if err != nil || offeredCourse == nil {
+		return false
+	}
+
+	// 2. validate comment
+
+	// 3. validate review frequency
+
 	return true
 }
