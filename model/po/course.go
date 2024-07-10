@@ -98,3 +98,9 @@ type TrainingPlanCoursePO struct {
 func (po *TrainingPlanCoursePO) TableName() string {
 	return "training_plan_courses"
 }
+
+type CourseReviewInfo struct {
+	CourseID int64
+	Average  float64
+	Count    int64
+}

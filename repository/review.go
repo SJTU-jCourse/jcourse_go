@@ -15,6 +15,7 @@ type IReviewQuery interface {
 	CreateReview(ctx context.Context, review po.ReviewPO) (int64, error)
 	UpdateReview(ctx context.Context, review po.ReviewPO) (int64, error)
 	DeleteReview(ctx context.Context, opts ...DBOption) (int64, error)
+	GetCourseReviewInfo(ctx context.Context, courseIDs []int64) (map[int64]po.CourseReviewInfo, error)
 	WithID(id int64) DBOption
 	WithCourseID(courseID int64) DBOption
 	WithUserID(userID int64) DBOption
@@ -26,6 +27,23 @@ type IReviewQuery interface {
 
 type ReviewQuery struct {
 	db *gorm.DB
+}
+
+func (c *ReviewQuery) GetCourseReviewInfo(ctx context.Context, courseIDs []int64) (map[int64]po.CourseReviewInfo, error) {
+	infoMap := make(map[int64]po.CourseReviewInfo)
+	infos := make([]po.CourseReviewInfo, 0)
+	result := c.db.WithContext(ctx).Model(&po.ReviewPO{}).
+		Select("count(*) as count, avg(rate) as average, course_id").
+		Group("course_id").
+		Where("course_id in (?)", courseIDs).
+		Find(&infos)
+	if result.Error != nil {
+		return infoMap, result.Error
+	}
+	for _, info := range infos {
+		infoMap[info.CourseID] = info
+	}
+	return infoMap, nil
 }
 
 func (c *ReviewQuery) GetReviewCount(ctx context.Context, opts ...DBOption) (int64, error) {

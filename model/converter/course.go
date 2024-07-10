@@ -36,7 +36,7 @@ func ConvertCoursePOToDomain(course po.CoursePO) domain.Course {
 	}
 }
 
-func PackCategoriesToCourse(course *domain.Course, categories []string) {
+func PackCourseWithCategories(course *domain.Course, categories []string) {
 	if categories == nil {
 		return
 	}
@@ -46,14 +46,14 @@ func PackCategoriesToCourse(course *domain.Course, categories []string) {
 	course.Categories = categories
 }
 
-func PackMainTeacherToCourse(course *domain.Course, mainTeacherPO po.TeacherPO) {
+func PackCourseWithMainTeacher(course *domain.Course, mainTeacherPO po.TeacherPO) {
 	if course == nil {
 		return
 	}
 	course.MainTeacher = *ConvertTeacherPOToDomain(&mainTeacherPO)
 }
 
-func PackOfferedCourseToCourse(course *domain.Course, offeredCoursePOs []po.OfferedCoursePO) {
+func PackCourseWithOfferedCourse(course *domain.Course, offeredCoursePOs []po.OfferedCoursePO) {
 	if course == nil {
 		return
 	}
@@ -63,6 +63,16 @@ func PackOfferedCourseToCourse(course *domain.Course, offeredCoursePOs []po.Offe
 		offeredCourses = append(offeredCourses, offeredCourse)
 	}
 	course.OfferedCourses = offeredCourses
+}
+
+func PackCourseWithReviewInfo(course *domain.Course, info po.CourseReviewInfo) {
+	if course == nil {
+		return
+	}
+	course.ReviewInfo = domain.CourseReviewInfo{
+		Average: info.Average,
+		Count:   info.Count,
+	}
 }
 
 func ConvertCourseDomainToListDTO(course domain.Course) dto.CourseListItemDTO {
@@ -81,6 +91,7 @@ func ConvertCourseDomainToListDTO(course domain.Course) dto.CourseListItemDTO {
 		MainTeacher: mainTeacherDTO,
 		Categories:  course.Categories,
 		Department:  course.Department,
+		ReviewInfo:  course.ReviewInfo,
 	}
 }
 
@@ -137,6 +148,7 @@ func ConvertCourseDomainToDetailDTO(course domain.Course) dto.CourseDetailDTO {
 		Credit:        course.Credit,
 		MainTeacher:   ConvertTeacherDomainToDTO(course.MainTeacher),
 		OfferedCourse: make([]dto.OfferedCourseDTO, 0),
+		ReviewInfo:    course.ReviewInfo,
 	}
 	for _, offeredCourse := range course.OfferedCourses {
 		offeredCourseDTO := ConvertOfferedCourseDomainToDTO(offeredCourse)

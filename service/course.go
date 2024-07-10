@@ -37,10 +37,17 @@ func GetCourseDetail(ctx context.Context, courseID int64) (*domain.Course, error
 		return nil, err
 	}
 
+	reviewQuery := repository.NewReviewQuery()
+	infos, err := reviewQuery.GetCourseReviewInfo(ctx, []int64{courseID})
+	if err != nil {
+		return nil, err
+	}
+
 	course := converter.ConvertCoursePOToDomain(*coursePO)
-	converter.PackMainTeacherToCourse(&course, *teacherPO)
-	converter.PackOfferedCourseToCourse(&course, offeredCoursePOs)
-	converter.PackCategoriesToCourse(&course, courseCategories[course.ID])
+	converter.PackCourseWithMainTeacher(&course, *teacherPO)
+	converter.PackCourseWithOfferedCourse(&course, offeredCoursePOs)
+	converter.PackCourseWithCategories(&course, courseCategories[course.ID])
+	converter.PackCourseWithReviewInfo(&course, infos[course.ID])
 	return &course, nil
 }
 
@@ -83,10 +90,17 @@ func GetCourseList(ctx context.Context, filter domain.CourseListFilter) ([]domai
 		return nil, err
 	}
 
+	reviewQuery := repository.NewReviewQuery()
+	infos, err := reviewQuery.GetCourseReviewInfo(ctx, courseIDs)
+	if err != nil {
+		return nil, err
+	}
+
 	courses := make([]domain.Course, 0, len(coursePOs))
 	for _, coursePO := range coursePOs {
 		course := converter.ConvertCoursePOToDomain(coursePO)
-		converter.PackCategoriesToCourse(&course, courseCategories[int64(coursePO.ID)])
+		converter.PackCourseWithCategories(&course, courseCategories[int64(coursePO.ID)])
+		converter.PackCourseWithReviewInfo(&course, infos[int64(coursePO.ID)])
 		courses = append(courses, course)
 	}
 	return courses, nil

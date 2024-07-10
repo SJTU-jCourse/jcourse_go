@@ -8,6 +8,11 @@ type OfferedCourse struct {
 	Grade        []string
 }
 
+type CourseReviewInfo struct {
+	Average float64 `json:"average"`
+	Count   int64   `json:"count"`
+}
+
 type Course struct {
 	ID             int64
 	Code           string
@@ -17,6 +22,7 @@ type Course struct {
 	Department     string
 	Categories     []string
 	OfferedCourses []OfferedCourse
+	ReviewInfo     CourseReviewInfo
 }
 
 type TrainingPlan struct {
