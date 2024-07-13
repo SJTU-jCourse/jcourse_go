@@ -13,16 +13,6 @@ func (po *BaseCoursePO) TableName() string {
 	return "base_courses"
 }
 
-type TeacherPO struct {
-	gorm.Model
-	Name       string `gorm:"index"`
-	Code       string `gorm:"index;uniqueIndex"`
-	Department string `gorm:"index"`
-	Title      string
-	Pinyin     string `gorm:"index"`
-	PinyinAbbr string `gorm:"index"`
-}
-
 func (po *TeacherPO) TableName() string {
 	return "teachers"
 }
