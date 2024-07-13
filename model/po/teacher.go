@@ -12,3 +12,7 @@ type TeacherPO struct {
 	Pinyin     string `gorm:"index"`
 	PinyinAbbr string `gorm:"index"`
 }
+
+func (po *TeacherPO) TableName() string {
+	return "teachers"
+}

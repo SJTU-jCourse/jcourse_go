@@ -13,10 +13,6 @@ func (po *BaseCoursePO) TableName() string {
 	return "base_courses"
 }
 
-func (po *TeacherPO) TableName() string {
-	return "teachers"
-}
-
 type CoursePO struct {
 	gorm.Model
 	Code            string  `gorm:"index;index:uniq_course,unique"`
