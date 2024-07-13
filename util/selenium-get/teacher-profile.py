@@ -69,13 +69,15 @@ def resp_to_teacher(resp: dict)->Teacher:
     keys_map['mail']='mail'
     keys_map['prorank']='title'
     keys_map['profile']='profile_description'
+    keys_map['teacherId']='code' # NOTE
     for key in keys_map.keys():
         if key not in resp:
             print(f"Key '{key}({keys_map[key]})' is missing in the {resp}")
             teacher.__dict__[keys_map[key]] = ""
         if key == "teacherName":
-            teacher.pinyin = get_pinyin(resp[key])
-            teacher.pinyin_abbr = get_pinyin(resp[key])
+            teacher.__dict__["pinyin"] = get_pinyin(resp[key])
+            teacher.__dict__["pinyin_abbr"] = get_pinyin_abbreviation(resp[key])
+            print(resp[key])
         if key == "picUrl":
             teacher.head_image = f"{base_url}{resp[key]}"
         else:

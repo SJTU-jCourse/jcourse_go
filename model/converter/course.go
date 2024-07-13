@@ -115,16 +115,6 @@ func ConvertOfferedCoursePOToDomain(offeredCourse po.OfferedCoursePO) domain.Off
 	}
 }
 
-func ConvertTeacherDomainToDTO(teacher domain.Teacher) dto.TeacherDTO {
-	return dto.TeacherDTO{
-		ID:         teacher.ID,
-		Name:       teacher.Name,
-		Code:       teacher.Code,
-		Department: teacher.Department,
-		Title:      teacher.Title,
-	}
-}
-
 func ConvertOfferedCourseDomainToDTO(offeredCourse domain.OfferedCourse) dto.OfferedCourseDTO {
 	offeredCourseDTO := dto.OfferedCourseDTO{
 		ID:           offeredCourse.ID,
