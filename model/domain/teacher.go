@@ -7,4 +7,5 @@ type Teacher struct {
 	Code       string
 	Department string
 	Title      string
+	Courses    []OfferedCourse
 }

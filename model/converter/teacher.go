@@ -21,13 +21,31 @@ func ConvertTeacherPOToDomain(teacher *po.TeacherPO) *domain.Teacher {
 	}
 }
 
+func PackTeacherWithCourses(teacher *domain.Teacher, courses []po.OfferedCoursePO) {
+	if teacher == nil {
+		return
+	}
+	teacherCourses := make([]domain.OfferedCourse, 0)
+	for _, offeredCoursePO := range courses {
+		offeredCourse := ConvertOfferedCoursePOToDomain(offeredCoursePO)
+		teacherCourses = append(teacherCourses, offeredCourse)
+	}
+	teacher.Courses = teacherCourses
+}
+
 func ConvertTeacherDomainToDTO(teacher domain.Teacher) dto.TeacherDTO {
-	return dto.TeacherDTO{
+	teacherDTO := dto.TeacherDTO{
 		ID:         teacher.ID,
 		Email:      teacher.Email,
-		Name:       teacher.Name,
 		Code:       teacher.Code,
+		Name:       teacher.Name,
 		Department: teacher.Department,
 		Title:      teacher.Title,
+		Courses:    make([]dto.OfferedCourseDTO, 0),
 	}
+	for _, offeredCourse := range teacher.Courses {
+		offeredCourseDTO := ConvertOfferedCourseDomainToDTO(offeredCourse)
+		teacherDTO.Courses = append(teacherDTO.Courses, offeredCourseDTO)
+	}
+	return teacherDTO
 }
