@@ -5,9 +5,10 @@ import (
 	"errors"
 	"fmt"
 
-	"gorm.io/gorm"
 	"jcourse_go/dal"
 	"jcourse_go/model/po"
+
+	"gorm.io/gorm"
 )
 
 type IBaseCourseQuery interface {
@@ -16,6 +17,7 @@ type IBaseCourseQuery interface {
 	WithCode(code string) DBOption
 	WithName(name string) DBOption
 	WithCredit(credit float64) DBOption
+	WithIDs(IDs []int64) DBOption
 }
 
 type BaseCourseQuery struct {
@@ -23,13 +25,18 @@ type BaseCourseQuery struct {
 }
 
 func (b *BaseCourseQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
-	db := b.db.WithContext(ctx).Model(po.BaseCoursePO{})
+	// ATTENTION: 疑似敲错了，之前少了一个&
+	db := b.db.WithContext(ctx).Model(&po.BaseCoursePO{})
 	for _, opt := range opts {
 		db = opt(db)
 	}
 	return db
 }
-
+func (b *BaseCourseQuery) WithIDs(IDs []int64) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("id in ?", IDs)
+	}
+}
 func (b *BaseCourseQuery) GetBaseCourse(ctx context.Context, opts ...DBOption) (*po.BaseCoursePO, error) {
 	db := b.optionDB(ctx, opts...)
 	course := po.BaseCoursePO{}
@@ -340,3 +347,4 @@ func (o *OfferedCourseQuery) WithSemester(semester string) DBOption {
 func NewOfferedCourseQuery() IOfferedCourseQuery {
 	return &OfferedCourseQuery{db: dal.GetDBClient()}
 }
+

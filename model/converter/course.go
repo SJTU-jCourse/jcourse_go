@@ -114,7 +114,7 @@ func ConvertOfferedCoursePOToDomain(offeredCourse po.OfferedCoursePO) domain.Off
 		Grade:    strings.Split(offeredCourse.Grade, ","),
 	}
 }
-
+// FIXME：endless recursion? 
 func ConvertOfferedCourseDomainToDTO(offeredCourse domain.OfferedCourse) dto.OfferedCourseDTO {
 	offeredCourseDTO := dto.OfferedCourseDTO{
 		ID:           offeredCourse.ID,
@@ -145,4 +145,23 @@ func ConvertCourseDomainToDetailDTO(course domain.Course) dto.CourseDetailDTO {
 		courseDetailDTO.OfferedCourse = append(courseDetailDTO.OfferedCourse, offeredCourseDTO)
 	}
 	return courseDetailDTO
+}
+
+func PackTrainingPlanWithCourses(trainingPlan *domain.TrainingPlan, courses []domain.BaseCourse){
+	if courses == nil {
+		return
+	}
+	if len(courses) == 0{
+		courses = make([]domain.BaseCourse, 0)
+	}
+	trainingPlan.Courses = courses
+}
+
+func ConvertTrainingPlanPOToDomain(trainingPlan po.TrainingPlanPO) domain.TrainingPlan{
+	return domain.TrainingPlan{
+		ID:     int64(trainingPlan.ID),
+		Major:  trainingPlan.Major,
+		Department: trainingPlan.Department,
+		EntryYear: trainingPlan.EntryYear,
+	}
 }

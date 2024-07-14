@@ -7,6 +7,7 @@ type BaseCoursePO struct {
 	Code   string  `gorm:"index;uniqueIndex"`
 	Name   string  `gorm:"index"`
 	Credit float64 `gorm:"index"`
+	// TrainingPlans []TrainingPlanPO `gorm:"many2many:training_plan_courses"`
 }
 
 func (po *BaseCoursePO) TableName() string {
@@ -69,6 +70,7 @@ type TrainingPlanPO struct {
 	Major      string `gorm:"index;index:uniq_training_plan,unique"`
 	Department string `gorm:"index;index:uniq_training_plan,unique"`
 	EntryYear  string `gorm:"index;index:uniq_training_plan,unique"`
+	// Courses    []BaseCoursePO `gorm:"many2many:training_plan_courses"`
 }
 
 func (po *TrainingPlanPO) TableName() string {

@@ -33,6 +33,13 @@ type TrainingPlan struct {
 	Courses    []BaseCourse
 }
 
+type TrainingPlanFilter struct {
+	Major      string
+	Department string
+	EntryYear string
+	ContainCourseIDs []int64
+}
+
 type BaseCourse struct {
 	ID     int64
 	Code   string
