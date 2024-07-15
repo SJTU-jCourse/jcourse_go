@@ -11,8 +11,16 @@ type TeacherPO struct {
 	Title      string
 	Pinyin     string `gorm:"index"`
 	PinyinAbbr string `gorm:"index"`
+	Picture    string `gorm:"index"`
+	ProfileURL string `gorm:"index"`
 }
 
 func (po *TeacherPO) TableName() string {
 	return "teachers"
+}
+
+type TeacherCoursePO struct {
+	gorm.Model
+	TeacherID int64 `gorm:"index"`
+	CourseID  int64 `gorm:"index"`
 }

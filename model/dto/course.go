@@ -2,6 +2,13 @@ package dto
 
 import "jcourse_go/model/domain"
 
+type BaseCourseDTO struct {
+	ID     int64   `json:"id"`
+	Code   string  `json:"code"`
+	Name   string  `json:"name"`
+	Credit float64 `json:"credit"`
+}
+
 type OfferedCourseDTO struct {
 	ID           int64        `json:"id"`
 	Semester     string       `json:"semester"`
