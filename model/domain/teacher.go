@@ -11,3 +11,11 @@ type Teacher struct {
 	ProfileURL string
 	Courses    []BaseCourse
 }
+
+type TeacherFilter struct {
+	Name             string
+	Code             string
+	Department       string
+	Title            string
+	ContainCourseIDs []int64
+}

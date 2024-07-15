@@ -22,6 +22,7 @@ type ITeacherQuery interface {
 	WithTitle(title string) DBOption
 	WithPicture(picture string) DBOption
 	WithProfileURL(profileURL string) DBOption
+	WithIDs(ids []int64) DBOption
 }
 
 type TeacherQuery struct {
@@ -116,6 +117,12 @@ func (q *TeacherQuery) WithPicture(picture string) DBOption {
 func (q *TeacherQuery) WithProfileURL(profileURL string) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("profile_url = ?", profileURL)
+	}
+}
+
+func (q *TeacherQuery) WithIDs(ids []int64) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("id IN ?", ids)
 	}
 }
 
