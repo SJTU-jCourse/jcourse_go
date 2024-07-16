@@ -2,58 +2,95 @@ package service
 
 import (
 	"context"
+	"errors"
+	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
 	"jcourse_go/repository"
 )
-func BuildFilterFromText(c context.Context, text string) domain.TeacherListFilter {
-	// HINT: 教师名/拼音/拼音缩写
-	teacherQuery := repository.NewTeacherQuery()
-	filter := domain.TeacherListFilter{}
-	_, err := teacherQuery.GetTeacher(c, teacherQuery.WithName(text))
-	if err != nil {
-		filter.Name = text
-		return filter
-	}
-	_, err = teacherQuery.GetTeacher(c, teacherQuery.WithPinyin(text))
-	if err != nil {
-		filter.Pinyin = text
-		return filter
-	}
-	_, err = teacherQuery.GetTeacher(c, teacherQuery.WithPinyinAbbr(text))
-	if err != nil {
-		filter.PinyinAbbr = text
-		return filter
-	}
-	_, err = teacherQuery.GetTeacher(c, teacherQuery.WithDepartment(text))
-	if err != nil {
-		filter.Department = text
-		return filter
-	}
-	return filter
-}
-func buildTeacherDBOptionsFromFilter(query repository.ITeacherQuery, filter domain.TeacherListFilter) []repository.DBOption {
-	options := make([]repository.DBOption, 0)
 
+func GetTeacherDetail(ctx context.Context, teacherID int64) (*domain.Teacher, error) {
+	if teacherID == 0 {
+		return nil, errors.New("training-plan id is 0")
+	}
+	teacherQuery := repository.NewTeacherQuery()
+
+	teacherPO, err := teacherQuery.GetTeacher(ctx, teacherQuery.WithID(teacherID))
+	if err != nil {
+		return nil, err
+	}
+	teacher := converter.ConvertTeacherPOToDomain(teacherPO)
+
+	courseQuery := repository.NewTeacherCourseQuery()
+	courses, err := courseQuery.GetTeacherBaseCourseList(ctx, teacherID)
+	if err != nil {
+		return nil, err
+	}
+
+	converter.PackTeacherWithCourses(teacher, courses)
+	return teacher, nil
+}
+
+func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter domain.TeacherFilter) []repository.DBOption {
+	opts := make([]repository.DBOption, 0)
 	if filter.Name != "" {
-		options = append(options, query.WithName(filter.Name))
+		opts = append(opts, query.WithName(filter.Name))
 	}
-	if filter.Pinyin != "" {
-		options = append(options, query.WithPinyin(filter.Pinyin))
-	}
-	if filter.PinyinAbbr != "" {
-		options = append(options, query.WithPinyinAbbr(filter.PinyinAbbr))
+	if filter.Code != "" {
+		opts = append(opts, query.WithCode(filter.Code))
 	}
 	if filter.Department != "" {
-		options = append(options, query.WithDepartment(filter.Department))
+		opts = append(opts, query.WithDepartment(filter.Department))
 	}
-	return options
+	if filter.Title != "" {
+		opts = append(opts, query.WithTitle(filter.Title))
+	}
+	return opts
 }
 
-func GetTeacherList(c context.Context, filter domain.TeacherListFilter) ([]domain.Teacher, error) {
-	return nil, nil
+func buildTeacherCourseDBOptionFromFilter(query repository.ITeacherCourseQuery, filter domain.TeacherFilter) []repository.DBOption {
+	opts := make([]repository.DBOption, 0)
+	if len(filter.ContainCourseIDs) > 0 {
+		opts = append(opts, query.WithCourseIDs(filter.ContainCourseIDs))
+	}
+	return opts
 }
 
-func GetTeacherDetail(c context.Context, teacherID int64) (*domain.Teacher, error) {
-	return nil, nil
+func SearchTeacherList(ctx context.Context, filter domain.TeacherFilter) ([]domain.Teacher, error) {
+
+	teacherQuery := repository.NewTeacherQuery()
+	t_opts := buildTeacherDBOptionFromFilter(teacherQuery, filter)
+
+	teacherCourseQuery := repository.NewTeacherCourseQuery()
+	tc_opts := buildTeacherCourseDBOptionFromFilter(teacherCourseQuery, filter)
+	validTeacherCourseIDs, err := teacherCourseQuery.GetTeacherCourseIDs(ctx, tc_opts...)
+	if err != nil {
+		return nil, err
+	}
+	t_opts = append(t_opts, teacherQuery.WithIDs(validTeacherCourseIDs))
+
+	teachers, err := teacherQuery.GetTeacherList(ctx, t_opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	domainTeachers := make([]domain.Teacher, 0)
+	for _, t := range teachers {
+		domainTeachers = append(domainTeachers, *converter.ConvertTeacherPOToDomain(&t))
+	}
+	return domainTeachers, nil
 }
 
+func GetTeacherListByIDs(ctx context.Context, teacherPlanIDs []int64) (map[int64]domain.Teacher, error) {
+
+	teacherQuery := repository.NewTeacherQuery()
+	teachers, err := teacherQuery.GetTeacherList(ctx, teacherQuery.WithIDs(teacherPlanIDs))
+	if err != nil {
+		return nil, err
+	}
+
+	domainTeachers := make(map[int64]domain.Teacher)
+	for _, t := range teachers {
+		domainTeachers[int64(t.ID)] = *converter.ConvertTeacherPOToDomain(&t)
+	}
+	return domainTeachers, nil
+}

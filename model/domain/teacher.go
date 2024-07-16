@@ -7,7 +7,17 @@ type Teacher struct {
 	Code       string
 	Department string
 	Title      string
-	Courses    []OfferedCourse
+	Picture    string
+	ProfileURL string
+	Courses    []BaseCourse
+}
+
+type TeacherFilter struct {
+	Name             string
+	Code             string
+	Department       string
+	Title            string
+	ContainCourseIDs []int64
 }
 
 type TeacherListFilter struct{
