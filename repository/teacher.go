@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 
-	"gorm.io/gorm"
 	"jcourse_go/dal"
 	"jcourse_go/model/po"
+
+	"gorm.io/gorm"
 )
 
 type ITeacherQuery interface {
@@ -38,6 +39,7 @@ func (q *TeacherQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB 
 	}
 	return db
 }
+
 
 func (q *TeacherQuery) GetTeacher(ctx context.Context, opts ...DBOption) (*po.TeacherPO, error) {
 	db := q.optionDB(ctx, opts...)
@@ -103,3 +105,4 @@ func (q *TeacherQuery) WithTitle(title string) DBOption {
 		return db.Where("title = ?", title)
 	}
 }
+

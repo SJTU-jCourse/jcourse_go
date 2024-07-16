@@ -9,3 +9,18 @@ type TeacherDTO struct {
 	Title      string             `json:"title"`
 	Courses    []OfferedCourseDTO `json:"courses"`
 }
+
+type TeacherDetailRequest struct {
+	TeacherID int64 `uri:"teacherID" binding:"required"`
+}
+
+type TeacherDetailResponse = TeacherDTO
+
+type TeacherQueryRequest struct {
+	EntryYear string `json:"entry_year"`
+	Department string `json:"department"`
+	MajorName string `json:"major_name"`
+	MajorCode string `json:"major_code"`
+	SortDirection string `json:"sort_direction"`
+	SortBy string `json:"sort_by"`
+}

@@ -9,3 +9,10 @@ type Teacher struct {
 	Title      string
 	Courses    []OfferedCourse
 }
+
+type TeacherListFilter struct{
+	Name string
+	Department string
+	Pinyin string
+	PinyinAbbr string
+}

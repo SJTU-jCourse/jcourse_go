@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"jcourse_go/handler"
 	"jcourse_go/middleware"
+
+	"github.com/gin-gonic/gin"
 )
 
 func registerRouter(r *gin.Engine) {
@@ -24,6 +25,12 @@ func registerRouter(r *gin.Engine) {
 	teacherGroup := needAuthGroup.Group("/teacher")
 	teacherGroup.GET("", handler.GetTeacherListHandler)
 	teacherGroup.GET("/:teacherID", handler.GetTeacherDetailHandler)
+	teacherGroup.GET("/query", handler.SearchTeacherListHandler)
+
+	trainingPlanGroup := needAuthGroup.Group("/trainingplan")
+	trainingPlanGroup.GET("", handler.GetTrainingPlanListHandler)
+	trainingPlanGroup.GET("/:trainingPlanID", handler.GetTrainingPlanHandler)
+	trainingPlanGroup.GET("/query", handler.SearchTrainingPlanHandler)
 
 	courseGroup := needAuthGroup.Group("/course")
 	courseGroup.GET("", handler.GetCourseListHandler)
@@ -55,4 +62,6 @@ func registerRouter(r *gin.Engine) {
 	adminGroup.Use(middleware.RequireAdmin())
 
 	adminGroup.GET("")
+	adminGroup.POST("/teacher", handler.CreateTeacherHandler)
+	adminGroup.PUT("/teacher/:teacherID", handler.CreateTeacherHandler)
 }
