@@ -33,22 +33,31 @@ type TrainingPlan struct {
 	Courses    []BaseCourse
 }
 type TrainingPlanDetail struct {
-	ID 	int64
-	Major string
+	ID         int64
+	Major      string
 	Department string
 	EntryYear  string
 	MajorCode  string
 	MajorClass string
 	MinPoints  float64
 	TotalYear  int
-	Courses    []BaseCourse
+	Courses    []TrainingPlanCourse
+}
+type TrainingPlanCourse struct {
+	ID              int64
+	Code            string
+	Name            string
+	Credit          float64
+	SuggestYear     int64
+	SuggestSemester int64
+	Department      string // TODO: 要不要这个字段，要的话需要改BaseCoursePO
 }
 type TrainingPlanFilter struct {
-	Page int64
-	PageSize int64
-	Major      string
-	Department string
-	EntryYear string
+	Page             int64
+	PageSize         int64
+	Major            string
+	Department       string
+	EntryYear        string
 	ContainCourseIDs []int64
 }
 

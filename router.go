@@ -8,8 +8,8 @@ import (
 )
 
 func registerRouter(r *gin.Engine) {
-	middleware.InitSession(r)
-
+	// middleware.InitSession(r)
+	middleware.InitSessionDbg(r) // DEBUG
 	api := r.Group("/api")
 
 	authGroup := api.Group("/auth")

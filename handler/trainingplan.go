@@ -12,12 +12,15 @@ import (
 )
 
 func GetTrainingPlanListHandler(c *gin.Context) {
-	var request dto.TrainingPlanListQueryRequest
-	if err := c.ShouldBindQuery(&request);err!=nil {
+	var request dto.TrainingPlanListRequest
+	if err := c.ShouldBindQuery(&request); err != nil {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	Filter := domain.TrainingPlanFilter{}
+	Filter := domain.TrainingPlanFilter{
+		Page:     int64(request.Page),
+		PageSize: int64(request.PageSize),
+	}
 	TrainingPlanList, err := service.SearchTrainingPlanList(c, Filter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
@@ -32,9 +35,9 @@ func GetTrainingPlanListHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func GetTrainingPlanHandler(c *gin.Context){
+func GetTrainingPlanHandler(c *gin.Context) {
 	var request dto.TrainingPlanDetailRequest
-	if err:=c.ShouldBindUri(&request); err != nil {
+	if err := c.ShouldBindUri(&request); err != nil {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
@@ -47,19 +50,19 @@ func GetTrainingPlanHandler(c *gin.Context){
 	c.JSON(http.StatusOK, response)
 }
 
-func SearchTrainingPlanHandler(c *gin.Context){
+func SearchTrainingPlanHandler(c *gin.Context) {
 	var request dto.TrainingPlanListQueryRequest
-	if err := c.ShouldBindQuery(&request);err!=nil {
+	if err := c.ShouldBind(&request); err != nil {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
 
 	Filter := domain.TrainingPlanFilter{
-		Major: request.MajorCode,
-		EntryYear: fmt.Sprintf("%d", request.EntryYear),
+		Major:      request.MajorName,
+		EntryYear:  fmt.Sprintf("%d", request.EntryYear),
 		Department: request.Department,
-		Page: int64(request.Page),
-		PageSize: int64(request.PageSize),
+		Page:       int64(request.Page),
+		PageSize:   int64(request.PageSize),
 	}
 	TrainingPlanList, err := service.SearchTrainingPlanList(c, Filter)
 	count := service.GetTrainingPlanCount(c, Filter)

@@ -18,12 +18,18 @@ type IBaseCourseQuery interface {
 	WithName(name string) DBOption
 	WithCredit(credit float64) DBOption
 	WithIDs(IDs []int64) DBOption
+	WithID(id int64) DBOption
 }
 
 type BaseCourseQuery struct {
 	db *gorm.DB
 }
 
+func (b *BaseCourseQuery) WithID(id int64) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("id = ?", id)
+	}
+}
 func (b *BaseCourseQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
 	// ATTENTION: 疑似敲错了，之前少了一个&
 	db := b.db.WithContext(ctx).Model(&po.BaseCoursePO{})
@@ -347,4 +353,3 @@ func (o *OfferedCourseQuery) WithSemester(semester string) DBOption {
 func NewOfferedCourseQuery() IOfferedCourseQuery {
 	return &OfferedCourseQuery{db: dal.GetDBClient()}
 }
-

@@ -94,7 +94,7 @@ class major:
             return "未知类别"
         return major.main_class_table[self.code[:2]]
     def set_department(self, id:str)->None:
-        if len(id) < 3 or id[:2] not in major.department_table:
+        if len(id) < 3 or id[:3] not in major.department_table:
             self.department_name = "未知院系"
             return
         self.department_name = major.department_table[id[:3]]
@@ -162,10 +162,10 @@ def get_training_plans(tps:List[trainingPlan]):
         "currentPage_cx": "",
         "_search": "false",
         "nd": "",
-        "queryModel.showCount": "5000",
+        "queryModel.showCount": "30",
         "queryModel.currentPage": "1",
         "queryModel.sortName": "",
-        "queryModel.sortOrder": "asc",
+        "queryModel.sortOrder": "des",
         "time": "1"
     }
     def generate_training_plan(tp:dict):
@@ -200,7 +200,7 @@ course:
 "kch" //课程号
 "kcmc" //课程名称
 "xf" //学分(不一定有)
-"kkbmmc" //开课学院名称
+"kkbmmc" //开课学院名称(不一定有)
 "jyxdxnm" //建议修读学年
 "jyxdxqm" //建议修读学期
 ""
@@ -240,8 +240,9 @@ def get_training_plan_courses(tps: List[trainingPlan]):
         abstract_postlist(url, data, callback)
 
 def save_csv(tps:List[trainingPlan], to="./data/trainingPlan.txt", append=False):
-    if not os.path.exists(to):
-        os.makedirs(os.path.dirname(to))
+    dir = os.path.dirname(to)
+    if not os.path.exists(dir):
+        os.makedirs(dir)
     mode = 'w'
     if append:
         mode = 'a'

@@ -1,19 +1,26 @@
 package dto
 
-type TrainingPlanCourseDTO = BaseCourseDTO
-
+type TrainingPlanCourseDTO struct {
+	ID              int64   `json:"id"`
+	Code            string  `json:"code"`
+	Name            string  `json:"name"`
+	Credit          float64 `json:"credit"`
+	SuggestYear     int64   `json:"suggest_year"`
+	SuggestSemester int64   `json:"suggest_semester"`
+	Department      string  `json:"department"`
+}
 
 type TrainingPlanListItemDTO struct {
-	ID          int64   `json:"id"`
-	Code        string  `json:"code"`
-	MajorName 	string 	`json:"name"`
-	MinPoints 	float32 `json:"min_points"`
-	MajorClass  string `json:"major_class"`
-	EntryYear   int64  `json:"entry_year"`
-	Department  string `json:"department"`
-	TotalYear   int64  `json:"total_year"`
-	Grade       float32 `json:"grade"`
-	Courses     []TrainingPlanCourseDTO `json:"courses"`
+	ID         int64                   `json:"id"`
+	Code       string                  `json:"code"`
+	MajorName  string                  `json:"name"`
+	MinPoints  float64                 `json:"min_points"`
+	MajorClass string                  `json:"major_class"`
+	EntryYear  int64                   `json:"entry_year"`
+	Department string                  `json:"department"`
+	TotalYear  int64                   `json:"total_year"`
+	Grade      float32                 `json:"grade"`
+	Courses    []TrainingPlanCourseDTO `json:"courses"`
 }
 
 type TrainingPlanListResponse = BasePaginateResponse[TrainingPlanListItemDTO]
@@ -23,12 +30,16 @@ type TrainingPlanDetailRequest struct {
 	TrainingPlanID int64 `uri:"trainingPlanID" binding:"required"`
 }
 type TrainingPlanListQueryRequest struct {
-	EntryYear int64 `json:"entry_year"`
-	Department string `json:"department"`
-	MajorName string `json:"major_name"`
-	MajorCode string `json:"major_code"`
-	SortDirection string `json:"sort_direction"`
-	SortBy string `json:"sort_by"`
-	Page  int `json:"page"`
-	PageSize int `json:"page_size"`
+	EntryYear     int64  `form:"entry_year"`
+	Department    string `form:"department"`
+	MajorName     string `form:"major_name"`
+	MajorCode     string `form:"major_code"`
+	SortDirection string `form:"sort_direction"`
+	SortBy        string `form:"sort_by"`
+	Page          int    `form:"page" binding:"required"`
+	PageSize      int    `form:"page_size" binding:"required"`
+}
+type TrainingPlanListRequest struct {
+	Page     int `form:"page" binding:"required"`
+	PageSize int `form:"page_size" binding:"required"`
 }

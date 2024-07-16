@@ -165,12 +165,12 @@ func PackTrainingPlanWithCourses(trainingPlan *domain.TrainingPlan, courses []do
 	}
 	trainingPlan.Courses = courses
 }
-func PackTrainingPlanDetailWithCourses(trainingPlan *domain.TrainingPlanDetail, courses []domain.BaseCourse) {
+func PackTrainingPlanDetailWithCourses(trainingPlan *domain.TrainingPlanDetail, courses []domain.TrainingPlanCourse) {
 	if courses == nil {
 		return
 	}
 	if len(courses) == 0 {
-		courses = make([]domain.BaseCourse, 0)
+		courses = make([]domain.TrainingPlanCourse, 0)
 	}
 	trainingPlan.Courses = courses
 }
@@ -187,5 +187,3 @@ func ConvertTrainingPlanPOToDomain(trainingPlan po.TrainingPlanPO) domain.Traini
 		TotalYear:  int(trainingPlan.TotalYear),
 	}
 }
-
-

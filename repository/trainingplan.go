@@ -8,15 +8,15 @@ import (
 	"gorm.io/gorm"
 )
 
-
-type TrainingPlanQuery struct{
+type TrainingPlanQuery struct {
 	db *gorm.DB
 }
 
-type ITrainingPlanQuery interface{
+type ITrainingPlanQuery interface {
 	optionDB(ctx context.Context, opts ...DBOption) *gorm.DB
 	GetTrainingPlan(ctx context.Context, opts ...DBOption) (*po.TrainingPlanPO, error)
 	GetTrainingPlanList(ctx context.Context, opts ...DBOption) ([]po.TrainingPlanPO, error)
+	GetTrainingPlanListIDs(ctx context.Context, opts ...DBOption) ([]int64, error)
 	GetTrainingPlanCount(ctx context.Context, opts ...DBOption) int64
 	WithID(id int64) DBOption
 	WithDepartment(department string) DBOption
@@ -26,10 +26,20 @@ type ITrainingPlanQuery interface{
 	WithIDs(courseIDs []int64) DBOption
 	WithPaginate(page int64, pageSize int64) DBOption
 }
+
 func NewTrainingPlanQuery() ITrainingPlanQuery {
 	return &TrainingPlanQuery{db: dal.GetDBClient()}
 }
-func (t *TrainingPlanQuery)GetTrainingPlanCount(ctx context.Context, opts ...DBOption) int64{
+func (t *TrainingPlanQuery) GetTrainingPlanListIDs(ctx context.Context, opts ...DBOption) ([]int64, error) {
+	db := t.optionDB(ctx, opts...)
+	var ids []int64
+	result := db.Select("id").Find(&ids)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return ids, nil
+}
+func (t *TrainingPlanQuery) GetTrainingPlanCount(ctx context.Context, opts ...DBOption) int64 {
 	db := t.optionDB(ctx, opts...)
 	var count int64
 	result := db.Count(&count)
@@ -40,16 +50,16 @@ func (t *TrainingPlanQuery)GetTrainingPlanCount(ctx context.Context, opts ...DBO
 
 }
 func (t *TrainingPlanQuery) WithPaginate(page int64, pageSize int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB{
-		if(page <= 0 || pageSize <= 0){
+	return func(db *gorm.DB) *gorm.DB {
+		if page <= 0 || pageSize <= 0 {
 			return db.Where("1 = 0")
 		}
-		return db.Offset(int((page-1)*pageSize)).Limit(int(pageSize))
+		return db.Offset(int((page - 1) * pageSize)).Limit(int(pageSize))
 	}
 }
-func (t *TrainingPlanQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB{
+func (t *TrainingPlanQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
 	db := t.db.Model(&po.TrainingPlanPO{}).WithContext(ctx)
-	for _, opt := range opts{
+	for _, opt := range opts {
 		db = opt(db)
 	}
 	return db
@@ -64,7 +74,7 @@ func (t *TrainingPlanQuery) GetTrainingPlan(ctx context.Context, opts ...DBOptio
 	}
 	return &trainingPlan, nil
 }
-func (t *TrainingPlanQuery) GetTrainingPlanList(ctx context.Context, opts ...DBOption) ([]po.TrainingPlanPO, error){
+func (t *TrainingPlanQuery) GetTrainingPlanList(ctx context.Context, opts ...DBOption) ([]po.TrainingPlanPO, error) {
 	db := t.optionDB(ctx, opts...)
 	trainingPlans := make([]po.TrainingPlanPO, 0)
 	result := db.Debug().Find(&trainingPlans)
@@ -99,45 +109,47 @@ func (t *TrainingPlanQuery) WithEntryYear(entryYear string) DBOption {
 }
 
 func (t *TrainingPlanQuery) WithDegree(degree string) DBOption {
-	return func(db *gorm.DB) *gorm.DB{
+	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("degree = ?", degree)
 	}
 }
 
-
-type TrainingPlanCourseQuery struct{
+type TrainingPlanCourseQuery struct {
 	db *gorm.DB
 }
-func NewTrainingPlanCourseQuery() ITrainingPlanCourseQuery{
+
+func NewTrainingPlanCourseQuery() ITrainingPlanCourseQuery {
 	return &TrainingPlanCourseQuery{db: dal.GetDBClient()}
 }
 
-func (t *TrainingPlanCourseQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB{
+func (t *TrainingPlanCourseQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
 	db := t.db.Model(&po.TrainingPlanCoursePO{}).WithContext(ctx)
-	for _, opt := range opts{
+	for _, opt := range opts {
 		db = opt(db)
 	}
 	return db
 }
+
 type ITrainingPlanCourseQuery interface {
 	GetTrainingPlanCourseList(ctx context.Context, opts ...DBOption) ([]po.TrainingPlanCoursePO, error)
-	GetCourseListOfTrainingPlan(ctx context.Context, trainingPlanID int64) ([]po.BaseCoursePO, error)
+	GetCourseListOfTrainingPlan(ctx context.Context, trainingPlanID int64) ([]po.TrainingPlanCoursePO, error)
 	GetTrainingPlanListIDs(ctx context.Context, opts ...DBOption) ([]int64, error)
 	optionDB(ctx context.Context, opts ...DBOption) *gorm.DB
 	WithTrainingPlanID(trainingPlanID int64) DBOption
 	WithCourseID(courseID int64) DBOption
 	WithCourseIDs(courseIDs []int64) DBOption
 }
-func (t *TrainingPlanCourseQuery) GetTrainingPlanListIDs(ctx context.Context, opts ...DBOption) ([]int64, error){
+
+func (t *TrainingPlanCourseQuery) GetTrainingPlanListIDs(ctx context.Context, opts ...DBOption) ([]int64, error) {
 	validTrainingPlans := make([]int64, 0)
 	db := t.optionDB(ctx, opts...)
-	result := db.Pluck("training_plan_id", &validTrainingPlans)
+	result := db.Distinct("training_plan_id").Pluck("training_plan_id", &validTrainingPlans)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return validTrainingPlans, nil
 }
-func (t *TrainingPlanCourseQuery) GetTrainingPlanCourseList(ctx context.Context, opts ...DBOption) ([]po.TrainingPlanCoursePO, error){
+func (t *TrainingPlanCourseQuery) GetTrainingPlanCourseList(ctx context.Context, opts ...DBOption) ([]po.TrainingPlanCoursePO, error) {
 	db := t.optionDB(ctx, opts...)
 	trainingPlanCourses := make([]po.TrainingPlanCoursePO, 0)
 	result := db.Debug().Find(&trainingPlanCourses)
@@ -147,37 +159,34 @@ func (t *TrainingPlanCourseQuery) GetTrainingPlanCourseList(ctx context.Context,
 	return trainingPlanCourses, nil
 }
 
-func (t *TrainingPlanCourseQuery) WithCourseID(courseID int64) DBOption{
-	return func(db *gorm.DB) *gorm.DB{
+func (t *TrainingPlanCourseQuery) WithCourseID(courseID int64) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("course_id = ?", courseID)
 	}
 }
-func (t *TrainingPlanCourseQuery) WithTrainingPlanID(trainingPlanID int64) DBOption{
-	return func(db *gorm.DB) *gorm.DB{
+func (t *TrainingPlanCourseQuery) WithTrainingPlanID(trainingPlanID int64) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("training_plan_id = ?", trainingPlanID)
 	}
 }
-func (t *TrainingPlanCourseQuery) WithCourseIDs(courseIDs []int64) DBOption{
-	return func(db *gorm.DB) *gorm.DB{
+func (t *TrainingPlanCourseQuery) WithCourseIDs(courseIDs []int64) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("course_id IN ?", courseIDs).
-					Group("training_plan_id").
-					Having("count(DISTINCT course_id) = ?", len(courseIDs))
+			Group("training_plan_id").
+			Having("count(DISTINCT course_id) = ?", len(courseIDs))
 	}
 }
-func (t *TrainingPlanCourseQuery) GetCourseListOfTrainingPlan(ctx context.Context, trainingPlanID int64) ([]po.BaseCoursePO, error){
-	c := NewBaseCourseQuery()
-	opt := t.WithTrainingPlanID(trainingPlanID)
-	courseIDs := make([]int64, 0)
-	t.optionDB(ctx, opt).Find(&courseIDs)
-	copt := c.WithIDs(courseIDs)
-	courses, err := c.GetBaseCourseList(ctx, copt)
-	if err != nil {
-		return nil, err
+func (t *TrainingPlanCourseQuery) GetCourseListOfTrainingPlan(ctx context.Context, trainingPlanID int64) ([]po.TrainingPlanCoursePO, error) {
+	db := t.optionDB(ctx, t.WithTrainingPlanID(trainingPlanID))
+	courses := make([]po.TrainingPlanCoursePO, 0)
+	result := db.Debug().Find(&courses)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 	return courses, nil
 }
-func (t *TrainingPlanQuery) WithIDs(trainingPlanIDs []int64) DBOption{
-	return func(db *gorm.DB)*gorm.DB{
+func (t *TrainingPlanQuery) WithIDs(trainingPlanIDs []int64) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("id IN ?", trainingPlanIDs)
 	}
 }

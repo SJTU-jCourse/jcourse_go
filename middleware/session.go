@@ -4,11 +4,12 @@ import (
 	"encoding/gob"
 	"os"
 
-	"github.com/gin-gonic/contrib/sessions"
-	"github.com/gin-gonic/gin"
 	"jcourse_go/constant"
 	"jcourse_go/dal"
 	"jcourse_go/model/domain"
+
+	"github.com/gin-gonic/contrib/sessions"
+	"github.com/gin-gonic/gin"
 )
 
 func InitSession(r *gin.Engine) {
@@ -17,6 +18,12 @@ func InitSession(r *gin.Engine) {
 	if err != nil {
 		panic(err)
 	}
+	r.Use(sessions.Sessions(constant.CookieSessionKey, store))
+	gob.Register(&domain.User{})
+}
+
+func InitSessionDbg(r *gin.Engine) {
+	store := sessions.NewCookieStore([]byte("secret"))
 	r.Use(sessions.Sessions(constant.CookieSessionKey, store))
 	gob.Register(&domain.User{})
 }

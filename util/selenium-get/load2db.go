@@ -3,6 +3,7 @@ package seleniumget
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"jcourse_go/model/po"
 	"os"
 	"strconv"
@@ -10,23 +11,35 @@ import (
 
 	"gorm.io/gorm"
 )
+
 type LoadedCourse struct {
-	Code string
-	Name string
-	Credit float32
-	Department string
-	SuggestYear int
+	Code            string
+	Name            string
+	Credit          float32
+	Department      string
+	SuggestYear     int
 	SuggestSemester int
 }
 type LoadedTrainingPlan struct {
-	Code string
-	Name string
-	TotalYear int
-	MinPoints float64
+	Code       string
+	Name       string
+	TotalYear  int
+	MinPoints  float64
 	MajorClass string
 	Department string
-	EntryYear int
-	Courses []LoadedCourse
+	EntryYear  int
+	Courses    []LoadedCourse
+}
+
+func LoadedCourse2PO(course LoadedCourse) (po.BaseCoursePO, po.TrainingPlanCoursePO) {
+	return po.BaseCoursePO{
+			Code:   course.Code,
+			Name:   course.Name,
+			Credit: float64(course.Credit),
+		}, po.TrainingPlanCoursePO{
+			SuggestYear:     int64(course.SuggestYear),
+			SuggestSemester: int64(course.SuggestSemester),
+		}
 }
 func Line2Course(line string) LoadedCourse {
 	// AD102,素描（1）,4.0,2018-2019,1,
@@ -47,25 +60,25 @@ func Line2Course(line string) LoadedCourse {
 		suggest_semester = 0
 	}
 	return LoadedCourse{
-		Code: meta[0],
-		Name: meta[1],
-		Credit: float32(credit),
-		SuggestYear: int(suggest_year),
+		Code:            meta[0],
+		Name:            meta[1],
+		Credit:          float32(credit),
+		SuggestYear:     int(suggest_year),
 		SuggestSemester: int(suggest_semester),
-		Department: meta[5],
+		Department:      meta[5],
 	}
 }
-func Lines2TrainingPlan(lines []string) LoadedTrainingPlan{
+func Lines2TrainingPlan(lines []string) LoadedTrainingPlan {
 	plan := LoadedTrainingPlan{
 		Courses: make([]LoadedCourse, 0),
 	}
-	// 13050243,14761201813050243,视觉传达设计,13050243,4,28.5,艺术学,未知院系,2018
+	// 082201,151312019082201,核工程与核技术专业,082201,4,170,工学,未知院系,2019
 	metaInfo := strings.Split(lines[0], ",")
 	if len(metaInfo) != 9 {
 		panic("Invalid line2trainingplan: " + lines[0])
 	}
-	plan.Name = metaInfo[0]
-	plan.Code = metaInfo[1]
+	plan.Name = metaInfo[2]
+	plan.Code = metaInfo[0]
 	plan.TotalYear, _ = strconv.Atoi(metaInfo[4])
 	plan.MinPoints, _ = strconv.ParseFloat(metaInfo[5], 64)
 	plan.MajorClass = metaInfo[6]
@@ -76,18 +89,42 @@ func Lines2TrainingPlan(lines []string) LoadedTrainingPlan{
 	}
 	return plan
 }
-func TrainingPlan2PO(plan LoadedTrainingPlan) po.TrainingPlanPO{
+func TrainingPlan2PO(plan LoadedTrainingPlan) po.TrainingPlanPO {
 	return po.TrainingPlanPO{
-		Degree: "",
-		Major: plan.Name,
+		Degree:     "",
+		Major:      plan.Name,
 		Department: plan.Department,
-		EntryYear: strconv.Itoa(plan.EntryYear),
-		TotalYear: plan.TotalYear,
-		MinPoints: plan.MinPoints,
-		MajorCode: plan.Code,
+		EntryYear:  strconv.Itoa(plan.EntryYear),
+		TotalYear:  plan.TotalYear,
+		MinPoints:  plan.MinPoints,
+		MajorCode:  plan.Code,
 		MajorClass: plan.MajorClass,
 	}
 	// TODO: change po
+}
+func SaveTrainingPlanCourses(plan LoadedTrainingPlan, db *gorm.DB, tid int64) {
+	if db == nil {
+		for _, c := range plan.Courses {
+			println("saved: " + c.Code)
+		}
+	}
+
+	for _, course := range plan.Courses {
+		var possible_course po.BaseCoursePO
+		result := db.Model(&po.BaseCoursePO{}).Where("code = ?", course.Code).First(&possible_course)
+		var courseID uint
+		baseCoursePO, trainingPlanCoursePO := LoadedCourse2PO(course)
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			db.Save(&baseCoursePO)
+			courseID = baseCoursePO.ID
+		} else {
+			courseID = possible_course.ID
+		}
+		trainingPlanCoursePO.CourseID = int64(courseID)
+		trainingPlanCoursePO.TrainingPlanID = tid
+		db.Save(&trainingPlanCoursePO)
+	}
+
 }
 func SaveTrainingPlan(plans []LoadedTrainingPlan, db *gorm.DB) {
 	if db == nil {
@@ -98,8 +135,12 @@ func SaveTrainingPlan(plans []LoadedTrainingPlan, db *gorm.DB) {
 		}
 		return
 	}
+
 	for _, plan := range plans {
-		db.Save(TrainingPlan2PO(plan))
+		trainingPlanPO := TrainingPlan2PO(plan)
+		db.Save(&trainingPlanPO)
+		// save trainingplan courses
+		SaveTrainingPlanCourses(plan, db, int64(trainingPlanPO.ID))
 	}
 }
 func LoadTrainingPlan2DB(from string, db *gorm.DB) {
@@ -109,13 +150,13 @@ func LoadTrainingPlan2DB(from string, db *gorm.DB) {
 	}
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
-    var lines []string
+	var lines []string
 	var allTrainingPlans []LoadedTrainingPlan
 	for scanner.Scan() {
 		text := scanner.Text()
 		println(text)
 		if text == "" {
-			if len(lines) > 0{
+			if len(lines) > 0 {
 				allTrainingPlans = append(allTrainingPlans, Lines2TrainingPlan(lines))
 				lines = lines[:0]
 			}
@@ -126,39 +167,41 @@ func LoadTrainingPlan2DB(from string, db *gorm.DB) {
 	// HINT: debug only
 	SaveTrainingPlan(allTrainingPlans, db)
 }
-type LoadedTeacher struct{
+
+type LoadedTeacher struct {
 	/**
-	    {
-        "name": "\u5434\u7d2b\u4e91",
-        "code": 15036,
-        "department": "\u519c\u4e1a\u4e0e\u751f\u7269\u5b66\u9662",
-        "title": "\u526f\u6559\u6388",
-        "pinyin": "wuziyun",
-        "pinyin_abbr": "wzy",
-        "profile_url": "http://faculty.sjtu.edu.cn/wuziyun/zh_CN/index.htm",
-        "head_image": "https://faculty.sjtu.edu.cn//__local/7/F7/22/4B543D5D54790BC2EFC0192E923_DFEF7F92_1D826.png",
-        "mail": "wuziyun@vip.qq.com",
-        "profile_description": "PI\u7b80\u4ecb\uff1a\u5434\u7d2b\u4e91\u535a\u58eb\uff0c\u535a\u5bfc\uff0c\u6e56\u5357\u5e38\u5fb7\u4eba\uff0c2014\u5e74\u6bd5\u4e1a\u4e8e\u65b0\u52a0\u5761..."
-    },*/
-	Name string `json:"name"`
-	Code string `json:"code"`
-	Department string `json:"department"`
-	Title string `json:"title"`
-	Pinyin string `json:"pinyin"`
-	PinyinAbbr string `json:"pinyin_abbr"`
-	ProfileUrl string `json:"profile_url"`
-	HeadImage string `json:"head_image"`
-	Mail string `json:"mail"`
+		    {
+	        "name": "\u5434\u7d2b\u4e91",
+	        "code": 15036,
+	        "department": "\u519c\u4e1a\u4e0e\u751f\u7269\u5b66\u9662",
+	        "title": "\u526f\u6559\u6388",
+	        "pinyin": "wuziyun",
+	        "pinyin_abbr": "wzy",
+	        "profile_url": "http://faculty.sjtu.edu.cn/wuziyun/zh_CN/index.htm",
+	        "head_image": "https://faculty.sjtu.edu.cn//__local/7/F7/22/4B543D5D54790BC2EFC0192E923_DFEF7F92_1D826.png",
+	        "mail": "wuziyun@vip.qq.com",
+	        "profile_description": "PI\u7b80\u4ecb\uff1a\u5434\u7d2b\u4e91\u535a\u58eb\uff0c\u535a\u5bfc\uff0c\u6e56\u5357\u5e38\u5fb7\u4eba\uff0c2014\u5e74\u6bd5\u4e1a\u4e8e\u65b0\u52a0\u5761..."
+	    },*/
+	Name               string `json:"name"`
+	Code               int64  `json:"code"`
+	Department         string `json:"department"`
+	Title              string `json:"title"`
+	Pinyin             string `json:"pinyin"`
+	PinyinAbbr         string `json:"pinyin_abbr"`
+	ProfileUrl         string `json:"profile_url"`
+	HeadImage          string `json:"head_image"`
+	Mail               string `json:"mail"`
 	ProfileDescription string `json:"profile_description"`
 }
-func Teacher2PO(teacher LoadedTeacher) po.TeacherPO{
+
+func Teacher2PO(teacher LoadedTeacher) po.TeacherPO {
 	return po.TeacherPO{
-		Name: teacher.Name,
-		Code: teacher.Code,
-		Email: teacher.Mail,
+		Name:       teacher.Name,
+		Code:       strconv.Itoa(int(teacher.Code)),
+		Email:      teacher.Mail,
 		Department: teacher.Department,
-		Title: teacher.Title,
-		Pinyin: teacher.Pinyin,
+		Title:      teacher.Title,
+		Pinyin:     teacher.Pinyin,
 		PinyinAbbr: teacher.PinyinAbbr,
 		// TODO: add more
 	}
@@ -173,10 +216,11 @@ func SaveTeacher(teachers []LoadedTeacher, db *gorm.DB) {
 		return
 	}
 	for _, teacher := range teachers {
-		db.Save(Teacher2PO(teacher))
+		teacherPO := Teacher2PO(teacher)
+		db.Save(&teacherPO)
 	}
 }
-func LoadTeacherProfile2DB(from string, db *gorm.DB){
+func LoadTeacherProfile2DB(from string, db *gorm.DB) {
 	file, err := os.Open(from)
 	if err != nil {
 		panic(err)

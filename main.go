@@ -1,11 +1,10 @@
 package main
 
 import (
-	"jcourse_go/dal"
-	"jcourse_go/rpc"
-
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"jcourse_go/dal"
+	"jcourse_go/rpc"
 )
 
 func Init() {
@@ -14,9 +13,14 @@ func Init() {
 	dal.InitDBClient()
 	rpc.InitOpenAIClient()
 }
+func MyInitDbg() {
+	dal.InitDBClient()
+	dal.InitMockRedisClient()
+}
 
 func main() {
-	Init()
+	// Init()
+	MyInitDbg()
 	r := gin.Default()
 	registerRouter(r)
 	_ = r.Run()
