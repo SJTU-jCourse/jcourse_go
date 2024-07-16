@@ -19,7 +19,7 @@ type TeacherDetailRequest struct {
 type TeacherDetailResponse = TeacherDTO
 
 type TeacherQueryRequest struct {
-	EntryYear string `json:"entry_year"`
+	Text string `json:"text"`
 	Department string `json:"department"`
 	MajorName string `json:"major_name"`
 	MajorCode string `json:"major_code"`

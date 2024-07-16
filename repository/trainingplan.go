@@ -17,15 +17,35 @@ type ITrainingPlanQuery interface{
 	optionDB(ctx context.Context, opts ...DBOption) *gorm.DB
 	GetTrainingPlan(ctx context.Context, opts ...DBOption) (*po.TrainingPlanPO, error)
 	GetTrainingPlanList(ctx context.Context, opts ...DBOption) ([]po.TrainingPlanPO, error)
+	GetTrainingPlanCount(ctx context.Context, opts ...DBOption) int64
 	WithID(id int64) DBOption
 	WithDepartment(department string) DBOption
 	WithMajor(major string) DBOption
 	WithEntryYear(entryYear string) DBOption
 	WithDegree(degree string) DBOption
 	WithIDs(courseIDs []int64) DBOption
+	WithPaginate(page int64, pageSize int64) DBOption
 }
 func NewTrainingPlanQuery() ITrainingPlanQuery {
 	return &TrainingPlanQuery{db: dal.GetDBClient()}
+}
+func (t *TrainingPlanQuery)GetTrainingPlanCount(ctx context.Context, opts ...DBOption) int64{
+	db := t.optionDB(ctx, opts...)
+	var count int64
+	result := db.Count(&count)
+	if result.Error != nil {
+		return 0
+	}
+	return count
+
+}
+func (t *TrainingPlanQuery) WithPaginate(page int64, pageSize int64) DBOption {
+	return func(db *gorm.DB) *gorm.DB{
+		if(page <= 0 || pageSize <= 0){
+			return db.Where("1 = 0")
+		}
+		return db.Offset(int((page-1)*pageSize)).Limit(int(pageSize))
+	}
 }
 func (t *TrainingPlanQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB{
 	db := t.db.Model(&po.TrainingPlanPO{}).WithContext(ctx)

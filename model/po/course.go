@@ -66,11 +66,16 @@ func (po *OfferedCourseTeacherPO) TableName() string {
 
 type TrainingPlanPO struct {
 	gorm.Model
+	// 联合唯一索引
 	Degree     string `gorm:"index;index:uniq_training_plan,unique"`
 	Major      string `gorm:"index;index:uniq_training_plan,unique"`
 	Department string `gorm:"index;index:uniq_training_plan,unique"`
 	EntryYear  string `gorm:"index;index:uniq_training_plan,unique"`
-	// Courses    []BaseCoursePO `gorm:"many2many:training_plan_courses"`
+	MajorCode  string `gorm:"index;index:uniq_training_plan,unique"`
+	TotalYear  int    `gorm:"index;index:uniq_training_plan,unique"`
+	Grade      float64 `gorm:"index;index:uniq_training_plan,unique"`
+	MinPoints  float64 `gorm:"index;index:uniq_training_plan,unique"`
+	MajorClass string  `gorm:"index;index:uniq_training_plan,unique"` // 专业类
 }
 
 func (po *TrainingPlanPO) TableName() string {

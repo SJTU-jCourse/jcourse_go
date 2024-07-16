@@ -165,12 +165,27 @@ func PackTrainingPlanWithCourses(trainingPlan *domain.TrainingPlan, courses []do
 	}
 	trainingPlan.Courses = courses
 }
+func PackTrainingPlanDetailWithCourses(trainingPlan *domain.TrainingPlanDetail, courses []domain.BaseCourse) {
+	if courses == nil {
+		return
+	}
+	if len(courses) == 0 {
+		courses = make([]domain.BaseCourse, 0)
+	}
+	trainingPlan.Courses = courses
+}
 
-func ConvertTrainingPlanPOToDomain(trainingPlan po.TrainingPlanPO) domain.TrainingPlan {
-	return domain.TrainingPlan{
+func ConvertTrainingPlanPOToDomain(trainingPlan po.TrainingPlanPO) domain.TrainingPlanDetail {
+	return domain.TrainingPlanDetail{
 		ID:         int64(trainingPlan.ID),
 		Major:      trainingPlan.Major,
 		Department: trainingPlan.Department,
 		EntryYear:  trainingPlan.EntryYear,
+		MajorCode:  trainingPlan.MajorCode,
+		MajorClass: trainingPlan.MajorClass,
+		MinPoints:  trainingPlan.MinPoints,
+		TotalYear:  int(trainingPlan.TotalYear),
 	}
 }
+
+

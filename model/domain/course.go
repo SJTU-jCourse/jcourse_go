@@ -32,8 +32,20 @@ type TrainingPlan struct {
 	EntryYear  string
 	Courses    []BaseCourse
 }
-
+type TrainingPlanDetail struct {
+	ID 	int64
+	Major string
+	Department string
+	EntryYear  string
+	MajorCode  string
+	MajorClass string
+	MinPoints  float64
+	TotalYear  int
+	Courses    []BaseCourse
+}
 type TrainingPlanFilter struct {
+	Page int64
+	PageSize int64
 	Major      string
 	Department string
 	EntryYear string

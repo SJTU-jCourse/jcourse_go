@@ -22,7 +22,7 @@ type LoadedTrainingPlan struct {
 	Code string
 	Name string
 	TotalYear int
-	MinPoints int
+	MinPoints float64
 	MajorClass string
 	Department string
 	EntryYear int
@@ -67,7 +67,7 @@ func Lines2TrainingPlan(lines []string) LoadedTrainingPlan{
 	plan.Name = metaInfo[0]
 	plan.Code = metaInfo[1]
 	plan.TotalYear, _ = strconv.Atoi(metaInfo[4])
-	plan.MinPoints, _ = strconv.Atoi(metaInfo[5])
+	plan.MinPoints, _ = strconv.ParseFloat(metaInfo[5], 64)
 	plan.MajorClass = metaInfo[6]
 	plan.Department = metaInfo[7]
 	plan.EntryYear, _ = strconv.Atoi(metaInfo[8])
@@ -82,6 +82,10 @@ func TrainingPlan2PO(plan LoadedTrainingPlan) po.TrainingPlanPO{
 		Major: plan.Name,
 		Department: plan.Department,
 		EntryYear: strconv.Itoa(plan.EntryYear),
+		TotalYear: plan.TotalYear,
+		MinPoints: plan.MinPoints,
+		MajorCode: plan.Code,
+		MajorClass: plan.MajorClass,
 	}
 	// TODO: change po
 }

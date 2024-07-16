@@ -1,9 +1,77 @@
 package handler
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+	"jcourse_go/model/converter"
+	"jcourse_go/model/domain"
+	"jcourse_go/model/dto"
+	"jcourse_go/service"
+	"net/http"
 
-func GetTrainingPlanListHandler(c *gin.Context) {}
+	"github.com/gin-gonic/gin"
+)
 
-func GetTrainingPlanHandler(c *gin.Context){}
+func GetTrainingPlanListHandler(c *gin.Context) {
+	var request dto.TrainingPlanListQueryRequest
+	if err := c.ShouldBindQuery(&request);err!=nil {
+		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		return
+	}
+	Filter := domain.TrainingPlanFilter{}
+	TrainingPlanList, err := service.SearchTrainingPlanList(c, Filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+	}
+	data := converter.ConvertTrainingPlanDomainListToDTO(TrainingPlanList)
+	response := dto.TrainingPlanListResponse{
+		Page:     int64(request.Page),
+		PageSize: int64(request.PageSize),
+		Total:    int64(len(data)),
+		Data:     data,
+	}
+	c.JSON(http.StatusOK, response)
+}
 
-func SearchTrainingPlanHandler(c *gin.Context){}
+func GetTrainingPlanHandler(c *gin.Context){
+	var request dto.TrainingPlanDetailRequest
+	if err:=c.ShouldBindUri(&request); err != nil {
+		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "参数错误"})
+		return
+	}
+	TrainingPlan, err := service.GetTrainingPlanDetail(c, request.TrainingPlanID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		return
+	}
+	response := converter.ConvertTrainingPlanDomainToDTO(*TrainingPlan)
+	c.JSON(http.StatusOK, response)
+}
+
+func SearchTrainingPlanHandler(c *gin.Context){
+	var request dto.TrainingPlanListQueryRequest
+	if err := c.ShouldBindQuery(&request);err!=nil {
+		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		return
+	}
+
+	Filter := domain.TrainingPlanFilter{
+		Major: request.MajorCode,
+		EntryYear: fmt.Sprintf("%d", request.EntryYear),
+		Department: request.Department,
+		Page: int64(request.Page),
+		PageSize: int64(request.PageSize),
+	}
+	TrainingPlanList, err := service.SearchTrainingPlanList(c, Filter)
+	count := service.GetTrainingPlanCount(c, Filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+	}
+	data := converter.ConvertTrainingPlanDomainListToDTO(TrainingPlanList)
+	response := dto.TrainingPlanListResponse{
+		Page:     int64(request.Page),
+		PageSize: int64(len(data)),
+		Total:    count,
+		Data:     data,
+	}
+	c.JSON(http.StatusOK, response)
+}
