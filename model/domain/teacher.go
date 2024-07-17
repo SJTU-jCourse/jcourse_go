@@ -1,28 +1,37 @@
 package domain
 
+// FIXME: Domain层的Teacher结构体中暂时还没有存Review相关的信息,
+//
+//	目前Review与Course强相关, 没有针对Teacher的Review
 type Teacher struct {
-	ID         int64
-	Name       string
-	Email      string
-	Code       string
-	Department string
-	Title      string
-	Picture    string
-	ProfileURL string
-	Courses    []BaseCourse
+	ID          int64
+	Name        string
+	Email       string
+	Code        string
+	Department  string
+	Title       string
+	Picture     string
+	ProfileURL  string
+	ProfileDesc string
+	Courses     []BaseCourse
 }
 
-type TeacherFilter struct {
+// type TeacherFilter struct {
+// 	Name             string
+// 	Code             string
+// 	Department       string
+// 	Title            string
+// 	ContainCourseIDs []int64
+// }
+
+type TeacherListFilter struct {
+	Page             int64
+	PageSize         int64
 	Name             string
 	Code             string
 	Department       string
 	Title            string
+	Pinyin           string
+	PinyinAbbr       string
 	ContainCourseIDs []int64
-}
-
-type TeacherListFilter struct{
-	Name string
-	Department string
-	Pinyin string
-	PinyinAbbr string
 }

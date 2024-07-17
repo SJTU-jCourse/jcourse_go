@@ -30,7 +30,7 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*domain.Teacher, er
 	return teacher, nil
 }
 
-func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter domain.TeacherFilter) []repository.DBOption {
+func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter domain.TeacherListFilter) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if filter.Name != "" {
 		opts = append(opts, query.WithName(filter.Name))
@@ -44,10 +44,18 @@ func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter domai
 	if filter.Title != "" {
 		opts = append(opts, query.WithTitle(filter.Title))
 	}
+	if filter.Pinyin != "" {
+		opts = append(opts, query.WithPinyin(filter.Pinyin))
+	}
+	if filter.PinyinAbbr != "" {
+		opts = append(opts, query.WithPinyinAbbr(filter.PinyinAbbr))
+	}
+
+	opts = append(opts, query.WithPaginate(filter.Page, filter.PageSize))
 	return opts
 }
 
-func buildTeacherCourseDBOptionFromFilter(query repository.ITeacherCourseQuery, filter domain.TeacherFilter) []repository.DBOption {
+func buildTeacherCourseDBOptionFromFilter(query repository.ITeacherCourseQuery, filter domain.TeacherListFilter) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if len(filter.ContainCourseIDs) > 0 {
 		opts = append(opts, query.WithCourseIDs(filter.ContainCourseIDs))
@@ -55,7 +63,7 @@ func buildTeacherCourseDBOptionFromFilter(query repository.ITeacherCourseQuery, 
 	return opts
 }
 
-func SearchTeacherList(ctx context.Context, filter domain.TeacherFilter) ([]domain.Teacher, error) {
+func SearchTeacherList(ctx context.Context, filter domain.TeacherListFilter) ([]domain.Teacher, error) {
 
 	teacherQuery := repository.NewTeacherQuery()
 	t_opts := buildTeacherDBOptionFromFilter(teacherQuery, filter)
@@ -78,6 +86,13 @@ func SearchTeacherList(ctx context.Context, filter domain.TeacherFilter) ([]doma
 		domainTeachers = append(domainTeachers, *converter.ConvertTeacherPOToDomain(&t))
 	}
 	return domainTeachers, nil
+}
+
+func GetTeacherCount(ctx context.Context, filter domain.TeacherListFilter) (int64, error) {
+	query := repository.NewTeacherQuery()
+	filter.Page, filter.PageSize = 0, 0
+	opts := buildTeacherDBOptionFromFilter(query, filter)
+	return query.GetTeacherCount(ctx, opts...)
 }
 
 func GetTeacherListByIDs(ctx context.Context, teacherPlanIDs []int64) (map[int64]domain.Teacher, error) {
