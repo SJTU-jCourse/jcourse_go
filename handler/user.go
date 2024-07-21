@@ -13,3 +13,7 @@ func GetUserDetailHandler(c *gin.Context) {}
 func WatchUserHandler(c *gin.Context) {}
 
 func UnWatchUserHandler(c *gin.Context) {}
+
+func UpdateUserInfoHandler(c *gin.Context) {}
+
+func GetUserReviewsHandler(c *gin.Context) {}
