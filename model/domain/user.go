@@ -28,11 +28,18 @@ type User struct {
 }
 
 type UserProfile struct {
-	UserID     int64
-	Avatar     string
-	Department string
-	Type       UserType // 用户在学校的身份
-	Major      string
-	Degree     string
-	Grade      string
+	UserID            int64
+	Avatar            string
+	Department        string
+	Type              UserType // 用户在学校的身份
+	Major             string
+	Degree            string
+	Grade             string
+	PersonalSignature string
+}
+
+type UserFilter struct {
+	Page     int64
+	PageSize int64
+	// To be continued ... (add more fields)
 }
