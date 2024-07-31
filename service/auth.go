@@ -8,10 +8,10 @@ import (
 	"math/big"
 	"regexp"
 
+	"github.com/SJTU-jCourse/password_hasher"
 	"jcourse_go/constant"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
-	"jcourse_go/pkg/password_hasher"
 	"jcourse_go/repository"
 	"jcourse_go/rpc"
 )
