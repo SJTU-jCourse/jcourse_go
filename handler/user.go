@@ -14,11 +14,11 @@ import (
 func GetSuggestedUserHandler(c *gin.Context) {}
 
 func GetUserListHandler(c *gin.Context) {
-	/*
-		管理员权限验证
-	*/
+
+	//	管理员权限验证
+
 	var request dto.UserListRequest
-	if err := c.ShouldBind(&request); err != nil {
+	if err := c.ShouldBindQuery(&request); err != nil {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
@@ -41,7 +41,7 @@ func GetUserListHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func GetCurrentUserHandler(c *gin.Context) {
+func GetCurrentUserSummaryHandler(c *gin.Context) {
 	userInterface, exists := c.Get(constant.CtxKeyUser)
 	if !exists {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "用户未登录！"})
@@ -49,13 +49,12 @@ func GetCurrentUserHandler(c *gin.Context) {
 	}
 	user, _ := userInterface.(*domain.User)
 
-	me, err := service.GetUserDetailsByID(c, user.ID)
+	me, err := service.GetUserSummaryByID(c, user.ID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "此用户不存在！"})
 		return
 	}
 	c.JSON(http.StatusOK, me)
-	return
 }
 
 func GetUserDetailHandler(c *gin.Context) {
@@ -66,18 +65,34 @@ func GetUserDetailHandler(c *gin.Context) {
 		return
 	}
 
-	userDetail, errDetail := service.GetUserDetailsByID(c, int64(userID))
+	userDetail, errDetail := service.GetUserDetailByID(c, int64(userID))
 	if errDetail != nil {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "此用户不存在！"})
 	}
 	c.JSON(http.StatusOK, userDetail)
 }
 
+func GetCurrentUserProfileHandler(c *gin.Context) {
+	userInterface, exists := c.Get(constant.CtxKeyUser)
+	if !exists {
+		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "用户未登录！"})
+		return
+	}
+
+	user, _ := userInterface.(*domain.User)
+	me, err := service.GetUserProfileByID(c, user.ID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "此用户不存在！"})
+		return
+	}
+	c.JSON(http.StatusOK, me)
+}
+
 func WatchUserHandler(c *gin.Context) {}
 
 func UnWatchUserHandler(c *gin.Context) {}
 
-func UpdateUserInfoHandler(c *gin.Context) {}
+func UpdateUserProfileHandler(c *gin.Context) {}
 
 func GetUserReviewsHandler(c *gin.Context) {
 	userIDStr := c.Param("userID")
