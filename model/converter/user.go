@@ -19,14 +19,14 @@ func ConvertUserPOToDomain(userPO po.UserPO) domain.User {
 
 func ConvertUserProfilePOToDomain(userProfile po.UserProfilePO) domain.UserProfile {
 	return domain.UserProfile{
-		UserID:            userProfile.UserID,
-		Avatar:            userProfile.Avatar,
-		Department:        userProfile.Department,
-		Type:              userProfile.Type,
-		Major:             userProfile.Major,
-		Degree:            userProfile.Degree,
-		Grade:             userProfile.Grade,
-		PersonalSignature: userProfile.PersonalSignature,
+		UserID:     userProfile.UserID,
+		Avatar:     userProfile.Avatar,
+		Department: userProfile.Department,
+		Type:       userProfile.Type,
+		Major:      userProfile.Major,
+		Degree:     userProfile.Degree,
+		Grade:      userProfile.Grade,
+		Bio:        userProfile.Bio,
 	}
 }
 
@@ -46,30 +46,15 @@ func ConvertUserDomainToReviewDTO(user domain.User) dto.UserInReviewDTO {
 	}
 }
 
-func ConvertToUserSummaryDTO(userPO *po.UserPO, userProfilePO *po.UserProfilePO) *dto.UserSummaryDTO {
+func ConvertToUserDetailDTO(userPO *po.UserPO, userProfilePO *po.UserProfilePO) *dto.UserDetailDTO {
 	if userPO == nil {
 		return nil
 	}
-	return &dto.UserSummaryDTO{
+	return &dto.UserDetailDTO{
 		ID:       int64(userPO.ID),
 		Username: userPO.Username,
 		Avatar:   userProfilePO.Avatar,
-		Role:     userPO.UserRole,
-	}
-}
-
-func ConvertToUserDetailsDTO(userPO *po.UserPO, userProfilePO *po.UserProfilePO) *dto.UserDetailsDTO {
-	if userPO == nil {
-		return nil
-	}
-	return &dto.UserDetailsDTO{
-		ID:                int64(userPO.ID),
-		Username:          userPO.Username,
-		Role:              userPO.UserRole,
-		LastSeenAt:        userPO.LastSeenAt,
-		Type:              userPO.UserRole,
-		Avatar:            userProfilePO.Avatar,
-		PersonalSignature: userProfilePO.PersonalSignature,
+		Bio:      userProfilePO.Bio,
 	}
 }
 
@@ -78,16 +63,15 @@ func ConvertToUserProfileDTO(userPO *po.UserPO, userProfilePO *po.UserProfilePO)
 		return nil
 	}
 	return &dto.UserProfileDTO{
-		ID:                int64(userPO.ID),
-		UserID:            userProfilePO.UserID,
-		Avatar:            userProfilePO.Avatar,
-		Department:        userProfilePO.Department,
-		Type:              userProfilePO.Type,
-		Major:             userProfilePO.Major,
-		Degree:            userProfilePO.Degree,
-		Grade:             userProfilePO.Grade,
-		PersonalSignature: userProfilePO.PersonalSignature,
-		Username:          userPO.Username,
-		Role:              userPO.UserRole,
+		ID:         int64(userPO.ID),
+		UserID:     userProfilePO.UserID,
+		Username:   userPO.Username,
+		Bio:        userProfilePO.Bio,
+		Email:      userPO.Email,
+		Avatar:     userProfilePO.Avatar,
+		Role:       userPO.UserRole,
+		Department: userProfilePO.Department,
+		Major:      userProfilePO.Major,
+		Grade:      userProfilePO.Grade,
 	}
 }

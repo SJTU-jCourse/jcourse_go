@@ -28,14 +28,14 @@ type User struct {
 }
 
 type UserProfile struct {
-	UserID            int64
-	Avatar            string
-	Department        string
-	Type              UserType // 用户在学校的身份
-	Major             string
-	Degree            string
-	Grade             string
-	PersonalSignature string
+	UserID     int64
+	Avatar     string
+	Department string
+	Type       UserType // 用户在学校的身份
+	Major      string
+	Degree     string
+	Grade      string
+	Bio        string
 }
 
 type UserFilter struct {
