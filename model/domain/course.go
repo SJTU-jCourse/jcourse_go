@@ -52,6 +52,18 @@ type TrainingPlanCourse struct {
 	SuggestSemester int64
 	Department      string // TODO: 要不要这个字段，要的话需要改BaseCoursePO
 }
+type TrainingPlanRateInfo struct {
+	ID             int64
+	Avg            float64
+	Count          int64
+	TrainingPlanID int64
+}
+type TrainingPlanRate struct {
+	ID     int64
+	UserID int64
+	Rate   int64
+}
+
 type TrainingPlanFilter struct {
 	Page             int64
 	PageSize         int64

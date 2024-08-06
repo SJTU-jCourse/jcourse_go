@@ -36,6 +36,14 @@ func initDB() {
 	dal.InitDBClient()
 	db = dal.GetDBClient()
 }
+func initTestDB() {
+	_ = godotenv.Load()
+	err := dal.InitSqliteDB()
+	if err != nil {
+		panic(err)
+	}
+	db = dal.GetDBClient()
+}
 
 func readRawCSV(filename string) [][]string {
 	fs, err := os.Open(filename)
@@ -52,7 +60,8 @@ func readRawCSV(filename string) [][]string {
 }
 
 func main() {
-	initDB()
+	// initDB()
+	initTestDB()
 	data := readRawCSV(fmt.Sprintf("./data/%s.csv", Semester))
 
 	// init

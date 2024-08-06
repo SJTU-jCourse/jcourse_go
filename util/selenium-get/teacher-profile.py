@@ -97,7 +97,7 @@ def set_cookie():
     # 转化为 requests 库可以使用的格式
     for cookie in cookies:
         session.cookies.set(cookie['name'], cookie['value'])
-def get_teacher_list(_print:bool=False, limit:int=10)->List[Teacher]:
+def get_teacher_list(_print:bool=False, limit:int=10000)->List[Teacher]:
     url = f"{base_url}/system/resource/tsites/advancesearch.jsp"
     query_param = {
         "collegeid": 0,
@@ -172,7 +172,10 @@ def main():
 
     login(name=args.name, password=args.password)
     set_cookie()
-    new_teachers = get_teacher_list(args.verbose, args.limit)
+    if args.limit:
+        new_teachers = get_teacher_list(args.verbose, args.limit)
+    else:
+        new_teachers = get_teacher_list(args.verbose)
     all_teachers = init_teachers + new_teachers
     print("当前教师数量：{}".format(len(all_teachers)))
     if not args.debug:

@@ -252,7 +252,10 @@ type IOfferedCourseQuery interface {
 	GetOfferedCourse(ctx context.Context, opts ...DBOption) (*po.OfferedCoursePO, error)
 	GetOfferedCourseList(ctx context.Context, opts ...DBOption) ([]po.OfferedCoursePO, error)
 	GetOfferedCourseTeacherGroup(ctx context.Context, offeredCourseIDs []int64) (map[int64][]po.TeacherPO, error)
+	// 获取教过courseIDs之中所有课的主教师的ID List
+	GetMainTeacherIDsWithOfferedCourseIDs(ctx context.Context, courseIDs []int64) ([]int64, error)
 	WithID(id int64) DBOption
+	WithIDs(ids []int64) DBOption
 	WithCourseID(id int64) DBOption
 	WithMainTeacherID(id int64) DBOption
 	WithSemester(semester string) DBOption
@@ -325,13 +328,35 @@ func (o *OfferedCourseQuery) GetOfferedCourseList(ctx context.Context, opts ...D
 	}
 	return coursePOs, nil
 }
+func (o *OfferedCourseQuery) GetMainTeacherIDsWithOfferedCourseIDs(ctx context.Context, courseIDs []int64) ([]int64, error) {
+	main_teacher_ids := make([]int64, 0)
+	db := o.optionDB(ctx)
+	if courseIDs == nil || len(courseIDs) == 0 {
+		result := db.Distinct("main_teacher_id").Pluck("main_teacher_id", &main_teacher_ids)
+		if result.Error != nil {
+			return nil, result.Error
+		}
+		return main_teacher_ids, nil
+	}
+	result := db.Where("id IN ?", courseIDs).
+		Group("training_plan_id").
+		Having("count(DISTINCT id) = ?", len(courseIDs)).Find(&main_teacher_ids)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return main_teacher_ids, nil
+}
 
 func (o *OfferedCourseQuery) WithID(id int64) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("id = ?", id)
 	}
 }
-
+func (o *OfferedCourseQuery) WithIDs(ids []int64) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("id in ?", ids)
+	}
+}
 func (o *OfferedCourseQuery) WithCourseID(id int64) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("course_id = ?", id)

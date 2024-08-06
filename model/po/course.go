@@ -7,7 +7,6 @@ type BaseCoursePO struct {
 	Code   string  `gorm:"index;uniqueIndex"`
 	Name   string  `gorm:"index"`
 	Credit float64 `gorm:"index"`
-	// TrainingPlans []TrainingPlanPO `gorm:"many2many:training_plan_courses"`
 }
 
 func (po *BaseCoursePO) TableName() string {
@@ -73,7 +72,6 @@ type TrainingPlanPO struct {
 	EntryYear  string  `gorm:"index;index:uniq_training_plan,unique"`
 	MajorCode  string  `gorm:"index;index:uniq_training_plan,unique"`
 	TotalYear  int     `gorm:"index;index:uniq_training_plan,unique"`
-	Grade      float64 `gorm:"index;index:uniq_training_plan,unique"`
 	MinPoints  float64 `gorm:"index;index:uniq_training_plan,unique"`
 	MajorClass string  `gorm:"index;index:uniq_training_plan,unique"` // 专业类
 }
@@ -84,19 +82,38 @@ func (po *TrainingPlanPO) TableName() string {
 
 type TrainingPlanCoursePO struct {
 	gorm.Model
-	CourseID        int64   `gorm:"index;index:uniq_training_plan_course,unique"`
-	TrainingPlanID  int64   `gorm:"index;index:uniq_training_plan_course,unique"`
-	SuggestYear     int64   `gorm:"index;index:uniq_training_plan_course,unique"`
-	SuggestSemester int64   `gorm:"index;index:uniq_training_plan_course,unique"`
-	Grade           float64 `gorm:"index;index:uniq_training_plan_course,unique"`
-	MinPoints       float64 `gorm:"index;index:uniq_training_plan_course,unique"`
-	TotalYear       int     `gorm:"index;index:uniq_training_plan_course,unique"`
-	MajorClass      string  `gorm:"index;index:uniq_training_plan_course,unique"`
-	Department      string  `gorm:"index;index:uniq_training_plan_course,unique"`
+	CourseID        int64  `gorm:"index;index:uniq_training_plan_course,unique"`
+	TrainingPlanID  int64  `gorm:"index;index:uniq_training_plan_course,unique"`
+	SuggestYear     int64  `gorm:"index;index:uniq_training_plan_course,unique"`
+	SuggestSemester int64  `gorm:"index;index:uniq_training_plan_course,unique"`
+	Department      string `gorm:"index;"`
 }
 
 func (po *TrainingPlanCoursePO) TableName() string {
 	return "training_plan_courses"
+}
+
+type TrainingPlanRatePO struct {
+	gorm.Model
+	UserID         int64 `gorm:"index;index:uniq_training_plan_rate,unique"`
+	TrainingPlanID int64 `gorm:"index;index:uniq_training_plan_rate,unique"`
+}
+
+func (po *TrainingPlanRatePO) TableName() string {
+	return "training_plan_courses"
+}
+
+type TrainingPlanReviewPO struct {
+	gorm.Model
+	UserID         int64 `gorm:"index;index:uniq_training_plan_rate,unique"`
+	TrainingPlanID int64 `gorm:"index;index:uniq_training_plan_rate,unique"`
+	Rate           int32 `gorm:"index"`
+	Comment        string
+	IsAnonymous    bool
+}
+
+func (po *TrainingPlanReviewPO) TableName() string {
+	return "training_plan_reviews"
 }
 
 type CourseReviewInfo struct {

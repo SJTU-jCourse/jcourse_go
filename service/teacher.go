@@ -20,8 +20,8 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*domain.Teacher, er
 	}
 	teacher := converter.ConvertTeacherPOToDomain(teacherPO)
 
-	courseQuery := repository.NewTeacherCourseQuery()
-	courses, err := courseQuery.GetTeacherBaseCourseList(ctx, teacherID)
+	courseQuery := repository.NewOfferedCourseQuery()
+	courses, err := courseQuery.GetOfferedCourseList(ctx, courseQuery.WithMainTeacherID(teacherID))
 	if err != nil {
 		return nil, err
 	}
@@ -55,26 +55,17 @@ func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter domai
 	return opts
 }
 
-func buildTeacherCourseDBOptionFromFilter(query repository.ITeacherCourseQuery, filter domain.TeacherListFilter) []repository.DBOption {
-	opts := make([]repository.DBOption, 0)
-	if len(filter.ContainCourseIDs) > 0 {
-		opts = append(opts, query.WithCourseIDs(filter.ContainCourseIDs))
-	}
-	return opts
-}
-
 func SearchTeacherList(ctx context.Context, filter domain.TeacherListFilter) ([]domain.Teacher, error) {
 
 	teacherQuery := repository.NewTeacherQuery()
 	t_opts := buildTeacherDBOptionFromFilter(teacherQuery, filter)
 
-	teacherCourseQuery := repository.NewTeacherCourseQuery()
-	tc_opts := buildTeacherCourseDBOptionFromFilter(teacherCourseQuery, filter)
-	validTeacherCourseIDs, err := teacherCourseQuery.GetTeacherCourseIDs(ctx, tc_opts...)
+	teacherCourseQuery := repository.NewOfferedCourseQuery()
+	validTeacherIDs, err := teacherCourseQuery.GetMainTeacherIDsWithOfferedCourseIDs(ctx, filter.ContainCourseIDs)
 	if err != nil {
 		return nil, err
 	}
-	t_opts = append(t_opts, teacherQuery.WithIDs(validTeacherCourseIDs))
+	t_opts = append(t_opts, teacherQuery.WithIDs(validTeacherIDs))
 
 	teachers, err := teacherQuery.GetTeacherList(ctx, t_opts...)
 	if err != nil {
@@ -83,7 +74,14 @@ func SearchTeacherList(ctx context.Context, filter domain.TeacherListFilter) ([]
 
 	domainTeachers := make([]domain.Teacher, 0)
 	for _, t := range teachers {
-		domainTeachers = append(domainTeachers, *converter.ConvertTeacherPOToDomain(&t))
+		q := repository.NewOfferedCourseQuery()
+		offeredCoursePOs, err := q.GetOfferedCourseList(ctx, q.WithMainTeacherID(int64(t.ID)))
+		if err != nil {
+			return nil, err
+		}
+		teacherDomain := *converter.ConvertTeacherPOToDomain(&t)
+		converter.PackTeacherWithCourses(&teacherDomain, offeredCoursePOs)
+		domainTeachers = append(domainTeachers, teacherDomain)
 	}
 	return domainTeachers, nil
 }
@@ -95,10 +93,10 @@ func GetTeacherCount(ctx context.Context, filter domain.TeacherListFilter) (int6
 	return query.GetTeacherCount(ctx, opts...)
 }
 
-func GetTeacherListByIDs(ctx context.Context, teacherPlanIDs []int64) (map[int64]domain.Teacher, error) {
+func GetTeacherListByIDs(ctx context.Context, teacherIDs []int64) (map[int64]domain.Teacher, error) {
 
 	teacherQuery := repository.NewTeacherQuery()
-	teachers, err := teacherQuery.GetTeacherList(ctx, teacherQuery.WithIDs(teacherPlanIDs))
+	teachers, err := teacherQuery.GetTeacherList(ctx, teacherQuery.WithIDs(teacherIDs))
 	if err != nil {
 		return nil, err
 	}

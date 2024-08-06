@@ -78,3 +78,19 @@ func SearchTrainingPlanHandler(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, response)
 }
+
+func RateTrainingPlanHandler(c *gin.Context) {
+
+	var request dto.RateTrainingPlanRequest
+	if err := c.ShouldBindUri(&request); err != nil {
+		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "参数错误"})
+		return
+	}
+	TrainingPlan, err := service.GetTrainingPlanDetail(c, request.TrainingPlanID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		return
+	}
+	response := converter.ConvertTrainingPlanDomainToDTO(*TrainingPlan)
+	c.JSON(http.StatusOK, response)
+}

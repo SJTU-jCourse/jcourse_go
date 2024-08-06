@@ -28,6 +28,7 @@ type LoadedTrainingPlan struct {
 	MajorClass string
 	Department string
 	EntryYear  int
+	Degree     string
 	Courses    []LoadedCourse
 }
 
@@ -72,9 +73,9 @@ func Lines2TrainingPlan(lines []string) LoadedTrainingPlan {
 	plan := LoadedTrainingPlan{
 		Courses: make([]LoadedCourse, 0),
 	}
-	// 082201,151312019082201,核工程与核技术专业,082201,4,170,工学,未知院系,2019
+	// e.g 13050243,14761201813050243,视觉传达设计,13050243,4,28.5,艺术学,设计学院,本科,2018
 	metaInfo := strings.Split(lines[0], ",")
-	if len(metaInfo) != 9 {
+	if len(metaInfo) != 10 {
 		panic("Invalid line2trainingplan: " + lines[0])
 	}
 	plan.Name = metaInfo[2]
@@ -83,7 +84,8 @@ func Lines2TrainingPlan(lines []string) LoadedTrainingPlan {
 	plan.MinPoints, _ = strconv.ParseFloat(metaInfo[5], 64)
 	plan.MajorClass = metaInfo[6]
 	plan.Department = metaInfo[7]
-	plan.EntryYear, _ = strconv.Atoi(metaInfo[8])
+	plan.Degree = metaInfo[8]
+	plan.EntryYear, _ = strconv.Atoi(metaInfo[9])
 	for _, line := range lines[1:] {
 		plan.Courses = append(plan.Courses, Line2Course(line))
 	}
@@ -143,7 +145,7 @@ func SaveTrainingPlan(plans []LoadedTrainingPlan, db *gorm.DB) {
 		SaveTrainingPlanCourses(plan, db, int64(trainingPlanPO.ID))
 	}
 }
-func LoadTrainingPlan2DB(from string, db *gorm.DB) {
+func LoadTrainingPLans(from string) []LoadedTrainingPlan {
 	file, err := os.Open(from)
 	if err != nil {
 		panic(err)
@@ -154,7 +156,7 @@ func LoadTrainingPlan2DB(from string, db *gorm.DB) {
 	var allTrainingPlans []LoadedTrainingPlan
 	for scanner.Scan() {
 		text := scanner.Text()
-		println(text)
+		// println(text)
 		if text == "" {
 			if len(lines) > 0 {
 				allTrainingPlans = append(allTrainingPlans, Lines2TrainingPlan(lines))
@@ -164,6 +166,10 @@ func LoadTrainingPlan2DB(from string, db *gorm.DB) {
 		}
 		lines = append(lines, text)
 	}
+	return allTrainingPlans
+}
+func LoadTrainingPlan2DB(from string, db *gorm.DB) {
+	allTrainingPlans := LoadTrainingPLans(from)
 	// HINT: debug only
 	SaveTrainingPlan(allTrainingPlans, db)
 }
@@ -204,6 +210,9 @@ func Teacher2PO(teacher LoadedTeacher) po.TeacherPO {
 		Pinyin:     teacher.Pinyin,
 		PinyinAbbr: teacher.PinyinAbbr,
 		// TODO: add more
+		ProfileDesc: teacher.ProfileDescription,
+		ProfileURL:  teacher.ProfileUrl,
+		Picture:     teacher.HeadImage,
 	}
 }
 func SaveTeacher(teachers []LoadedTeacher, db *gorm.DB) {
@@ -221,6 +230,11 @@ func SaveTeacher(teachers []LoadedTeacher, db *gorm.DB) {
 	}
 }
 func LoadTeacherProfile2DB(from string, db *gorm.DB) {
+	teachers := LoadTeacherProfiles(from)
+	SaveTeacher(teachers, db)
+}
+
+func LoadTeacherProfiles(from string) []LoadedTeacher {
 	file, err := os.Open(from)
 	if err != nil {
 		panic(err)
@@ -229,5 +243,5 @@ func LoadTeacherProfile2DB(from string, db *gorm.DB) {
 	data, _ := os.ReadFile(from)
 	var teachers []LoadedTeacher
 	json.Unmarshal(data, &teachers)
-	SaveTeacher(teachers, db)
+	return teachers
 }

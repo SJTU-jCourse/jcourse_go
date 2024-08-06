@@ -138,6 +138,25 @@ type ITrainingPlanCourseQuery interface {
 	WithTrainingPlanID(trainingPlanID int64) DBOption
 	WithCourseID(courseID int64) DBOption
 	WithCourseIDs(courseIDs []int64) DBOption
+	WithSuggestSemester(semester int64) DBOption
+	WithSuggestYear(year int64) DBOption
+	WithDepartment(department string) DBOption
+}
+
+func (t *TrainingPlanCourseQuery) WithSuggestYear(year int64) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("suggest_year = ?", year)
+	}
+}
+func (t *TrainingPlanCourseQuery) WithSuggestSemester(semester int64) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("suggest_semester = ?", semester)
+	}
+}
+func (t *TrainingPlanCourseQuery) WithDepartment(department string) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("department = ?", department)
+	}
 }
 
 func (t *TrainingPlanCourseQuery) GetTrainingPlanListIDs(ctx context.Context, opts ...DBOption) ([]int64, error) {
@@ -189,4 +208,54 @@ func (t *TrainingPlanQuery) WithIDs(trainingPlanIDs []int64) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("id IN ?", trainingPlanIDs)
 	}
+}
+
+type ITrainingPlanReviewQuery interface {
+	GetTrainingPlanRateInfo(ctx context.Context, trainingPlanIDs []int64) ([]po.TrainingPlanRatePO, error)
+	GetTrainingPlanReviewList(ctx context.Context, ops ...DBOption) ([]po.TrainingPlanPO, error)
+	optionDB(ctx context.Context, opts ...DBOption) *gorm.DB
+	WithUserID(id int64) DBOption
+	WithTrainingPlanID(id int64) DBOption
+}
+type TrainingPlanReviewQuery struct {
+	db *gorm.DB
+}
+
+func (t *TrainingPlanReviewQuery) WithTrainingPlanID(id int64) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("training_plan_id = ?", id)
+	}
+}
+func (t *TrainingPlanReviewQuery) WithUserID(id int64) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("user_id = ?", id)
+	}
+}
+func (t *TrainingPlanReviewQuery) OptionDB(ctx context.Context, ops ...DBOption) *gorm.DB {
+	db := t.db.Model(&po.TrainingPlanReviewPO{}).WithContext(ctx)
+	for _, opt := range ops {
+		db = opt(db)
+	}
+	return db
+}
+func (t *TrainingPlanReviewQuery) GetTrainingPlanRateInfo(ctx context.Context, trainingPlanIDs []int64) ([]po.TrainingPlanRatePO, error) {
+	db := t.OptionDB(ctx)
+	db.Group("training_plan_id").Select("count(*) as count, avg(rate) as average, course_id")
+	rates := make([]po.TrainingPlanRatePO, 0)
+
+	result := db.Debug().Where("training_plan_id IN ?", trainingPlanIDs).Find(&rates)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return rates, nil
+}
+
+func (t *TrainingPlanReviewQuery) GetTrainingPlanReviewList(ctx context.Context, ops ...DBOption) ([]po.TrainingPlanPO, error) {
+	db := t.OptionDB(ctx, ops...)
+	trainingPlans := make([]po.TrainingPlanPO, 0)
+	result := db.Debug().Find(&trainingPlans)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return trainingPlans, nil
 }
