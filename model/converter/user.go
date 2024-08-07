@@ -1,9 +1,11 @@
 package converter
 
 import (
+	"gorm.io/gorm"
 	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/po"
+	"time"
 )
 
 func ConvertUserPOToDomain(userPO po.UserPO) domain.User {
@@ -73,5 +75,48 @@ func ConvertToUserProfileDTO(userPO *po.UserPO, userProfilePO *po.UserProfilePO)
 		Department: userProfilePO.Department,
 		Major:      userProfilePO.Major,
 		Grade:      userProfilePO.Grade,
+	}
+}
+
+func ConvertUpdateUserProfileDTOToUserPO(userProfileDTO *dto.UserProfileDTO, userPO *po.UserPO) *po.UserPO {
+	if userProfileDTO == nil {
+		return nil
+	}
+	return &po.UserPO{
+		Model: gorm.Model{
+			ID:        userPO.ID,
+			CreatedAt: userPO.CreatedAt,
+			UpdatedAt: time.Now(),
+			DeletedAt: userPO.DeletedAt,
+		},
+		Username:   userProfileDTO.Username,
+		Email:      userPO.Email,
+		Password:   userPO.Password,
+		UserRole:   userPO.UserRole,
+		LastSeenAt: time.Now(),
+	}
+}
+
+func ConvertUpdateUserProfileDTOToUsrProfilePO(userProfileDTO *dto.UserProfileDTO, userProfilePO *po.UserProfilePO) *po.UserProfilePO {
+	if userProfileDTO == nil {
+		return nil
+	}
+
+	// 保留一些immutable的属性（
+	return &po.UserProfilePO{
+		Model: gorm.Model{
+			ID:        userProfilePO.ID,
+			CreatedAt: userProfilePO.CreatedAt,
+			UpdatedAt: time.Now(),
+			DeletedAt: userProfilePO.DeletedAt,
+		},
+		UserID:     userProfilePO.UserID,
+		Avatar:     userProfileDTO.Avatar,
+		Department: userProfileDTO.Department,
+		Type:       userProfilePO.Type,
+		Major:      userProfileDTO.Major,
+		Degree:     userProfilePO.Degree,
+		Grade:      userProfileDTO.Grade,
+		Bio:        userProfileDTO.Bio,
 	}
 }

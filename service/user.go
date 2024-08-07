@@ -161,3 +161,29 @@ func GetUserCount(ctx context.Context, filter domain.UserFilter) (int64, error) 
 	opts := buildUserDBOptionFromFilter(userQuery, filter)
 	return userQuery.GetUserCount(ctx, opts...)
 }
+
+func UpdateUserProfileByID(ctx context.Context, userProfileDTO *dto.UserProfileDTO) error {
+	userQuery := repository.NewUserQuery()
+	oldUserPO, errQuery := userQuery.GetUserByID(ctx, userProfileDTO.UserID)
+	if errQuery != nil {
+		return errQuery
+	}
+	newUserPO := converter.ConvertUpdateUserProfileDTOToUserPO(userProfileDTO, oldUserPO)
+
+	errUpdate := userQuery.UpdateUserByID(ctx, newUserPO)
+	if errUpdate != nil {
+		return errUpdate
+	}
+
+	userProfileQuery := repository.NewUserProfileQuery()
+	oldUserProfilePO, errQuery2 := userProfileQuery.GetUserProfileByID(ctx, userProfileDTO.UserID)
+	if errQuery2 != nil {
+		return errQuery2
+	}
+	newUserProfilePO := converter.ConvertUpdateUserProfileDTOToUsrProfilePO(userProfileDTO, oldUserProfilePO)
+	errUpdate2 := userProfileQuery.UpdateUserProfileByID(ctx, newUserProfilePO)
+	if errUpdate2 != nil {
+		return errUpdate2
+	}
+	return nil
+}

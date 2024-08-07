@@ -92,7 +92,19 @@ func WatchUserHandler(c *gin.Context) {}
 
 func UnWatchUserHandler(c *gin.Context) {}
 
-func UpdateUserProfileHandler(c *gin.Context) {}
+func UpdateUserProfileHandler(c *gin.Context) {
+	var request dto.UserProfileDTO
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		return
+	}
+	err := service.UpdateUserProfileByID(c, &request)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "用户信息更新失败。"})
+		return
+	}
+	c.JSON(http.StatusOK, dto.BaseResponse{Message: "用户信息更新成功。"})
+}
 
 func GetUserReviewsHandler(c *gin.Context) {
 	userIDStr := c.Param("userID")

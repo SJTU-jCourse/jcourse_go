@@ -20,6 +20,7 @@ type IUserQuery interface {
 	GetUserCount(ctx context.Context, opts ...DBOption) (int64, error)
 	GetUserByID(ctx context.Context, userID int64) (*po.UserPO, error)
 	GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]po.UserPO, error)
+	UpdateUserByID(ctx context.Context, user *po.UserPO) error
 	WithID(id int64) DBOption
 	WithEmail(email string) DBOption
 	WithPassword(password string) DBOption
@@ -34,6 +35,7 @@ type IUserProfileQuery interface {
 	GetUserProfileByID(ctx context.Context, userID int64) (*po.UserProfilePO, error)
 	GetUserProfileList(ctx context.Context, opts ...DBOption) ([]po.UserProfilePO, error)
 	GetUserProfileCount(ctx context.Context, opts ...DBOption) (int64, error)
+	UpdateUserProfileByID(ctx context.Context, userProfile *po.UserProfilePO) error
 	WithUserID(id int64) DBOption
 	WithLimit(limit int64) DBOption
 	WithOffset(offset int64) DBOption
@@ -128,6 +130,11 @@ func (q *UserProfileQuery) GetUserProfileCount(ctx context.Context, opts ...DBOp
 	return count, nil
 }
 
+func (q *UserProfileQuery) UpdateUserProfileByID(ctx context.Context, userProfile *po.UserProfilePO) error {
+	result := q.optionDB(ctx, q.WithUserID(userProfile.UserID)).Save(userProfile).Error
+	return result
+}
+
 type UserQuery struct {
 	db *gorm.DB
 }
@@ -213,6 +220,11 @@ func (q *UserQuery) GetUserCount(ctx context.Context, opts ...DBOption) (int64, 
 		return 0, result.Error
 	}
 	return count, nil
+}
+
+func (q *UserQuery) UpdateUserByID(ctx context.Context, user *po.UserPO) error {
+	result := q.optionDB(ctx, q.WithID(int64(user.ID))).Save(user).Error
+	return result
 }
 
 func (q *UserQuery) CreateUser(ctx context.Context, email string, passwordStore string) (*po.UserPO, error) {
