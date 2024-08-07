@@ -2,6 +2,7 @@ package handler
 
 import (
 	"fmt"
+	"jcourse_go/middleware"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
@@ -79,18 +80,21 @@ func SearchTrainingPlanHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
+// ATTENTION: without test now
 func RateTrainingPlanHandler(c *gin.Context) {
-
 	var request dto.RateTrainingPlanRequest
-	if err := c.ShouldBindUri(&request); err != nil {
+	userId := middleware.GetUser(c).ID
+	if err := c.ShouldBind(&request); err != nil {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	TrainingPlan, err := service.GetTrainingPlanDetail(c, request.TrainingPlanID)
+	err := service.RateTrainingPlan(c, userId, request.TrainingPlanID, request.Rate)
+	// HINT: 底层upsert，不会出现重复插入错误
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		println(err)
 		return
 	}
-	response := converter.ConvertTrainingPlanDomainToDTO(*TrainingPlan)
+	response := dto.BaseResponse{Message: "评分成功"}
 	c.JSON(http.StatusOK, response)
 }

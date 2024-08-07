@@ -69,7 +69,7 @@ type TrainingPlanPO struct {
 	Degree     string  `gorm:"index;index:uniq_training_plan,unique"`
 	Major      string  `gorm:"index;index:uniq_training_plan,unique"`
 	Department string  `gorm:"index;index:uniq_training_plan,unique"`
-	EntryYear  string  `gorm:"index;index:uniq_training_plan,unique"`
+	EntryYear  string  `gorm:"index;index:uniq_training_plan,unique"` //==Grade,年级
 	MajorCode  string  `gorm:"index;index:uniq_training_plan,unique"`
 	TotalYear  int     `gorm:"index;index:uniq_training_plan,unique"`
 	MinPoints  float64 `gorm:"index;index:uniq_training_plan,unique"`
@@ -97,23 +97,16 @@ type TrainingPlanRatePO struct {
 	gorm.Model
 	UserID         int64 `gorm:"index;index:uniq_training_plan_rate,unique"`
 	TrainingPlanID int64 `gorm:"index;index:uniq_training_plan_rate,unique"`
+	Rate           int64 `gorm:"index"`
+}
+type TrainingPlanRateInfoPO struct {
+	Average float64
+	Count   int64
+	Rates    []TrainingPlanRatePO
 }
 
 func (po *TrainingPlanRatePO) TableName() string {
-	return "training_plan_courses"
-}
-
-type TrainingPlanReviewPO struct {
-	gorm.Model
-	UserID         int64 `gorm:"index;index:uniq_training_plan_rate,unique"`
-	TrainingPlanID int64 `gorm:"index;index:uniq_training_plan_rate,unique"`
-	Rate           int32 `gorm:"index"`
-	Comment        string
-	IsAnonymous    bool
-}
-
-func (po *TrainingPlanReviewPO) TableName() string {
-	return "training_plan_reviews"
+	return "training_plan_rates"
 }
 
 type CourseReviewInfo struct {

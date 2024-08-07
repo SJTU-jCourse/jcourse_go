@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/joho/godotenv"
 	"jcourse_go/dal"
 	"jcourse_go/model/po"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -14,7 +15,7 @@ func main() {
 		&po.BaseCoursePO{}, &po.CoursePO{}, &po.TeacherPO{}, &po.CourseCategoryPO{},
 		&po.OfferedCoursePO{}, &po.OfferedCourseTeacherPO{},
 		&po.ReviewPO{}, &po.TrainingPlanCoursePO{}, &po.TrainingPlanPO{},
-		&po.TrainingPlanReviewPO{})
+		&po.TrainingPlanRatePO{})
 	if err != nil {
 		panic(err)
 	}

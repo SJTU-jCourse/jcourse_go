@@ -5,6 +5,7 @@ import (
 	"errors"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
+	"jcourse_go/model/po"
 	"jcourse_go/repository"
 )
 
@@ -105,4 +106,14 @@ func GetTrainingPlanListByIDs(ctx context.Context, trainingPlanIDs []int64) (map
 		domainTrainingPlans[id] = *data
 	}
 	return domainTrainingPlans, nil
+}
+
+func RateTrainingPlan(ctx context.Context, userID int64, trainingPlanID int64, rate int64) error {
+	trainingPlanRateQuery := repository.NewTrainingPlanRateQuery()
+	trainingPlanRatePO := &po.TrainingPlanRatePO{
+		TrainingPlanID: trainingPlanID,
+		UserID:         userID,
+		Rate:           rate,
+	}
+	return trainingPlanRateQuery.CreateTrainingPlanRate(ctx, trainingPlanRatePO)
 }

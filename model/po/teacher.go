@@ -11,7 +11,7 @@ type TeacherPO struct {
 	Title       string
 	Pinyin      string `gorm:"index"`
 	PinyinAbbr  string `gorm:"index"`
-	Picture     string
+	Picture     string // picture URL
 	ProfileURL  string
 	ProfileDesc string
 }

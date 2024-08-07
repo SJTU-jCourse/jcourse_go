@@ -10,24 +10,25 @@ type TrainingPlanCourseDTO struct {
 	Department      string  `json:"department"`
 }
 
+// rate trainingplan post request(need session to confirm userID)
 type RateTrainingPlanRequest struct {
-	TrainingPlanID int64  `form:"training_plan_id" binding:"required"`
-	Rate           int64  `form:"rate" binding:"required"`
-	Comment        string `form:"comment"`
+	TrainingPlanID int64 `form:"training_plan_id" binding:"required"`
+	Rate           int64 `form:"rate" binding:"required"`
 }
-type TrainingPlanReviewInfo struct {
-	TrainingPlanID int64
-	Avg            float64
-	Count          int64
-}
-type TrainingPlanRateDTO struct {
+type RateTrainingPlanResponse = BaseResponse
+type TrainingPlanRateItem struct {
 	Rate  float64 `json:"rate"`
 	Count int64   `json:"count"`
 }
+type TrainingPlanRateDTO struct {
+	TrainingPlanID int64 `json:"training_plan_id"`
+	UserID         int64 `json:"user_id"`
+	Rate           int64 `json:"rate"`
+}
 type TrainingPlanRateInfoDTO struct {
-	Avg      float64               `json:"avg"`
-	Count    int64                 `json:"count"`
-	RateDist []TrainingPlanRateDTO `json:"rate_dist"`
+	Avg      float64                `json:"avg"`
+	Count    int64                  `json:"count"`
+	RateDist []TrainingPlanRateItem `json:"rate_dist"`
 }
 type TrainingPlanListItemDTO struct {
 	ID         int64                   `json:"id"`
