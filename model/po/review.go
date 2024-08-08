@@ -7,7 +7,7 @@ type ReviewPO struct {
 	CourseID    int64 `gorm:"index;index:uniq_course_review,unique"`
 	UserID      int64 `gorm:"index;index:uniq_course_review,unique"`
 	Comment     string
-	Rate        int64  `gorm:"index"`
+	Rating      int64  `gorm:"index"`
 	Semester    string `gorm:"index;index:uniq_course_review,unique"`
 	IsAnonymous bool
 }
@@ -21,7 +21,7 @@ type ReviewRevisionPO struct {
 	ReviewID    int64 `gorm:"index"`
 	UserID      int64 `gorm:"index"`
 	Comment     string
-	Rate        int64
+	Rating      int64
 	Semester    string `gorm:"index"`
 	IsAnonymous bool
 }

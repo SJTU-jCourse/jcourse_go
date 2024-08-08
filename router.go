@@ -32,6 +32,9 @@ func registerRouter(r *gin.Engine) {
 	courseGroup.POST("/:courseID/watch", handler.WatchCourseHandler)
 	courseGroup.POST("/:courseID/unwatch", handler.UnWatchCourseHandler)
 
+	ratingGroup := needAuthGroup.Group("/rating")
+	ratingGroup.POST("", handler.CreateRatingHandler)
+
 	reviewGroup := needAuthGroup.Group("/review")
 	reviewGroup.GET("", handler.GetReviewListHandler)
 	reviewGroup.POST("", handler.CreateReviewHandler)

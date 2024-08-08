@@ -69,7 +69,7 @@ func PackCourseWithReviewInfo(course *domain.Course, info po.CourseReviewInfo) {
 	if course == nil {
 		return
 	}
-	course.ReviewInfo = domain.CourseReviewInfo{
+	course.RatingInfo = domain.RatingInfo{
 		Average: info.Average,
 		Count:   info.Count,
 	}
@@ -91,7 +91,7 @@ func ConvertCourseDomainToListDTO(course domain.Course) dto.CourseListItemDTO {
 		MainTeacher: mainTeacherDTO,
 		Categories:  course.Categories,
 		Department:  course.Department,
-		ReviewInfo:  course.ReviewInfo,
+		ReviewInfo:  course.RatingInfo,
 	}
 }
 
@@ -148,7 +148,7 @@ func ConvertCourseDomainToDetailDTO(course domain.Course) dto.CourseDetailDTO {
 		Credit:        course.Credit,
 		MainTeacher:   ConvertTeacherDomainToDTO(course.MainTeacher),
 		OfferedCourse: make([]dto.OfferedCourseDTO, 0),
-		ReviewInfo:    course.ReviewInfo,
+		ReviewInfo:    course.RatingInfo,
 	}
 	for _, offeredCourse := range course.OfferedCourses {
 		offeredCourseDTO := ConvertOfferedCourseDomainToDTO(offeredCourse)
