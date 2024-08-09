@@ -13,14 +13,9 @@ func Init() {
 	dal.InitDBClient()
 	rpc.InitOpenAIClient()
 }
-func MyInitDbg() {
-	dal.InitDBClient()
-	dal.InitMockRedisClient()
-}
 
 func main() {
-	// Init()
-	MyInitDbg()
+	Init()
 	r := gin.Default()
 	registerRouter(r)
 	_ = r.Run()
