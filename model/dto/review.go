@@ -13,7 +13,7 @@ type ReviewDTO struct {
 	Course      CourseListItemDTO `json:"course"`
 	User        UserInReviewDTO   `json:"user"`
 	Comment     string            `json:"comment"`
-	Rate        int64             `json:"rate"`
+	Rating      int64             `json:"rating"`
 	Semester    string            `json:"semester"`
 	IsAnonymous bool              `json:"is_anonymous"`
 	CreatedAt   time.Time         `json:"created_at"`
@@ -23,7 +23,7 @@ type ReviewDTO struct {
 type UpdateReviewDTO struct {
 	ID          int64  `json:"id"`
 	CourseID    int64  `json:"course_id" binding:"required"`
-	Rate        int64  `json:"rate" binding:"required"`
+	Rating      int64  `json:"rating" binding:"required"`
 	Comment     string `json:"comment" binding:"required"`
 	Semester    string `json:"semester" binding:"required"`
 	IsAnonymous bool   `json:"is_anonymous"`

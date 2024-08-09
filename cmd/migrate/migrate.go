@@ -14,8 +14,7 @@ func main() {
 	err := db.AutoMigrate(&po.UserPO{},
 		&po.BaseCoursePO{}, &po.CoursePO{}, &po.TeacherPO{}, &po.CourseCategoryPO{},
 		&po.OfferedCoursePO{}, &po.OfferedCourseTeacherPO{},
-		&po.ReviewPO{}, &po.TrainingPlanCoursePO{}, &po.TrainingPlanPO{},
-		&po.TrainingPlanRatePO{})
+		&po.ReviewPO{}, &po.RatingPO{}, &po.TrainingPlanPO{}, &po.TrainingPlanCoursePO{})
 	if err != nil {
 		panic(err)
 	}

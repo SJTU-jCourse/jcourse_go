@@ -18,13 +18,13 @@ type OfferedCourseDTO struct {
 }
 
 type CourseDetailDTO struct {
-	ID            int64                   `json:"id"`
-	Code          string                  `json:"code"`
-	Name          string                  `json:"name"`
-	Credit        float64                 `json:"credit"`
-	MainTeacher   TeacherDTO              `json:"main_teacher"`
-	OfferedCourse []OfferedCourseDTO      `json:"offered_courses"`
-	ReviewInfo    domain.CourseReviewInfo `json:"review_info"`
+	ID            int64              `json:"id"`
+	Code          string             `json:"code"`
+	Name          string             `json:"name"`
+	Credit        float64            `json:"credit"`
+	MainTeacher   TeacherDTO         `json:"main_teacher"`
+	OfferedCourse []OfferedCourseDTO `json:"offered_courses"`
+	ReviewInfo    domain.RatingInfo  `json:"rating_info"`
 }
 
 type CourseDetailRequest struct {
@@ -32,14 +32,14 @@ type CourseDetailRequest struct {
 }
 
 type CourseListItemDTO struct {
-	ID          int64                   `json:"id"`
-	Code        string                  `json:"code"`
-	Name        string                  `json:"name"`
-	Credit      float64                 `json:"credit"`
-	MainTeacher TeacherDTO              `json:"main_teacher"`
-	Categories  []string                `json:"categories"`
-	Department  string                  `json:"department"`
-	ReviewInfo  domain.CourseReviewInfo `json:"review_info"`
+	ID          int64             `json:"id"`
+	Code        string            `json:"code"`
+	Name        string            `json:"name"`
+	Credit      float64           `json:"credit"`
+	MainTeacher TeacherDTO        `json:"main_teacher"`
+	Categories  []string          `json:"categories"`
+	Department  string            `json:"department"`
+	ReviewInfo  domain.RatingInfo `json:"rating_info"`
 }
 
 type CourseListRequest struct {
