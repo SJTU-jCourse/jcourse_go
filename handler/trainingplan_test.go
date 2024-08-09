@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 	"jcourse_go/dal"
 	"net/http"
@@ -37,10 +38,10 @@ func prettyJsonLog(w *httptest.ResponseRecorder) {
 }
 func baseConfig() (*httptest.ResponseRecorder, *gin.Engine) {
 	gin.SetMode(gin.TestMode)
-	err := dal.InitSqliteDBTest("../gorm.db")
-	if err != nil {
-		panic(err)
-	}
+	os.Setenv("ROOT_DIR", "/home/ayanmi/code/jcourse/jcourse_go")
+	rootDir := os.Getenv("ROOT_DIR")
+	_ = godotenv.Load(rootDir + "/.env")
+	dal.InitDBClient()
 	w := httptest.NewRecorder()
 	r := gin.Default()
 	return w, r
