@@ -8,7 +8,6 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"jcourse_go/util"
@@ -31,20 +30,9 @@ func initPostgresql() error {
 	dbClient, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	return err
 }
-func InitSqliteDB() error {
-	db, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
-	dbClient = db
-	return err
-}
-func InitSqliteDBTest(path string) error {
-	db, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
-	dbClient = db
-	return err
-}
 
 func InitDBClient() {
-	// err := initPostgresql()
-	err := InitSqliteDB()
+	err := initPostgresql()
 	if err != nil {
 		panic(err)
 	}
