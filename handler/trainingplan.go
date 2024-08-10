@@ -2,7 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"jcourse_go/middleware"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
@@ -18,15 +17,15 @@ func GetTrainingPlanListHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	Filter := domain.TrainingPlanFilter{
+	filter := domain.TrainingPlanFilter{
 		Page:     int64(request.Page),
 		PageSize: int64(request.PageSize),
 	}
-	TrainingPlanList, err := service.SearchTrainingPlanList(c, Filter)
+	trainingPlanList, err := service.SearchTrainingPlanList(c, filter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 	}
-	data := converter.ConvertTrainingPlanDomainListToDTO(TrainingPlanList)
+	data := converter.ConvertTrainingPlanDomainListToDTO(trainingPlanList)
 	response := dto.TrainingPlanListResponse{
 		Page:     int64(request.Page),
 		PageSize: int64(request.PageSize),
@@ -42,12 +41,12 @@ func GetTrainingPlanHandler(c *gin.Context) {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	TrainingPlan, err := service.GetTrainingPlanDetail(c, request.TrainingPlanID)
+	trainingPlan, err := service.GetTrainingPlanDetail(c, request.TrainingPlanID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 		return
 	}
-	response := converter.ConvertTrainingPlanDomainToDTO(*TrainingPlan)
+	response := converter.ConvertTrainingPlanDomainToDTO(*trainingPlan)
 	c.JSON(http.StatusOK, response)
 }
 
@@ -58,43 +57,24 @@ func SearchTrainingPlanHandler(c *gin.Context) {
 		return
 	}
 
-	Filter := domain.TrainingPlanFilter{
+	filter := domain.TrainingPlanFilter{
 		Major:      request.MajorName,
 		EntryYear:  fmt.Sprintf("%d", request.EntryYear),
 		Department: request.Department,
 		Page:       int64(request.Page),
 		PageSize:   int64(request.PageSize),
 	}
-	TrainingPlanList, err := service.SearchTrainingPlanList(c, Filter)
-	count := service.GetTrainingPlanCount(c, Filter)
+	trainingPlanList, err := service.SearchTrainingPlanList(c, filter)
+	count := service.GetTrainingPlanCount(c, filter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 	}
-	data := converter.ConvertTrainingPlanDomainListToDTO(TrainingPlanList)
+	data := converter.ConvertTrainingPlanDomainListToDTO(trainingPlanList)
 	response := dto.TrainingPlanListResponse{
 		Page:     int64(request.Page),
 		PageSize: int64(len(data)),
 		Total:    count,
 		Data:     data,
 	}
-	c.JSON(http.StatusOK, response)
-}
-
-// ATTENTION: without test now
-func RateTrainingPlanHandler(c *gin.Context) {
-	var request dto.RateTrainingPlanRequest
-	userId := middleware.GetUser(c).ID
-	if err := c.ShouldBind(&request); err != nil {
-		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "参数错误"})
-		return
-	}
-	err := service.RateTrainingPlan(c, userId, request.TrainingPlanID, request.Rate)
-	// HINT: 底层upsert，不会出现重复插入错误
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
-		println(err)
-		return
-	}
-	response := dto.BaseResponse{Message: "评分成功"}
 	c.JSON(http.StatusOK, response)
 }

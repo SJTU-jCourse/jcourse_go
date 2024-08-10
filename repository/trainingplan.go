@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"gorm.io/gorm/clause"
 	"jcourse_go/dal"
 	"jcourse_go/model/po"
 
@@ -209,77 +208,4 @@ func (t *TrainingPlanQuery) WithIDs(trainingPlanIDs []int64) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("id IN ?", trainingPlanIDs)
 	}
-}
-
-type ITrainingPlanRateQuery interface {
-	GetTrainingPlanRateInfo(ctx context.Context, trainingPlanID int64) (*po.TrainingPlanRateInfoPO, error)
-	GetTrainingPlanRateList(ctx context.Context, ops ...DBOption) ([]po.TrainingPlanPO, error)
-	CreateTrainingPlanRate(ctx context.Context, rate *po.TrainingPlanRatePO) error
-	optionDB(ctx context.Context, opts ...DBOption) *gorm.DB
-	WithUserID(id int64) DBOption
-	WithTrainingPlanID(id int64) DBOption
-}
-type TrainingPlanRateQuery struct {
-	db *gorm.DB
-}
-
-func NewTrainingPlanRateQuery() ITrainingPlanRateQuery {
-	return &TrainingPlanRateQuery{db: dal.GetDBClient()}
-}
-func (t *TrainingPlanRateQuery) CreateTrainingPlanRate(ctx context.Context, rate *po.TrainingPlanRatePO) error {
-	db := t.optionDB(ctx)
-	err := db.Debug().Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "training_plan_id"}, {Name: "user_id"}},
-		DoUpdates: clause.AssignmentColumns([]string{"rate"}),
-	}).Create(rate).Error
-	return err
-}
-
-func (t *TrainingPlanRateQuery) WithTrainingPlanID(id int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("training_plan_id = ?", id)
-	}
-}
-func (t *TrainingPlanRateQuery) WithUserID(id int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("user_id = ?", id)
-	}
-}
-func (t *TrainingPlanRateQuery) optionDB(ctx context.Context, ops ...DBOption) *gorm.DB {
-	db := t.db.Model(&po.TrainingPlanRatePO{}).WithContext(ctx)
-	for _, opt := range ops {
-		db = opt(db)
-	}
-	return db
-}
-func (t *TrainingPlanRateQuery) GetTrainingPlanRateInfo(ctx context.Context, trainingPlanID int64) (*po.TrainingPlanRateInfoPO, error) {
-	db := t.optionDB(ctx)
-	rateInfo := po.TrainingPlanRateInfoPO{}
-	rates := make([]po.TrainingPlanRatePO, 0)
-	result := db.Debug().Where("training_plan_id = ?", trainingPlanID).Find(&rates)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	rateInfo.Count = int64(len(rates))
-	if rateInfo.Count == 0 {
-		return &rateInfo, nil
-	}
-	var sum int64 = 0
-	for _, rate := range rates {
-		sum += rate.Rate
-	}
-
-	rateInfo.Average = float64(sum) / float64(rateInfo.Count)
-	rateInfo.Rates = rates
-	return &rateInfo, nil
-}
-
-func (t *TrainingPlanRateQuery) GetTrainingPlanRateList(ctx context.Context, ops ...DBOption) ([]po.TrainingPlanPO, error) {
-	db := t.optionDB(ctx, ops...)
-	trainingPlans := make([]po.TrainingPlanPO, 0)
-	result := db.Debug().Find(&trainingPlans)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return trainingPlans, nil
 }

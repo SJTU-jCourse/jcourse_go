@@ -56,38 +56,3 @@ func ConvertTrainingPlanCoursePOToDomain(coursePO po.TrainingPlanCoursePO, baseC
 		Department:      coursePO.Department,
 	}
 }
-
-func ConvertTrainingPlanRatePOToDomain(ratePO po.TrainingPlanRatePO) domain.TrainingPlanRate {
-	return domain.TrainingPlanRate{
-		TrainingPlanID: ratePO.TrainingPlanID,
-		Rate:           ratePO.Rate,
-		UserID:         ratePO.UserID,
-	}
-}
-
-func ConvertTrainingPlanRateDomainToDTO(rate domain.TrainingPlanRate) dto.TrainingPlanRateDTO {
-	return dto.TrainingPlanRateDTO{
-		TrainingPlanID: rate.TrainingPlanID,
-		Rate:           rate.Rate,
-		UserID:         rate.UserID,
-	}
-}
-
-func ConvertTrainingPlanRateInfoDomainToDTO(rateInfo domain.TrainingPlanRateInfo) dto.TrainingPlanRateInfoDTO {
-	rateMap := map[int64][]domain.TrainingPlanRate{}
-	for _, r := range rateInfo.Rates {
-		rateMap[r.Rate] = append(rateMap[r.Rate], r)
-	}
-	rateDist := make([]dto.TrainingPlanRateItem, 0)
-	for k, v := range rateMap {
-		rateDist = append(rateDist, dto.TrainingPlanRateItem{
-			Rate:  float64(k),
-			Count: int64(len(v)),
-		})
-	}
-	return dto.TrainingPlanRateInfoDTO{
-		Avg:      rateInfo.Avg,
-		Count:    rateInfo.Count,
-		RateDist: rateDist,
-	}
-}

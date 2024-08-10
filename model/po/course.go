@@ -82,8 +82,10 @@ func (po *TrainingPlanPO) TableName() string {
 
 type TrainingPlanCoursePO struct {
 	gorm.Model
-	CourseID        int64  `gorm:"index;index:uniq_training_plan_course,unique"`
-	TrainingPlanID  int64  `gorm:"index;index:uniq_training_plan_course,unique"`
+	CourseID       int64 `gorm:"index;index:uniq_training_plan_course,unique"`
+	TrainingPlanID int64 `gorm:"index;index:uniq_training_plan_course,unique"`
+	//SuggestTime    string `gorm:"index;index:uniq_training_plan_course,unique"`
+	// 推荐修读时间:学年+学期，如 2023-2024-2
 	SuggestYear     int64  `gorm:"index;index:uniq_training_plan_course,unique"`
 	SuggestSemester int64  `gorm:"index;index:uniq_training_plan_course,unique"`
 	Department      string `gorm:"index;"`
@@ -91,22 +93,6 @@ type TrainingPlanCoursePO struct {
 
 func (po *TrainingPlanCoursePO) TableName() string {
 	return "training_plan_courses"
-}
-
-type TrainingPlanRatePO struct {
-	gorm.Model
-	UserID         int64 `gorm:"index;index:uniq_training_plan_rate,unique"`
-	TrainingPlanID int64 `gorm:"index;index:uniq_training_plan_rate,unique"`
-	Rate           int64 `gorm:"index"`
-}
-type TrainingPlanRateInfoPO struct {
-	Average float64
-	Count   int64
-	Rates    []TrainingPlanRatePO
-}
-
-func (po *TrainingPlanRatePO) TableName() string {
-	return "training_plan_rates"
 }
 
 type CourseReviewInfo struct {

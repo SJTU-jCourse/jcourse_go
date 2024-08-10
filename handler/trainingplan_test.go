@@ -38,7 +38,7 @@ func prettyJsonLog(w *httptest.ResponseRecorder) {
 }
 func baseConfig() (*httptest.ResponseRecorder, *gin.Engine) {
 	gin.SetMode(gin.TestMode)
-	os.Setenv("ROOT_DIR", "/home/ayanmi/code/jcourse/jcourse_go")
+	os.Setenv("ROOT_DIR", "../")
 	rootDir := os.Getenv("ROOT_DIR")
 	_ = godotenv.Load(rootDir + "/.env")
 	dal.InitDBClient()

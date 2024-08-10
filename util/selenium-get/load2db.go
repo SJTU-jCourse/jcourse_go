@@ -43,7 +43,7 @@ func LoadedCourse2PO(course LoadedCourse) (po.BaseCoursePO, po.TrainingPlanCours
 		}
 }
 func Line2Course(line string) LoadedCourse {
-	// AD102,素描（1）,4.0,2018-2019,1,
+	// e.g. CH118,初级汉语精读（1）,8.0,2018-2019,1,巴黎卓越工程师学院
 	meta := strings.Split(line, ",")
 	if len(meta) != 6 {
 		panic("Invalid line2course: " + line)
@@ -93,7 +93,7 @@ func Lines2TrainingPlan(lines []string) LoadedTrainingPlan {
 }
 func TrainingPlan2PO(plan LoadedTrainingPlan) po.TrainingPlanPO {
 	return po.TrainingPlanPO{
-		Degree:     "",
+		Degree:     plan.Degree,
 		Major:      plan.Name,
 		Department: plan.Department,
 		EntryYear:  strconv.Itoa(plan.EntryYear),
@@ -224,10 +224,12 @@ func SaveTeacher(teachers []LoadedTeacher, db *gorm.DB) {
 		}
 		return
 	}
+	teacherPOs := make([]po.TeacherPO, 0)
 	for _, teacher := range teachers {
-		teacherPO := Teacher2PO(teacher)
-		db.Save(&teacherPO)
+		teacherPOs = append(teacherPOs, Teacher2PO(teacher))
 	}
+	db.CreateInBatches(teacherPOs, 100)
+
 }
 func LoadTeacherProfile2DB(from string, db *gorm.DB) {
 	teachers := LoadTeacherProfiles(from)
