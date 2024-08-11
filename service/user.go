@@ -155,6 +155,12 @@ func GetUserList(ctx context.Context, filter domain.UserFilter) ([]dto.UserDetai
 	return result, nil
 }
 
+func AdminGetUserList(ctx context.Context, filter domain.UserFilter) ([]dto.UserProfileDTO, error) {
+	// 视前端而定获取用户的哪些信息
+	// E.g. UserProfileDTO
+	return nil, nil
+}
+
 func GetUserCount(ctx context.Context, filter domain.UserFilter) (int64, error) {
 	userQuery := repository.NewUserQuery()
 	filter.Page, filter.PageSize = 0, 0

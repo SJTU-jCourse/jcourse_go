@@ -11,6 +11,8 @@ type UserListRequest struct {
 
 type UserListResponse = BasePaginateResponse[UserDetailDTO]
 
+type UserListResponseForAdmin = BasePaginateResponse[UserProfileDTO]
+
 type UserSummaryDTO struct {
 	ID                   int64 `json:"id"`
 	ReviewCount          int64 `json:"review_count"`

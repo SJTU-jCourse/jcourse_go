@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"jcourse_go/constant"
 	"jcourse_go/model/converter"
@@ -14,9 +15,6 @@ import (
 func GetSuggestedUserHandler(c *gin.Context) {}
 
 func GetUserListHandler(c *gin.Context) {
-
-	//	管理员权限验证
-
 	var request dto.UserListRequest
 	if err := c.ShouldBindQuery(&request); err != nil {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
@@ -41,13 +39,35 @@ func GetUserListHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func GetCurrentUserSummaryHandler(c *gin.Context) {
+func getUserIDFromRequest(c *gin.Context) (int64, error) {
+	userIDStr := c.Param("userID")
+	userID, err := strconv.Atoi(userIDStr)
+	if err != nil {
+		return -1, errors.New("非法用户ID")
+	}
+	return int64(userID), nil
+}
+
+// 非公开信息？
+func GetUserSummaryHandler(c *gin.Context) {
+	userID, err := getUserIDFromRequest(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "非法用户ID"})
+		return
+	}
+
+	// UserSummary鉴权
 	userInterface, exists := c.Get(constant.CtxKeyUser)
 	if !exists {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "用户未登录！"})
 		return
 	}
 	user, _ := userInterface.(*domain.User)
+
+	if user.ID != userID {
+		c.JSON(http.StatusForbidden, dto.BaseResponse{Message: "无权查看他人信息！"})
+		return
+	}
 
 	me, err := service.GetUserSummaryByID(c, user.ID)
 	if err != nil {
@@ -57,29 +77,43 @@ func GetCurrentUserSummaryHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, me)
 }
 
+// 公开信息
 func GetUserDetailHandler(c *gin.Context) {
-	userIDStr := c.Param("userID")
-	userID, err := strconv.Atoi(userIDStr)
+	userID, err := getUserIDFromRequest(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "非法用户ID"})
+		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "非法用户ID"})
 		return
 	}
 
-	userDetail, errDetail := service.GetUserDetailByID(c, int64(userID))
+	userDetail, errDetail := service.GetUserDetailByID(c, userID)
 	if errDetail != nil {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "此用户不存在！"})
+		return
 	}
 	c.JSON(http.StatusOK, userDetail)
 }
 
-func GetCurrentUserProfileHandler(c *gin.Context) {
+// 非公开信息
+func GetUserProfileHandler(c *gin.Context) {
+	userID, err := getUserIDFromRequest(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "非法用户ID"})
+		return
+	}
+
+	// UserPorfile鉴权
 	userInterface, exists := c.Get(constant.CtxKeyUser)
 	if !exists {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "用户未登录！"})
 		return
 	}
-
 	user, _ := userInterface.(*domain.User)
+
+	if user.ID != userID {
+		c.JSON(http.StatusForbidden, dto.BaseResponse{Message: "无权查看他人信息！"})
+		return
+	}
+
 	me, err := service.GetUserProfileByID(c, user.ID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "此用户不存在！"})
@@ -107,11 +141,9 @@ func UpdateUserProfileHandler(c *gin.Context) {
 }
 
 func GetUserReviewsHandler(c *gin.Context) {
-	userIDStr := c.Param("userID")
-
-	userID, err := strconv.Atoi(userIDStr)
+	userID, err := getUserIDFromRequest(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "非法用户ID"})
+		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "非法用户ID"})
 		return
 	}
 
@@ -124,7 +156,7 @@ func GetUserReviewsHandler(c *gin.Context) {
 	filter := domain.ReviewFilter{
 		Page:     request.Page,
 		PageSize: request.PageSize,
-		UserID:   int64(userID),
+		UserID:   userID,
 	}
 
 	reviews, err := service.GetReviewList(c, filter)
