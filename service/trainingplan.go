@@ -96,7 +96,7 @@ func SearchTrainingPlanList(ctx context.Context, filter domain.TrainingPlanFilte
 
 func GetTrainingPlanListByIDs(ctx context.Context, trainingPlanIDs []int64) (map[int64]domain.TrainingPlanDetail, error) {
 
-	domainTrainingPlans := make(map[int64]domain.TrainingPlanDetail, 0)
+	domainTrainingPlans := make(map[int64]domain.TrainingPlanDetail)
 	for _, id := range trainingPlanIDs {
 		data, err := GetTrainingPlanDetail(ctx, id)
 		if err != nil {

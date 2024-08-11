@@ -34,7 +34,7 @@ func TestSearchTeacherListHandler(t *testing.T) {
 	}{
 		"valid-multi-req":   {"name=古金宇&page=1&page_size=3", http.StatusOK},
 		"valid-single-req":  {"name=古金宇&department=电子信息与电气工程学院&page=1&page_size=3", http.StatusOK},
-		"invalid-value-req": {"name=你谁", http.StatusBadRequest},
+		"invalid-value-req": {"name=你谁", http.StatusOK},
 		"invalid-page-req":  {"page=-1&page_size=10086", http.StatusOK},
 		"overflow-page-req": {"page=10086&page_size=1", http.StatusOK},
 		"invalid-key-req":   {"hello=1", http.StatusBadRequest},

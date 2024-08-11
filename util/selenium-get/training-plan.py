@@ -1,11 +1,8 @@
 from copy import deepcopy
 import os
-from typing import List, Dict
-from selenium import webdriver
-from selenium.webdriver.common.by import By
+from typing import List, Dict, Callable
+
 import requests
-import time
-import argparse
 
 
 class Major:
@@ -167,54 +164,36 @@ class TrainingPlan:
     def __init__(self, major: Major, year):
         self.major = major
         self.year = year
-        self.courses = []
+        self.courses:List[Course] = []
 
     def __csv__(self):
         courses_csv = "\n".join([str(c) for c in self.courses])
         return f"{self.major.__csv__()},{self.year}\n{courses_csv}\n"
 
-    def add_course(self, course):
+    def add_course(self, course: Course):
         self.courses.append(deepcopy(course))
 
     def __str__(self) -> str:
         return self.__csv__()
 
-
-# 初始化 Selenium WebDriver
-driver = webdriver.Chrome()
-session = requests.Session()
-
-
-def login(jaccount_name: str = "", password: str = ""):
-    driver.get(url="https://i.sjtu.edu.cn/jaccountlogin")
-    username_input = driver.find_element(By.ID, "input-login-user")
-    password_input = driver.find_element(By.ID, "input-login-pass")
-    username_input.send_keys("{}".format(jaccount_name))
-    password_input.send_keys("{}".format(password))
-    time.sleep(10)
-    # 手输一下验证码
-
-    # 获取登录后的 Cookie
-    cookies = driver.get_cookies()
-
-    # 将 Cookie 转换为 requests 库可以使用的格式
-    for cookie in cookies:
-        session.cookies.set(cookie['name'], cookie['value'])
-
-
-def abstract_postlist(url: str, post_data: dict, callback):
+def abstract_postlist(session:requests.Session, url: str, post_data: Dict, callback: Callable[[Dict], None]):
     response = session.post(url, data=post_data)
     if response.status_code == 200:
         print("请求成功")
-        data = response.json()['items']
-        for d in data:
-            callback(deepcopy(d))
+        try:
+            data = response.json()['items']
+            for d in data:
+                callback(deepcopy(d))
+        except Exception as e:
+            print(response.text)
+            print(e)
+
     else:
         print(f"请求失败，状态码: {response.status_code}")
         print(response.text)
 
 
-def get_training_plans(tps: List[TrainingPlan]):
+def get_training_plans(session: requests.Session, tps: List[TrainingPlan]):
     url = "https://i.sjtu.edu.cn/jxzxjhgl/jxzxjhck_cxJxzxjhckIndex.html?doType=query&gnmkdm=N153540"
     data = {
         "jg_id": "",
@@ -231,7 +210,7 @@ def get_training_plans(tps: List[TrainingPlan]):
         "time": "1"
     }
 
-    def generate_training_plan(tp: dict):
+    def generate_training_plan(tp: Dict)->None:
         required_keys = ['zyh', 'zymc', 'zyh_id', 'jxzxjhxx_id', 'jg_id']
         min_points = "0"
         if 'zdxf' in tp:
@@ -249,7 +228,7 @@ def get_training_plans(tps: List[TrainingPlan]):
         tps.append(TrainingPlan(deepcopy(_major), tp['njmc']))
 
     callback = generate_training_plan
-    abstract_postlist(url, data, callback)
+    abstract_postlist(session=session, url=url, post_data=data, callback=callback)
 
 
 """
@@ -268,13 +247,13 @@ course:
 "kcmc" //课程名称
 "xf" //学分(不一定有)
 "kkbmmc" //开课学院名称(不一定有)
-"jyxdxnm" //建议修读学年
-"jyxdxqm" //建议修读学期
+"jyxdxnm" //建议修读学年 (2018-2019格式)
+"jyxdxqm" //建议修读学期 (1,2,3)
 ""
 """
 
 
-def get_training_plan_courses(tps: List[TrainingPlan]):
+def get_training_plan_courses(session: requests.Session, tps: List[TrainingPlan]):
     # 构建请求的 URL 和数据
     url = "https://i.sjtu.edu.cn/jxzxjhgl/jxzxjhkcxx_cxJxzxjhkcxxIndex.html?doType=query&gnmkdm=N153540"
     for tp in tps:
@@ -311,10 +290,10 @@ def get_training_plan_courses(tps: List[TrainingPlan]):
                                  suggest_semester=d['jyxdxqm'],
                                  department=d['kkbmmc']))
 
-        abstract_postlist(url, data, callback)
+        abstract_postlist(session=session, url=url, post_data=data, callback=callback)
 
 
-def save_csv(tps: List[TrainingPlan], to="./data/trainingPlan.txt",
+def save_csv(tps: List[TrainingPlan], to:str="./data/trainingPlan.txt",
              append=False):
     dir = os.path.dirname(to)
     if not os.path.exists(dir):
@@ -326,15 +305,24 @@ def save_csv(tps: List[TrainingPlan], to="./data/trainingPlan.txt",
         for tp in tps:
             f.write(tp.__csv__() + "\n")
 
-
-parser = argparse.ArgumentParser()
-parser.add_argument('-n', "--name", help="jaccount name", default="")
-parser.add_argument('-p', "--password", help="password", default="")
-args = parser.parse_args()
-TrainingPlans: List[TrainingPlan] = []
-login(args.name, args.password)
-get_training_plans(TrainingPlans)
-get_training_plan_courses(TrainingPlans)
-save_csv(TrainingPlans)
-# 关闭 Selenium WebDriver
-driver.quit()
+if __name__ == "__main__":
+    if __package__ is None:
+        import sys
+        from os import path
+        sys.path.append(path.dirname( path.dirname(path.abspath(__file__))))
+        from common import Automator
+    else:
+        from .common import Automator
+    automator = Automator(description="Get training-plans")
+    parser = automator.parser
+    args = parser.parse_args()
+    trainingPlans: List[TrainingPlan] = []
+    automator.login(args.name, args.password)
+    session = automator.get_session()
+    get_training_plans(session=session, tps=trainingPlans)
+    get_training_plan_courses(session=session,tps=trainingPlans)
+    if not args.debug:
+        save_csv(trainingPlans)
+    else:
+        print(trainingPlans[:10])
+    automator.end()

@@ -5,8 +5,7 @@ type TrainingPlanCourseDTO struct {
 	Code            string  `json:"code"`
 	Name            string  `json:"name"`
 	Credit          float64 `json:"credit"`
-	SuggestYear     int64   `json:"suggest_year"`
-	SuggestSemester int64   `json:"suggest_semester"`
+	SuggestSemester string  `json:"suggest_semester"`
 	Department      string  `json:"department"`
 }
 
@@ -14,12 +13,11 @@ type TrainingPlanListItemDTO struct {
 	ID         int64                   `json:"id"`
 	Code       string                  `json:"code"`
 	MajorName  string                  `json:"name"`
-	MinPoints  float64                 `json:"min_points"`
+	MinCredits float64                 `json:"min_credits"`
 	MajorClass string                  `json:"major_class"`
 	EntryYear  int64                   `json:"entry_year"`
 	Department string                  `json:"department"`
 	TotalYear  int64                   `json:"total_year"`
-	Grade      float32                 `json:"grade"`
 	Degree     string                  `json:"degree"`
 	Courses    []TrainingPlanCourseDTO `json:"courses"`
 }

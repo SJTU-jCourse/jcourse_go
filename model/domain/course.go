@@ -41,11 +41,11 @@ type TrainingPlan struct {
 type TrainingPlanDetail struct {
 	ID         int64
 	Major      string
-	Department string
-	EntryYear  string
 	MajorCode  string
 	MajorClass string
-	MinPoints  float64
+	Department string
+	EntryYear  string
+	MinCredits float64
 	TotalYear  int
 	Courses    []TrainingPlanCourse
 }
@@ -54,20 +54,8 @@ type TrainingPlanCourse struct {
 	Code            string
 	Name            string
 	Credit          float64
-	SuggestYear     int64
-	SuggestSemester int64
+	SuggestSemester string
 	Department      string
-}
-type TrainingPlanRateInfo struct {
-	Avg            float64
-	Count          int64
-	TrainingPlanID int64
-	Rates          []TrainingPlanRate
-}
-type TrainingPlanRate struct {
-	TrainingPlanID int64
-	UserID         int64
-	Rate           int64
 }
 
 type TrainingPlanFilter struct {

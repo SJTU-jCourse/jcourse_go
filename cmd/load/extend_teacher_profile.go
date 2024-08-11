@@ -31,7 +31,7 @@ func main() {
 		if len(teachers) == 1 {
 			teachers[0].Email = t.Mail
 			teachers[0].ProfileURL = t.ProfileUrl
-			teachers[0].ProfileDesc = t.ProfileDescription
+			teachers[0].Biography = t.Biography
 			teachers[0].Picture = t.HeadImage
 			db.Save(&teachers[0])
 			continue
@@ -43,7 +43,7 @@ func main() {
 				if tt.Department == t.Department {
 					tt.Email = t.Mail
 					tt.ProfileURL = t.ProfileUrl
-					tt.ProfileDesc = t.ProfileDescription
+					tt.Biography = t.Biography
 					tt.Picture = t.HeadImage
 					db.Save(&tt)
 					confirm = true

@@ -13,7 +13,6 @@ func ConvertTrainingPlanCourseDomainToDTO(courseDomain domain.TrainingPlanCourse
 		Name:            courseDomain.Name,
 		Code:            courseDomain.Code,
 		Credit:          courseDomain.Credit,
-		SuggestYear:     courseDomain.SuggestYear,
 		SuggestSemester: courseDomain.SuggestSemester,
 	}
 }
@@ -31,7 +30,7 @@ func ConvertTrainingPlanDomainToDTO(domain domain.TrainingPlanDetail) dto.Traini
 		Department: domain.Department,
 		EntryYear:  int64(entryYear),
 		MajorName:  domain.Major,
-		MinPoints:  domain.MinPoints,
+		MinCredits: domain.MinCredits,
 		MajorClass: domain.MajorClass,
 		TotalYear:  int64(domain.TotalYear),
 		Courses:    courses,
@@ -52,7 +51,6 @@ func ConvertTrainingPlanCoursePOToDomain(coursePO po.TrainingPlanCoursePO, baseC
 		Name:            baseCoursePO.Name,
 		Credit:          baseCoursePO.Credit,
 		SuggestSemester: coursePO.SuggestSemester,
-		SuggestYear:     coursePO.SuggestYear,
 		Department:      coursePO.Department,
 	}
 }

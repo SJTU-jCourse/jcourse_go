@@ -20,7 +20,7 @@ func ConvertTeacherPOToDomain(teacher *po.TeacherPO) *domain.Teacher {
 		Title:       teacher.Title,
 		Picture:     teacher.Picture,
 		ProfileURL:  teacher.ProfileURL,
-		ProfileDesc: teacher.ProfileDesc,
+		ProfileDesc: teacher.Biography,
 	}
 }
 

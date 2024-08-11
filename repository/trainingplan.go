@@ -138,17 +138,11 @@ type ITrainingPlanCourseQuery interface {
 	WithTrainingPlanID(trainingPlanID int64) DBOption
 	WithCourseID(courseID int64) DBOption
 	WithCourseIDs(courseIDs []int64) DBOption
-	WithSuggestSemester(semester int64) DBOption
-	WithSuggestYear(year int64) DBOption
+	WithSuggestSemester(semester string) DBOption
 	WithDepartment(department string) DBOption
 }
 
-func (t *TrainingPlanCourseQuery) WithSuggestYear(year int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("suggest_year = ?", year)
-	}
-}
-func (t *TrainingPlanCourseQuery) WithSuggestSemester(semester int64) DBOption {
+func (t *TrainingPlanCourseQuery) WithSuggestSemester(semester string) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("suggest_semester = ?", semester)
 	}

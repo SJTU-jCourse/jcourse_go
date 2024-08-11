@@ -183,7 +183,7 @@ func ConvertTrainingPlanPOToDomain(trainingPlan po.TrainingPlanPO) domain.Traini
 		EntryYear:  trainingPlan.EntryYear,
 		MajorCode:  trainingPlan.MajorCode,
 		MajorClass: trainingPlan.MajorClass,
-		MinPoints:  trainingPlan.MinPoints,
+		MinCredits: trainingPlan.MinCredits,
 		TotalYear:  int(trainingPlan.TotalYear),
 	}
 }

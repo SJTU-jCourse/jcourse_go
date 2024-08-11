@@ -41,7 +41,7 @@ func main() {
 			Department: tp.Department,
 			EntryYear:  strconv.Itoa(tp.EntryYear),
 			TotalYear:  tp.TotalYear,
-			MinPoints:  tp.MinPoints,
+			MinCredits: tp.MinCredits,
 			MajorCode:  tp.Code,
 			MajorClass: tp.MajorClass,
 		}
@@ -63,8 +63,7 @@ func main() {
 			tpc_po := po.TrainingPlanCoursePO{
 				TrainingPlanID:  int64(tp_po.ID),
 				CourseID:        int64(course.ID),
-				SuggestYear:     int64(c.SuggestYear),
-				SuggestSemester: int64(c.SuggestSemester),
+				SuggestSemester: c.SuggestSemester,
 				Department:      c.Department,
 			}
 			cresult = db.Model(po.TrainingPlanCoursePO{}).Create(&tpc_po)

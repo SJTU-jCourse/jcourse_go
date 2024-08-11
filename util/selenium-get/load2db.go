@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"jcourse_go/model/po"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -17,14 +19,13 @@ type LoadedCourse struct {
 	Name            string
 	Credit          float32
 	Department      string
-	SuggestYear     int
-	SuggestSemester int
+	SuggestSemester string
 }
 type LoadedTrainingPlan struct {
 	Code       string
 	Name       string
 	TotalYear  int
-	MinPoints  float64
+	MinCredits float64
 	MajorClass string
 	Department string
 	EntryYear  int
@@ -38,8 +39,8 @@ func LoadedCourse2PO(course LoadedCourse) (po.BaseCoursePO, po.TrainingPlanCours
 			Name:   course.Name,
 			Credit: float64(course.Credit),
 		}, po.TrainingPlanCoursePO{
-			SuggestYear:     int64(course.SuggestYear),
-			SuggestSemester: int64(course.SuggestSemester),
+			SuggestSemester: course.SuggestSemester,
+			Department:      course.Department,
 		}
 }
 func Line2Course(line string) LoadedCourse {
@@ -52,20 +53,12 @@ func Line2Course(line string) LoadedCourse {
 	if err != nil {
 		credit = 0.0
 	}
-	suggest_year, err := strconv.ParseInt(meta[3][0:4], 10, 32)
-	if err != nil {
-		suggest_year = 0
-	}
-	suggest_semester, err := strconv.Atoi(meta[4])
-	if err != nil {
-		suggest_semester = 0
-	}
+	suggest_semester := fmt.Sprintf("%s-%s", meta[3], meta[4]) // 2018-2019-1
 	return LoadedCourse{
 		Code:            meta[0],
 		Name:            meta[1],
 		Credit:          float32(credit),
-		SuggestYear:     int(suggest_year),
-		SuggestSemester: int(suggest_semester),
+		SuggestSemester: suggest_semester,
 		Department:      meta[5],
 	}
 }
@@ -81,7 +74,7 @@ func Lines2TrainingPlan(lines []string) LoadedTrainingPlan {
 	plan.Name = metaInfo[2]
 	plan.Code = metaInfo[0]
 	plan.TotalYear, _ = strconv.Atoi(metaInfo[4])
-	plan.MinPoints, _ = strconv.ParseFloat(metaInfo[5], 64)
+	plan.MinCredits, _ = strconv.ParseFloat(metaInfo[5], 64)
 	plan.MajorClass = metaInfo[6]
 	plan.Department = metaInfo[7]
 	plan.Degree = metaInfo[8]
@@ -98,11 +91,10 @@ func TrainingPlan2PO(plan LoadedTrainingPlan) po.TrainingPlanPO {
 		Department: plan.Department,
 		EntryYear:  strconv.Itoa(plan.EntryYear),
 		TotalYear:  plan.TotalYear,
-		MinPoints:  plan.MinPoints,
+		MinCredits: plan.MinCredits,
 		MajorCode:  plan.Code,
 		MajorClass: plan.MajorClass,
 	}
-	// TODO: change po
 }
 func SaveTrainingPlanCourses(plan LoadedTrainingPlan, db *gorm.DB, tid int64) {
 	if db == nil {
@@ -156,7 +148,6 @@ func LoadTrainingPLans(from string) []LoadedTrainingPlan {
 	var allTrainingPlans []LoadedTrainingPlan
 	for scanner.Scan() {
 		text := scanner.Text()
-		// println(text)
 		if text == "" {
 			if len(lines) > 0 {
 				allTrainingPlans = append(allTrainingPlans, Lines2TrainingPlan(lines))
@@ -188,16 +179,16 @@ type LoadedTeacher struct {
 	        "mail": "wuziyun@vip.qq.com",
 	        "profile_description": "PI\u7b80\u4ecb\uff1a\u5434\u7d2b\u4e91\u535a\u58eb\uff0c\u535a\u5bfc\uff0c\u6e56\u5357\u5e38\u5fb7\u4eba\uff0c2014\u5e74\u6bd5\u4e1a\u4e8e\u65b0\u52a0\u5761..."
 	    },*/
-	Name               string `json:"name"`
-	Code               int64  `json:"code"`
-	Department         string `json:"department"`
-	Title              string `json:"title"`
-	Pinyin             string `json:"pinyin"`
-	PinyinAbbr         string `json:"pinyin_abbr"`
-	ProfileUrl         string `json:"profile_url"`
-	HeadImage          string `json:"head_image"`
-	Mail               string `json:"mail"`
-	ProfileDescription string `json:"profile_description"`
+	Name       string `json:"name"`
+	Code       int64  `json:"code"`
+	Department string `json:"department"`
+	Title      string `json:"title"`
+	Pinyin     string `json:"pinyin"`
+	PinyinAbbr string `json:"pinyin_abbr"`
+	ProfileUrl string `json:"profile_url"`
+	HeadImage  string `json:"head_image"`
+	Mail       string `json:"mail"`
+	Biography  string `json:"biography"`
 }
 
 func Teacher2PO(teacher LoadedTeacher) po.TeacherPO {
@@ -209,10 +200,9 @@ func Teacher2PO(teacher LoadedTeacher) po.TeacherPO {
 		Title:      teacher.Title,
 		Pinyin:     teacher.Pinyin,
 		PinyinAbbr: teacher.PinyinAbbr,
-		// TODO: add more
-		ProfileDesc: teacher.ProfileDescription,
-		ProfileURL:  teacher.ProfileUrl,
-		Picture:     teacher.HeadImage,
+		Biography:  teacher.Biography,
+		ProfileURL: teacher.ProfileUrl,
+		Picture:    teacher.HeadImage,
 	}
 }
 func SaveTeacher(teachers []LoadedTeacher, db *gorm.DB) {
@@ -244,6 +234,9 @@ func LoadTeacherProfiles(from string) []LoadedTeacher {
 	defer file.Close()
 	data, _ := os.ReadFile(from)
 	var teachers []LoadedTeacher
-	json.Unmarshal(data, &teachers)
+	err = json.Unmarshal(data, &teachers)
+	if err != nil {
+		log.Fatalf("In read teacher profile from file %#v:%#v", from, err)
+	}
 	return teachers
 }

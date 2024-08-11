@@ -72,7 +72,7 @@ type TrainingPlanPO struct {
 	EntryYear  string  `gorm:"index;index:uniq_training_plan,unique"` //==Grade,年级
 	MajorCode  string  `gorm:"index;index:uniq_training_plan,unique"`
 	TotalYear  int     `gorm:"index;index:uniq_training_plan,unique"`
-	MinPoints  float64 `gorm:"index;index:uniq_training_plan,unique"`
+	MinCredits float64 `gorm:"index;index:uniq_training_plan,unique"`
 	MajorClass string  `gorm:"index;index:uniq_training_plan,unique"` // 专业类
 }
 
@@ -84,10 +84,8 @@ type TrainingPlanCoursePO struct {
 	gorm.Model
 	CourseID       int64 `gorm:"index;index:uniq_training_plan_course,unique"`
 	TrainingPlanID int64 `gorm:"index;index:uniq_training_plan_course,unique"`
-	//SuggestTime    string `gorm:"index;index:uniq_training_plan_course,unique"`
-	// 推荐修读时间:学年+学期，如 2023-2024-2
-	SuggestYear     int64  `gorm:"index;index:uniq_training_plan_course,unique"`
-	SuggestSemester int64  `gorm:"index;index:uniq_training_plan_course,unique"`
+	// SuggestSemester:学年+学期，如 2023-2024-2
+	SuggestSemester string `gorm:"index;index:uniq_training_plan_course,unique"`
 	Department      string `gorm:"index;"`
 }
 

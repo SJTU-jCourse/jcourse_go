@@ -2,17 +2,9 @@ import os
 import requests
 import json
 import pprint
-import time
 from pypinyin import lazy_pinyin
 from typing import List
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from argparse import ArgumentParser
 
-driver = webdriver.Chrome()
-session = requests.Session()
-parser = ArgumentParser(description="A simple scrapy to download the teacher profile and save as json.")
-base_url = "https://faculty.sjtu.edu.cn/"
 json_indent = 4
 """
 type TeacherPO struct {
@@ -80,19 +72,7 @@ def resp_to_teacher(resp: dict)->Teacher:
 
     return teacher
 
-def login(name:str, password:str):
-    driver.get(url="https://i.sjtu.edu.cn/jaccountlogin")
-    username_input = driver.find_element(By.ID, "input-login-user")
-    password_input = driver.find_element(By.ID, "input-login-pass")
-    username_input.send_keys("{}".format(name))
-    password_input.send_keys("{}".format(password))
-    time.sleep(10)
-def set_cookie():
-    cookies = driver.get_cookies()
-    # 转化为 requests 库可以使用的格式
-    for cookie in cookies:
-        session.cookies.set(cookie['name'], cookie['value'])
-def get_teacher_list(_print:bool=False, limit:int=10000)->List[Teacher]:
+def get_teacher_list(session:requests.Session, _print:bool=False, limit:int=10000)->List[Teacher]:
     url = f"{base_url}/system/resource/tsites/advancesearch.jsp"
     query_param = {
         "collegeid": 0,
@@ -142,35 +122,43 @@ def append_json(data: List[Teacher], to="./data/teachers.json"):
     teachers.extend([t.to_dict() for t in data])
     with open(to, "w") as f:
         json.dump(teachers, f, indent=json_indent)
-def automation():
-    parser.add_argument("-n", "--name", type=str, action="store", help="jacount for login")
-    parser.add_argument("-p", "--password", type=str, action="store", help="password for login")
-    parser.add_argument("-d","--debug", action="store_true", help="In debug mode, the program will not save the result to the file.")
+
+if __name__=="__main__":
+    description = "A simple scrapy to download the teacher profile and save as json."
+    if __package__ is None:
+        import sys
+        from os import path
+        sys.path.append(path.dirname(path.dirname( path.abspath(__file__))))
+        from common import Automator
+    else:
+        from .common import Automator
+    automator = Automator(
+        description=description
+    )
+    base_url = "https://faculty.sjtu.edu.cn/"
+    parser = automator.parser
     parser.add_argument("-l", "--load_from", type=str, action="store", help="Load the result from the <load_from> json file.")
     parser.add_argument("-a", "--append_from", type=str, action="store", help="Append the result from the <append_from> json file.")
     parser.add_argument("-s", "--save_to", type=str, action="store", help="Save the result to the <save_to> json file.")
     parser.add_argument("--limit", type=int, help="The maximum number of request teachers")
-    parser.add_argument("-v", "--verbose", action="store_true", help="Verbose mode")
-def main():
-    automation()
     args = parser.parse_args()
     init_teachers = []
     if not args.name or not args.password:
         print("jacount and password are required")
         exit(0)
+    automator.login(args.name, args.password)
+    session = automator.get_session()
     if args.load_from and os.path.exists(args.load_from):
         with open(args.load_from, "r") as f:
             init_teachers = json.load(f)
     if args.append_from and os.path.exists(args.append_from):
         with open(args.append_from, "r") as f:
             init_teachers.extend(json.load(f))
-
-    login(name=args.name, password=args.password)
-    set_cookie()
+    print("开始查询，请稍等.......")
     if args.limit:
-        new_teachers = get_teacher_list(args.verbose, args.limit)
+        new_teachers = get_teacher_list(session=session,_print=args.verbose, limit=args.limit)
     else:
-        new_teachers = get_teacher_list(args.verbose)
+        new_teachers = get_teacher_list(session=session,_print=args.verbose)
     all_teachers = init_teachers + new_teachers
     print("当前教师数量：{}".format(len(all_teachers)))
     if not args.debug:
@@ -178,6 +166,5 @@ def main():
             save_json(all_teachers, to=args.save_to)
         else:
             save_json(all_teachers)
+    automator.end()
 
-main()
-driver.close()
