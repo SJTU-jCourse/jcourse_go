@@ -1,7 +1,6 @@
 package converter
 
 import (
-	"gorm.io/gorm"
 	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/po"
@@ -78,38 +77,23 @@ func ConvertToUserProfileDTO(userPO *po.UserPO, userProfilePO *po.UserProfilePO)
 	}
 }
 
-func ConvertUpdateUserProfileDTOToUserPO(userProfileDTO *dto.UserProfileDTO, userPO *po.UserPO) *po.UserPO {
-	if userProfileDTO == nil {
-		return nil
-	}
-	return &po.UserPO{
-		Model: gorm.Model{
-			ID:        userPO.ID,
-			CreatedAt: userPO.CreatedAt,
-			UpdatedAt: time.Now(),
-			DeletedAt: userPO.DeletedAt,
-		},
+func ConvertUpdateUserProfileDTOToUserPO(userProfileDTO *dto.UserProfileDTO, userPO *po.UserPO) po.UserPO {
+	updatedUserPo := po.UserPO{
 		Username:   userProfileDTO.Username,
 		Email:      userPO.Email,
 		Password:   userPO.Password,
 		UserRole:   userPO.UserRole,
 		LastSeenAt: time.Now(),
 	}
+	if userProfileDTO.ID != 0 {
+		updatedUserPo.ID = userPO.ID
+	}
+	return updatedUserPo
 }
 
-func ConvertUpdateUserProfileDTOToUsrProfilePO(userProfileDTO *dto.UserProfileDTO, userProfilePO *po.UserProfilePO) *po.UserProfilePO {
-	if userProfileDTO == nil {
-		return nil
-	}
-
-	// 保留一些immutable的属性（
-	return &po.UserProfilePO{
-		Model: gorm.Model{
-			ID:        userProfilePO.ID,
-			CreatedAt: userProfilePO.CreatedAt,
-			UpdatedAt: time.Now(),
-			DeletedAt: userProfilePO.DeletedAt,
-		},
+func ConvertUpdateUserProfileDTOToUsrProfilePO(userProfileDTO *dto.UserProfileDTO, userProfilePO *po.UserProfilePO) po.UserProfilePO {
+	// 保留一些immutable的属性
+	updatedUserProfilePO := po.UserProfilePO{
 		UserID:     userProfilePO.UserID,
 		Avatar:     userProfileDTO.Avatar,
 		Department: userProfileDTO.Department,
@@ -119,4 +103,8 @@ func ConvertUpdateUserProfileDTOToUsrProfilePO(userProfileDTO *dto.UserProfileDT
 		Grade:      userProfileDTO.Grade,
 		Bio:        userProfileDTO.Bio,
 	}
+	if updatedUserProfilePO.ID != 0 {
+		updatedUserProfilePO.ID = userProfilePO.ID
+	}
+	return updatedUserProfilePO
 }

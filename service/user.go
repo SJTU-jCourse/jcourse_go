@@ -170,7 +170,7 @@ func UpdateUserProfileByID(ctx context.Context, userProfileDTO *dto.UserProfileD
 	}
 	newUserPO := converter.ConvertUpdateUserProfileDTOToUserPO(userProfileDTO, oldUserPO)
 
-	errUpdate := userQuery.UpdateUserByID(ctx, newUserPO)
+	errUpdate := userQuery.UpdateUserByID(ctx, &newUserPO)
 	if errUpdate != nil {
 		return errUpdate
 	}
@@ -181,7 +181,7 @@ func UpdateUserProfileByID(ctx context.Context, userProfileDTO *dto.UserProfileD
 		return errQuery2
 	}
 	newUserProfilePO := converter.ConvertUpdateUserProfileDTOToUsrProfilePO(userProfileDTO, oldUserProfilePO)
-	errUpdate2 := userProfileQuery.UpdateUserProfileByID(ctx, newUserProfilePO)
+	errUpdate2 := userProfileQuery.UpdateUserProfileByID(ctx, &newUserProfilePO)
 	if errUpdate2 != nil {
 		return errUpdate2
 	}
