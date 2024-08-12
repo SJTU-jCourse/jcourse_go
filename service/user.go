@@ -11,25 +11,17 @@ import (
 	"jcourse_go/repository"
 )
 
-// 该函数如果放在converter包中会报错import cycle is not allowed
-// UserSummaryDTO的组装需要借助service/review.go中的GetReviewCount函数
-func ConvertToUserSummaryDTO(ctx context.Context, userPO *po.UserPO, userProfilePO *po.UserProfilePO) *dto.UserSummaryDTO {
-	if userPO == nil {
-		return nil
-	}
-
+func GetUserSummaryByID(ctx context.Context, userID int64) (*dto.UserSummaryDTO, error) {
 	filter := domain.ReviewFilter{
-		UserID: int64(userPO.ID),
+		UserID: userID,
 	}
 
 	total, _ := GetReviewCount(ctx, filter)
+	// 过滤非匿名点评
 
-	return &dto.UserSummaryDTO{
-		ID:                   int64(userPO.ID),
-		ReviewCount:          total,
-		TipReceive:           0,
-		FollowingCourseCount: 0,
-	}
+	// 获取用户收到的赞数、被打赏积分数、关注的课程数
+
+	return converter.ConvertUserDomainToUserSummaryDTO(userID, total, 0, 0, 0), nil
 }
 
 func GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]domain.User, error) {
@@ -61,7 +53,8 @@ func GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]domain.User, 
 	return result, nil
 }
 
-func GetUserSummaryByID(ctx context.Context, userID int64) (*dto.UserSummaryDTO, error) {
+// 共用函数，用于获取用户基本信息和详细资料并组装成domain.User
+func GetUserDomainByID(ctx context.Context, userID int64) (*domain.User, error) {
 	userQuery := repository.NewUserQuery()
 	userPO, err := userQuery.GetUserByID(ctx, userID)
 	if err != nil {
@@ -73,40 +66,11 @@ func GetUserSummaryByID(ctx context.Context, userID int64) (*dto.UserSummaryDTO,
 	if err != nil {
 		return nil, err
 	}
-	userSummary := ConvertToUserSummaryDTO(ctx, userPO, userProfilePO)
-	return userSummary, nil
-}
 
-func GetUserDetailByID(ctx context.Context, userID int64) (*dto.UserDetailDTO, error) {
-	userQuery := repository.NewUserQuery()
-	userPO, err := userQuery.GetUserByID(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
+	user := converter.ConvertUserPOToDomain(*userPO)
+	converter.PackUserWithProfile(&user, *userProfilePO)
 
-	userProfileQuery := repository.NewUserProfileQuery()
-	userProfilePO, err := userProfileQuery.GetUserProfileByID(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-	userDetails := converter.ConvertToUserDetailDTO(userPO, userProfilePO)
-	return userDetails, nil
-}
-
-func GetUserProfileByID(ctx context.Context, userID int64) (*dto.UserProfileDTO, error) {
-	userQuery := repository.NewUserQuery()
-	userPO, err := userQuery.GetUserByID(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	userProfileQuery := repository.NewUserProfileQuery()
-	userProfilePO, err := userProfileQuery.GetUserProfileByID(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-	userProfile := converter.ConvertToUserProfileDTO(userPO, userProfilePO)
-	return userProfile, nil
+	return &user, nil
 }
 
 func buildUserDBOptionFromFilter(query repository.IUserQuery, filter domain.UserFilter) []repository.DBOption {

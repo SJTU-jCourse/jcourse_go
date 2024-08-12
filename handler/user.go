@@ -69,12 +69,12 @@ func GetUserSummaryHandler(c *gin.Context) {
 		return
 	}
 
-	me, err := service.GetUserSummaryByID(c, user.ID)
+	userSummary, err := service.GetUserSummaryByID(c, user.ID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "此用户不存在！"})
 		return
 	}
-	c.JSON(http.StatusOK, me)
+	c.JSON(http.StatusOK, userSummary)
 }
 
 // 公开信息
@@ -85,11 +85,13 @@ func GetUserDetailHandler(c *gin.Context) {
 		return
 	}
 
-	userDetail, errDetail := service.GetUserDetailByID(c, userID)
-	if errDetail != nil {
+	userDomain, err := service.GetUserDomainByID(c, userID)
+	if err != nil {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "此用户不存在！"})
 		return
 	}
+
+	userDetail := converter.ConvertUserDomainToUserDetailDTO(userDomain)
 	c.JSON(http.StatusOK, userDetail)
 }
 
@@ -101,7 +103,7 @@ func GetUserProfileHandler(c *gin.Context) {
 		return
 	}
 
-	// UserPorfile鉴权
+	// UserProfile鉴权
 	userInterface, exists := c.Get(constant.CtxKeyUser)
 	if !exists {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "用户未登录！"})
@@ -114,12 +116,14 @@ func GetUserProfileHandler(c *gin.Context) {
 		return
 	}
 
-	me, err := service.GetUserProfileByID(c, user.ID)
+	userDomain, err := service.GetUserDomainByID(c, user.ID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "此用户不存在！"})
 		return
 	}
-	c.JSON(http.StatusOK, me)
+
+	userProfile := converter.ConvertUserDomainToUserProfileDTO(userDomain)
+	c.JSON(http.StatusOK, userProfile)
 }
 
 func WatchUserHandler(c *gin.Context) {}

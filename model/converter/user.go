@@ -47,48 +47,57 @@ func ConvertUserDomainToReviewDTO(user domain.User) dto.UserInReviewDTO {
 	}
 }
 
-func ConvertToUserDetailDTO(userPO *po.UserPO, userProfilePO *po.UserProfilePO) *dto.UserDetailDTO {
-	if userPO == nil {
-		return nil
-	}
-	return &dto.UserDetailDTO{
-		ID:       int64(userPO.ID),
-		Username: userPO.Username,
-		Avatar:   userProfilePO.Avatar,
-		Bio:      userProfilePO.Bio,
+func ConvertUserDomainToUserSummaryDTO(id int64, reviewCount int64, likeReceive int64, tipReceive int64, followingCourseCount int64) *dto.UserSummaryDTO {
+	return &dto.UserSummaryDTO{
+		ID:                   id,
+		ReviewCount:          reviewCount,
+		LikeReceive:          likeReceive,
+		TipReceive:           tipReceive,
+		FollowingCourseCount: followingCourseCount,
 	}
 }
 
-func ConvertToUserProfileDTO(userPO *po.UserPO, userProfilePO *po.UserProfilePO) *dto.UserProfileDTO {
-	if userPO == nil {
+func ConvertUserDomainToUserDetailDTO(userDomain *domain.User) *dto.UserDetailDTO {
+	if userDomain == nil {
+		return nil
+	}
+	return &dto.UserDetailDTO{
+		ID:       userDomain.ID,
+		Username: userDomain.Username,
+		Avatar:   userDomain.Profile.Avatar,
+		Bio:      userDomain.Profile.Bio,
+	}
+}
+
+func ConvertUserDomainToUserProfileDTO(userDomain *domain.User) *dto.UserProfileDTO {
+	if userDomain == nil {
 		return nil
 	}
 	return &dto.UserProfileDTO{
-		ID:         int64(userPO.ID),
-		UserID:     userProfilePO.UserID,
-		Username:   userPO.Username,
-		Bio:        userProfilePO.Bio,
-		Email:      userPO.Email,
-		Avatar:     userProfilePO.Avatar,
-		Role:       userPO.UserRole,
-		Department: userProfilePO.Department,
-		Major:      userProfilePO.Major,
-		Grade:      userProfilePO.Grade,
+		UserID:     userDomain.ID,
+		Username:   userDomain.Username,
+		Bio:        userDomain.Profile.Bio,
+		Email:      userDomain.Email,
+		Avatar:     userDomain.Profile.Avatar,
+		Role:       userDomain.Role,
+		Department: userDomain.Profile.Department,
+		Major:      userDomain.Profile.Major,
+		Grade:      userDomain.Profile.Grade,
 	}
 }
 
 func ConvertUpdateUserProfileDTOToUserPO(userProfileDTO *dto.UserProfileDTO, userPO *po.UserPO) po.UserPO {
-	updatedUserPo := po.UserPO{
+	updatedUserPO := po.UserPO{
 		Username:   userProfileDTO.Username,
 		Email:      userPO.Email,
 		Password:   userPO.Password,
 		UserRole:   userPO.UserRole,
 		LastSeenAt: time.Now(),
 	}
-	if userProfileDTO.ID != 0 {
-		updatedUserPo.ID = userPO.ID
+	if userProfileDTO.UserID != 0 {
+		updatedUserPO.ID = uint(userProfileDTO.UserID)
 	}
-	return updatedUserPo
+	return updatedUserPO
 }
 
 func ConvertUpdateUserProfileDTOToUsrProfilePO(userProfileDTO *dto.UserProfileDTO, userProfilePO *po.UserProfilePO) po.UserProfilePO {
@@ -103,8 +112,8 @@ func ConvertUpdateUserProfileDTOToUsrProfilePO(userProfileDTO *dto.UserProfileDT
 		Grade:      userProfileDTO.Grade,
 		Bio:        userProfileDTO.Bio,
 	}
-	if updatedUserProfilePO.ID != 0 {
-		updatedUserProfilePO.ID = userProfilePO.ID
+	if userProfileDTO.UserID != 0 {
+		updatedUserProfilePO.ID = uint(userProfileDTO.UserID)
 	}
 	return updatedUserProfilePO
 }
