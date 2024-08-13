@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+
 	"jcourse_go/constant"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
@@ -85,6 +86,10 @@ func GetCourseListHandler(c *gin.Context) {
 		return
 	}
 	total, err := service.GetCourseCount(c, filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		return
+	}
 
 	resp := dto.CourseListResponse{
 		Total:    total,

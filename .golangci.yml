@@ -1,0 +1,12 @@
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gocyclo
+    - gofmt
+    - goimports
+  fast: true
