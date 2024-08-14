@@ -9,7 +9,7 @@
 *.dylib
 /output
 /data
-**/data
+
 # Test binary, built with `go test -c`
 *.test
 
@@ -28,26 +28,4 @@ go.work.sum
 
 *.sqlite
 
-
-# my dev
-util/__pycache__
-util/jac-auth.py
-util/jaccount-scrapy.go
-util/selenium_get.go
-util/selenium-get.py
-cmd/import_from_jwc/import_from_jwc.go
-main.go
-dal
-**/data
-log
-*.db
-cmd/**/*.py
-
-.gitignore
-*.pdf
-**/*.txt
-
-*.db
-.gitignore
-.github
 .idea
