@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
 	"jcourse_go/constant"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
@@ -10,6 +9,8 @@ import (
 	"jcourse_go/service"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 func GetSuggestedUserHandler(c *gin.Context) {}
@@ -183,6 +184,10 @@ func GetUserReviewsHandler(c *gin.Context) {
 	}
 
 	total, err := service.GetReviewCount(c, filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		return
+	}
 
 	response := dto.ReviewListResponse{
 		Page:     request.Page,

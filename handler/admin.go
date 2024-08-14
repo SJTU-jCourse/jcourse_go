@@ -1,11 +1,12 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
 	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
 	"jcourse_go/service"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func AdminGetUserList(c *gin.Context) {
