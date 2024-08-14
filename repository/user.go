@@ -131,7 +131,7 @@ func (q *UserProfileQuery) GetUserProfileCount(ctx context.Context, opts ...DBOp
 }
 
 func (q *UserProfileQuery) UpdateUserProfileByID(ctx context.Context, userProfile *po.UserProfilePO) error {
-	result := q.optionDB(ctx, q.WithUserID(userProfile.UserID)).Save(userProfile).Error
+	result := q.optionDB(ctx, q.WithUserID(userProfile.UserID)).Save(&userProfile).Error
 	return result
 }
 
@@ -223,7 +223,7 @@ func (q *UserQuery) GetUserCount(ctx context.Context, opts ...DBOption) (int64, 
 }
 
 func (q *UserQuery) UpdateUserByID(ctx context.Context, user *po.UserPO) error {
-	result := q.optionDB(ctx, q.WithID(int64(user.ID))).Save(user).Error
+	result := q.optionDB(ctx, q.WithID(int64(user.ID))).Save(&user).Error
 	return result
 }
 

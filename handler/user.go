@@ -131,11 +131,24 @@ func WatchUserHandler(c *gin.Context) {}
 func UnWatchUserHandler(c *gin.Context) {}
 
 func UpdateUserProfileHandler(c *gin.Context) {
+	userInterface, exists := c.Get(constant.CtxKeyUser)
+	if !exists {
+		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "用户未登录！"})
+		return
+	}
+	user, _ := userInterface.(*domain.User)
+
 	var request dto.UserProfileDTO
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
+
+	if user.ID != request.UserID {
+		c.JSON(http.StatusForbidden, dto.BaseResponse{Message: "无权更新其他用户信息！"})
+		return
+	}
+
 	err := service.UpdateUserProfileByID(c, &request)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "用户信息更新失败。"})
