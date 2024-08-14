@@ -35,4 +35,11 @@ type UserProfile struct {
 	Major      string
 	Degree     string
 	Grade      string
+	Bio        string
+}
+
+type UserFilter struct {
+	Page     int64
+	PageSize int64
+	// To be continued ... (add more fields)
 }
