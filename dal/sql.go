@@ -8,6 +8,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"jcourse_go/util"
@@ -59,4 +60,12 @@ func InitMockDBClient() (sqlmock.Sqlmock, error) {
 		return nil, err
 	}
 	return mock, nil
+}
+
+func InitTestMemDBClient() {
+	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+	if err != nil {
+		panic(err)
+	}
+	dbClient = db
 }

@@ -62,14 +62,13 @@ func Line2Course(line string) LoadedCourse {
 		Department:      meta[5],
 	}
 }
-func Lines2TrainingPlan(lines []string) LoadedTrainingPlan {
+func Line2TrainingPlanMeta(line string) LoadedTrainingPlan {
 	plan := LoadedTrainingPlan{
 		Courses: make([]LoadedCourse, 0),
 	}
-	// e.g 13050243,14761201813050243,视觉传达设计,13050243,4,28.5,艺术学,设计学院,本科,2018
-	metaInfo := strings.Split(lines[0], ",")
+	metaInfo := strings.Split(line, ",")
 	if len(metaInfo) != 10 {
-		panic("Invalid line2trainingplan: " + lines[0])
+		panic("Invalid line2trainingplan: " + line)
 	}
 	plan.Name = metaInfo[2]
 	plan.Code = metaInfo[0]
@@ -79,6 +78,10 @@ func Lines2TrainingPlan(lines []string) LoadedTrainingPlan {
 	plan.Department = metaInfo[7]
 	plan.Degree = metaInfo[8]
 	plan.EntryYear, _ = strconv.Atoi(metaInfo[9])
+	return plan
+}
+func Lines2TrainingPlan(lines []string) LoadedTrainingPlan {
+	plan := Line2TrainingPlanMeta(lines[0])
 	for _, line := range lines[1:] {
 		plan.Courses = append(plan.Courses, Line2Course(line))
 	}
@@ -102,23 +105,30 @@ func SaveTrainingPlanCourses(plan LoadedTrainingPlan, db *gorm.DB, tid int64) {
 			println("saved: " + c.Code)
 		}
 	}
-
-	for _, course := range plan.Courses {
-		var possible_course po.BaseCoursePO
-		result := db.Model(&po.BaseCoursePO{}).Where("code = ?", course.Code).First(&possible_course)
-		var courseID uint
-		baseCoursePO, trainingPlanCoursePO := LoadedCourse2PO(course)
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			db.Save(&baseCoursePO)
-			courseID = baseCoursePO.ID
-		} else {
-			courseID = possible_course.ID
-		}
-		trainingPlanCoursePO.CourseID = int64(courseID)
-		trainingPlanCoursePO.TrainingPlanID = tid
-		db.Save(&trainingPlanCoursePO)
+	if len(plan.Courses) == 0 {
+		return
+	}
+	baseCourseIDs := make([]int64, 0)
+	codes := make([]string, 0)
+	for _, c := range plan.Courses {
+		codes = append(codes, c.Code)
 	}
 
+	result := db.Model(&po.BaseCoursePO{}).Where("code in ?", codes).Pluck("id", &baseCourseIDs)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return
+	}
+	if result.Error != nil {
+		log.Fatalf("Failed to load courses: %v", result.Error)
+	}
+	trainingPlanCourses := make([]po.TrainingPlanCoursePO, 0)
+	for _, id := range baseCourseIDs {
+		trainingPlanCourses = append(trainingPlanCourses, po.TrainingPlanCoursePO{
+			TrainingPlanID: tid,
+			CourseID:       id,
+		})
+	}
+	db.CreateInBatches(&trainingPlanCourses, 100)
 }
 func SaveTrainingPlan(plans []LoadedTrainingPlan, db *gorm.DB) {
 	if db == nil {
@@ -133,7 +143,6 @@ func SaveTrainingPlan(plans []LoadedTrainingPlan, db *gorm.DB) {
 	for _, plan := range plans {
 		trainingPlanPO := TrainingPlan2PO(plan)
 		db.Save(&trainingPlanPO)
-		// save trainingplan courses
 		SaveTrainingPlanCourses(plan, db, int64(trainingPlanPO.ID))
 	}
 }

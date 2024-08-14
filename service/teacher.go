@@ -56,7 +56,6 @@ func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter domai
 }
 
 func SearchTeacherList(ctx context.Context, filter domain.TeacherListFilter) ([]domain.Teacher, error) {
-
 	teacherQuery := repository.NewTeacherQuery()
 	t_opts := buildTeacherDBOptionFromFilter(teacherQuery, filter)
 

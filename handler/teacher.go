@@ -73,7 +73,7 @@ func GetTeacherDetailHandler(c *gin.Context) {
 
 func SearchTeacherListHandler(c *gin.Context) {
 	var request dto.TeacherListRequest
-	if err := c.ShouldBind(&request); err != nil {
+	if err := c.ShouldBindQuery(&request); err != nil {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}

@@ -16,7 +16,7 @@ type Review struct {
 	Course      Course
 	User        User
 	Comment     string
-	Rating      int64
+	Rate        int64
 	Semester    string
 	IsAnonymous bool
 	CreatedAt   time.Time

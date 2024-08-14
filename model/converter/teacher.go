@@ -12,15 +12,15 @@ func ConvertTeacherPOToDomain(teacher *po.TeacherPO) *domain.Teacher {
 	}
 
 	return &domain.Teacher{
-		ID:          int64(teacher.ID),
-		Name:        teacher.Name,
-		Email:       teacher.Email,
-		Code:        teacher.Code,
-		Department:  teacher.Department,
-		Title:       teacher.Title,
-		Picture:     teacher.Picture,
-		ProfileURL:  teacher.ProfileURL,
-		ProfileDesc: teacher.Biography,
+		ID:         int64(teacher.ID),
+		Name:       teacher.Name,
+		Email:      teacher.Email,
+		Code:       teacher.Code,
+		Department: teacher.Department,
+		Title:      teacher.Title,
+		Picture:    teacher.Picture,
+		ProfileURL: teacher.ProfileURL,
+		Biography:  teacher.Biography,
 	}
 }
 
@@ -38,16 +38,16 @@ func PackTeacherWithCourses(teacher *domain.Teacher, courses []po.OfferedCourseP
 
 func ConvertTeacherDomainToDTO(teacher domain.Teacher) dto.TeacherDTO {
 	teacherDTO := dto.TeacherDTO{
-		ID:          teacher.ID,
-		Email:       teacher.Email,
-		Code:        teacher.Code,
-		Name:        teacher.Name,
-		Department:  teacher.Department,
-		Title:       teacher.Title,
-		Picture:     teacher.Picture,
-		ProfileURL:  teacher.ProfileURL,
-		ProfileDesc: teacher.ProfileDesc,
-		Courses:     make([]dto.OfferedCourseDTO, 0),
+		ID:         teacher.ID,
+		Email:      teacher.Email,
+		Code:       teacher.Code,
+		Name:       teacher.Name,
+		Department: teacher.Department,
+		Title:      teacher.Title,
+		Picture:    teacher.Picture,
+		ProfileURL: teacher.ProfileURL,
+		Biography:  teacher.Biography,
+		Courses:    make([]dto.OfferedCourseDTO, 0),
 	}
 	for _, offeredCourse := range teacher.Courses {
 		offeredCourseDTO := ConvertOfferedCourseDomainToDTO(offeredCourse)

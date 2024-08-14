@@ -54,3 +54,35 @@ func ConvertTrainingPlanCoursePOToDomain(coursePO po.TrainingPlanCoursePO, baseC
 		Department:      coursePO.Department,
 	}
 }
+
+func PackTrainingPlanWithCourses(trainingPlan *domain.TrainingPlan, courses []domain.BaseCourse) {
+	if courses == nil {
+		return
+	}
+	if len(courses) == 0 {
+		courses = make([]domain.BaseCourse, 0)
+	}
+	trainingPlan.Courses = courses
+}
+func PackTrainingPlanDetailWithCourses(trainingPlan *domain.TrainingPlanDetail, courses []domain.TrainingPlanCourse) {
+	if courses == nil {
+		return
+	}
+	if len(courses) == 0 {
+		courses = make([]domain.TrainingPlanCourse, 0)
+	}
+	trainingPlan.Courses = courses
+}
+
+func ConvertTrainingPlanPOToDomain(trainingPlan po.TrainingPlanPO) domain.TrainingPlanDetail {
+	return domain.TrainingPlanDetail{
+		ID:         int64(trainingPlan.ID),
+		Major:      trainingPlan.Major,
+		Department: trainingPlan.Department,
+		EntryYear:  trainingPlan.EntryYear,
+		MajorCode:  trainingPlan.MajorCode,
+		MajorClass: trainingPlan.MajorClass,
+		MinCredits: trainingPlan.MinCredits,
+		TotalYear:  trainingPlan.TotalYear,
+	}
+}

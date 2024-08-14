@@ -34,7 +34,7 @@ func prettyJsonLog(w *httptest.ResponseRecorder) {
 	json.Indent(&prettyJSON, data, "", "    ")
 
 	// 打印格式化的 JSON 字符串
-	prettyJSON.WriteTo(os.Stdout)
+	fmt.Println(string(prettyJSON.Bytes()))
 }
 func baseConfig() (*httptest.ResponseRecorder, *gin.Engine) {
 	gin.SetMode(gin.TestMode)

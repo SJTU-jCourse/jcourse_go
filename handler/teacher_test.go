@@ -37,7 +37,7 @@ func TestSearchTeacherListHandler(t *testing.T) {
 		"invalid-value-req": {"name=你谁", http.StatusOK},
 		"invalid-page-req":  {"page=-1&page_size=10086", http.StatusOK},
 		"overflow-page-req": {"page=10086&page_size=1", http.StatusOK},
-		"invalid-key-req":   {"hello=1", http.StatusBadRequest},
+		"invalid-key-req":   {"hello=1", http.StatusOK}, // no validation now, will return empty list
 	}
 
 	for name, s := range querys {

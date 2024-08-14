@@ -63,36 +63,6 @@ func (po *OfferedCourseTeacherPO) TableName() string {
 	return "offered_courses_teachers"
 }
 
-type TrainingPlanPO struct {
-	gorm.Model
-	// 联合唯一索引
-	Degree     string  `gorm:"index;index:uniq_training_plan,unique"`
-	Major      string  `gorm:"index;index:uniq_training_plan,unique"`
-	Department string  `gorm:"index;index:uniq_training_plan,unique"`
-	EntryYear  string  `gorm:"index;index:uniq_training_plan,unique"` //==Grade,年级
-	MajorCode  string  `gorm:"index;index:uniq_training_plan,unique"`
-	TotalYear  int     `gorm:"index;index:uniq_training_plan,unique"`
-	MinCredits float64 `gorm:"index;index:uniq_training_plan,unique"`
-	MajorClass string  `gorm:"index;index:uniq_training_plan,unique"` // 专业类
-}
-
-func (po *TrainingPlanPO) TableName() string {
-	return "training_plans"
-}
-
-type TrainingPlanCoursePO struct {
-	gorm.Model
-	CourseID       int64 `gorm:"index;index:uniq_training_plan_course,unique"`
-	TrainingPlanID int64 `gorm:"index;index:uniq_training_plan_course,unique"`
-	// SuggestSemester:学年+学期，如 2023-2024-2
-	SuggestSemester string `gorm:"index;index:uniq_training_plan_course,unique"`
-	Department      string `gorm:"index;"`
-}
-
-func (po *TrainingPlanCoursePO) TableName() string {
-	return "training_plan_courses"
-}
-
 type CourseReviewInfo struct {
 	CourseID int64
 	Average  float64

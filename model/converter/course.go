@@ -18,6 +18,7 @@ func ConvertBaseCourseDomainToPO(course domain.BaseCourse) po.BaseCoursePO {
 
 func ConvertBaseCoursePOToDomain(course po.BaseCoursePO) domain.BaseCourse {
 	return domain.BaseCourse{
+		ID:     int64(course.ID),
 		Code:   course.Code,
 		Name:   course.Name,
 		Credit: course.Credit,
@@ -123,7 +124,6 @@ func ConvertOfferedCoursePOToDomain(offeredCourse po.OfferedCoursePO) domain.Off
 	}
 }
 
-// FIXME：endless recursion?
 func ConvertOfferedCourseDomainToDTO(offeredCourse domain.OfferedCourse) dto.OfferedCourseDTO {
 	offeredCourseDTO := dto.OfferedCourseDTO{
 		ID:           offeredCourse.ID,
@@ -154,36 +154,4 @@ func ConvertCourseDomainToDetailDTO(course domain.Course) dto.CourseDetailDTO {
 		courseDetailDTO.OfferedCourse = append(courseDetailDTO.OfferedCourse, offeredCourseDTO)
 	}
 	return courseDetailDTO
-}
-
-func PackTrainingPlanWithCourses(trainingPlan *domain.TrainingPlan, courses []domain.BaseCourse) {
-	if courses == nil {
-		return
-	}
-	if len(courses) == 0 {
-		courses = make([]domain.BaseCourse, 0)
-	}
-	trainingPlan.Courses = courses
-}
-func PackTrainingPlanDetailWithCourses(trainingPlan *domain.TrainingPlanDetail, courses []domain.TrainingPlanCourse) {
-	if courses == nil {
-		return
-	}
-	if len(courses) == 0 {
-		courses = make([]domain.TrainingPlanCourse, 0)
-	}
-	trainingPlan.Courses = courses
-}
-
-func ConvertTrainingPlanPOToDomain(trainingPlan po.TrainingPlanPO) domain.TrainingPlanDetail {
-	return domain.TrainingPlanDetail{
-		ID:         int64(trainingPlan.ID),
-		Major:      trainingPlan.Major,
-		Department: trainingPlan.Department,
-		EntryYear:  trainingPlan.EntryYear,
-		MajorCode:  trainingPlan.MajorCode,
-		MajorClass: trainingPlan.MajorClass,
-		MinCredits: trainingPlan.MinCredits,
-		TotalYear:  int(trainingPlan.TotalYear),
-	}
 }

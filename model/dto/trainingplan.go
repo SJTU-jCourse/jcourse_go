@@ -29,16 +29,16 @@ type TrainingPlanDetailRequest struct {
 	TrainingPlanID int64 `uri:"trainingPlanID" binding:"required"`
 }
 type TrainingPlanListQueryRequest struct {
-	EntryYear     int64  `form:"entry_year"`
-	Department    string `form:"department"`
-	MajorName     string `form:"major_name"`
-	MajorCode     string `form:"major_code"`
-	SortDirection string `form:"sort_direction"`
-	SortBy        string `form:"sort_by"`
-	Page          int    `form:"page" binding:"required"`
-	PageSize      int    `form:"page_size" binding:"required"`
+	EntryYear     int64  `json:"entry_year" form:"entry_year"`
+	Department    string `json:"department" form:"department"`
+	MajorName     string `json:"major_name" form:"major_name"`
+	MajorCode     string `json:"major_code" form:"major_code"`
+	SortDirection string `json:"sort_direction" form:"sort_direction"`
+	SortBy        string `json:"sort_by" form:"sort_by"`
+	Page          int    `json:"page" binding:"required" form:"page"`
+	PageSize      int    `json:"page_size" binding:"required" form:"page_size"`
 }
 type TrainingPlanListRequest struct {
-	Page     int `form:"page" binding:"required"`
-	PageSize int `form:"page_size" binding:"required"`
+	Page     int `json:"page" binding:"required" form:"page"`
+	PageSize int `json:"page_size" binding:"required" form:"page_size"`
 }

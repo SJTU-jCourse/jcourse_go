@@ -3,7 +3,7 @@ import requests
 import json
 import pprint
 from pypinyin import lazy_pinyin
-from typing import List
+from typing import List, Self
 
 json_indent = 4
 """
@@ -45,6 +45,11 @@ class Teacher:
         return self.__dict__
     def to_json(self):
         return json.dumps(self)
+    def __eq__(self, other:Self):
+        return self.to_dict() == other.to_dict()
+    def __hash__(self):
+        t = tuple(self.to_dict().values())
+        return hash(t)
 def resp_to_teacher(resp: dict)->Teacher:
     teacher = Teacher()
     keys_map = dict()
@@ -72,43 +77,57 @@ def resp_to_teacher(resp: dict)->Teacher:
 
     return teacher
 
-def get_teacher_list(session:requests.Session, _print:bool=False, limit:int=10000)->List[Teacher]:
+def get_teacher_list(session:requests.Session, _print:bool=False, limit:int=1000)->List[Teacher]:
     url = f"{base_url}/system/resource/tsites/advancesearch.jsp"
-    query_param = {
-        "collegeid": 0,
-        "disciplineid": 0,
-        "enrollid": 0,
-        "pageindex": 1,
-        "pagesize": limit,
-        "rankid": 0,
-        "degreeid": 0,
-        "honorid": 0,
-        "pinyin": "",
-        "profilelen": 30,
-        "teacherName": "",
-        "searchDirection": "",
-        "viewmode": 8,
-        "viewid": 68237,
-        "siteOwner": "1538087020",
-        "viewUniqueId": "u11",
-        "showlang": "zh_CN",
-        "ispreview": False,
-        "ellipsis": "...",
-        "alignright": False,
-        "productType": 0
-    }
-    resp = session.get(url=url, params=query_param)
+    page_size = 20
     teacher_list = []
-    if resp.status_code != 200:
-        print(f"请求失败，状态码: {resp.status_code}")
-        pprint.pprint(resp.text)
-        return teacher_list
-    print("请求成功")
-    data:List[dict] = resp.json()['teacherData']
-    if _print:
-        pprint.pprint(data)
-    for d in data:
-        teacher_list.append(resp_to_teacher(d))
+    # ATTENTION: Recantly(2024.8.14), a request with a large limit (like 1000) will sometimes be rejected
+    # So have to throttle the requests by paging now (though quite slower)
+    end = limit // page_size + 1
+    page_index = 1
+    while True:
+        print(f"第 {page_index} 页")
+        query_param = {
+            "collegeid": 0,
+            "disciplineid": 0,
+            "enrollid": 0,
+            "pageindex": page_index,
+            "pagesize": page_size,
+            "rankid": 0,
+            "degreeid": 0,
+            "honorid": 0,
+            "pinyin": "",
+            "profilelen": 30,
+            "teacherName": "",
+            "searchDirection": "",
+            "viewmode": 8,
+            "viewid": 68237,
+            "siteOwner": "1538087020",
+            "viewUniqueId": "u11",
+            "showlang": "zh_CN",
+            "ispreview": False,
+            "ellipsis": "...",
+            "alignright": False,
+            "productType": 0
+        }
+        resp = session.get(url=url, params=query_param)
+        if resp.status_code != 200:
+            print(f"请求失败，状态码: {resp.status_code}")
+            pprint.pprint(resp.text)
+            break
+        print("请求成功")
+        if page_index == 1:
+            end = min(end, resp.json()['totalpage'] + 1)
+        data = resp.json()['teacherData']
+        if not data or len(data) == 0:
+            break
+        if _print:
+            pprint.pprint(data)
+        for d in data:
+            teacher_list.append(resp_to_teacher(d))
+        page_index += 1
+        if page_index >= end:
+            break
     return teacher_list
 def save_json(data: List[Teacher], to="./data/teachers.json"):
     folder_path = os.path.dirname(to)
@@ -159,8 +178,11 @@ if __name__=="__main__":
         new_teachers = get_teacher_list(session=session,_print=args.verbose, limit=args.limit)
     else:
         new_teachers = get_teacher_list(session=session,_print=args.verbose)
-    all_teachers = init_teachers + new_teachers
+    all_teachers = set(init_teachers).union(set(new_teachers))
+    # data from jwc MAY be duplicated (e.g. 唐晟媚) for unknown reason, need to remove them
+    all_teachers = list(all_teachers)
     print("当前教师数量：{}".format(len(all_teachers)))
+
     if not args.debug:
         if args.save_to and os.path.exists(args.save_to):
             save_json(all_teachers, to=args.save_to)

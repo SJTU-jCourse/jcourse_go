@@ -31,7 +31,6 @@ func (b *BaseCourseQuery) WithID(id int64) DBOption {
 	}
 }
 func (b *BaseCourseQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
-	// ATTENTION: 疑似敲错了，之前少了一个&
 	db := b.db.WithContext(ctx).Model(&po.BaseCoursePO{})
 	for _, opt := range opts {
 		db = opt(db)

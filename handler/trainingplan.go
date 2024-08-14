@@ -56,7 +56,6 @@ func SearchTrainingPlanHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-
 	filter := domain.TrainingPlanFilter{
 		Major:      request.MajorName,
 		EntryYear:  fmt.Sprintf("%d", request.EntryYear),
