@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"jcourse_go/dal"
 	"jcourse_go/rpc"
+
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func Init() {

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+
 	"jcourse_go/middleware"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
@@ -48,6 +49,10 @@ func GetReviewListHandler(c *gin.Context) {
 		return
 	}
 	total, err := service.GetReviewCount(c, filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		return
+	}
 
 	response := dto.ReviewListResponse{
 		Page:     request.Page,
@@ -96,7 +101,7 @@ func UpdateReviewHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.UpdateReviewResponse{ReviewID: request.ReviewID})
+	c.JSON(http.StatusOK, dto.UpdateReviewResponse{ReviewID: request.ReviewID}) // nolint: gosimple
 }
 
 func DeleteReviewHandler(c *gin.Context) {
@@ -110,7 +115,8 @@ func DeleteReviewHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 		return
 	}
-	c.JSON(http.StatusOK, dto.DeleteReviewResponse{ReviewID: request.ReviewID})
+
+	c.JSON(http.StatusOK, dto.DeleteReviewResponse{ReviewID: request.ReviewID}) // nolint: gosimple
 }
 
 func GetReviewListForCourseHandler(c *gin.Context) {}

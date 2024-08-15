@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 
+	"gorm.io/gorm"
+
 	"jcourse_go/dal"
 	"jcourse_go/model/po"
-
-	"gorm.io/gorm"
 )
 
 type IBaseCourseQuery interface {

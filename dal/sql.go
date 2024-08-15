@@ -5,13 +5,14 @@ import (
 	"log"
 	"os"
 
+	"jcourse_go/util"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"jcourse_go/util"
 )
 
 var dbClient *gorm.DB

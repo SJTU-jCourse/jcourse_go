@@ -9,6 +9,7 @@ import (
 	"regexp"
 
 	"github.com/SJTU-jCourse/password_hasher"
+
 	"jcourse_go/constant"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
@@ -109,7 +110,7 @@ func SendRegisterCodeEmail(ctx context.Context, email string) error {
 	if err != nil {
 		return err
 	}
-	body := fmt.Sprintf(constant.EmailBodyVerifyCode, code)
+	body := fmt.Sprintf(constant.EmailBodyVerifyCode, code) // nolint: gosimple
 	err = repository.StoreVerifyCode(ctx, email, code)
 	if err != nil {
 		return err
@@ -125,7 +126,8 @@ func SendRegisterCodeEmail(ctx context.Context, email string) error {
 func ValidateEmail(email string) bool {
 	// 1. validate basic email format
 	regex := regexp.MustCompile(`\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*`)
-	if !regex.MatchString(email) {
+
+	if !regex.MatchString(email) { // nolint: gosimple
 		return false
 	}
 

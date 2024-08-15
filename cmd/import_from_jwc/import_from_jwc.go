@@ -11,6 +11,7 @@ import (
 	pinyin2 "github.com/mozillazg/go-pinyin"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+
 	"jcourse_go/dal"
 	"jcourse_go/model/po"
 )
@@ -39,7 +40,9 @@ func initDB() {
 
 func readRawCSV(filename string) [][]string {
 	fs, err := os.Open(filename)
-	defer fs.Close()
+	defer func(fs *os.File) {
+		_ = fs.Close()
+	}(fs)
 	if err != nil {
 		panic(err)
 	}
@@ -229,7 +232,6 @@ func queryAllTeacher() {
 		teacherKeyMap[makeTeacherKey(teacher.Code)] = teacher
 		teacherIDMap[teacher.ID] = teacher
 	}
-	return
 }
 
 func parseCourseFromLine(line []string) po.CoursePO {
@@ -263,7 +265,6 @@ func queryAllCourse() {
 		courseKeyMap[makeCourseKey(course.Code, course.MainTeacherName)] = course
 		courseIDMap[course.ID] = course
 	}
-	return
 }
 
 func parseOfferedCourseFromLine(line []string) po.OfferedCoursePO {
@@ -297,7 +298,6 @@ func queryAllOfferedCourse() {
 		offeredCourseIDMap[offeredCourse.ID] = offeredCourse
 		offeredCourseKeyMap[makeOfferedCourseKey(offeredCourse.CourseID, offeredCourse.Semester)] = offeredCourse
 	}
-	return
 }
 
 func parseOfferedCourseTeacherGroup(line []string) []po.OfferedCourseTeacherPO {
@@ -329,7 +329,6 @@ func queryAllOfferedCourseTeacherGroup() {
 	for _, offeredCourseTeacher := range offeredCourseTeachers {
 		offeredCourseTeacherKeyMap[makeOfferedCourseTeacherKey(offeredCourseTeacher.OfferedCourseID, offeredCourseTeacher.TeacherID)] = offeredCourseTeacher
 	}
-	return
 }
 
 func parseCourseCategories(line []string) []po.CourseCategoryPO {
@@ -364,7 +363,6 @@ func queryAllCourseCategory() {
 		}
 		courseCategoryMap[makeCourseCategoryKey(int64(course.ID), courseCategory.Category)] = courseCategory
 	}
-	return
 }
 
 func generatePinyin(name string) string {
