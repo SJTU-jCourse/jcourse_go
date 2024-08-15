@@ -29,11 +29,6 @@ func main() {
 	var all_courses []po.BaseCoursePO
 	db.Model(po.BaseCoursePO{}).Find(&all_courses)
 
-	// var tp_courses []seleniumget.LoadedCourse
-	// for _, tp := range allTrainingPlans {
-	// 	tp_courses = append(tp_courses, tp.Courses...)
-	// }
-
 	for _, tp := range allTrainingPlans {
 		tp_po := po.TrainingPlanPO{
 			Degree:     tp.Degree,
