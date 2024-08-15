@@ -330,7 +330,7 @@ func (o *OfferedCourseQuery) GetOfferedCourseList(ctx context.Context, opts ...D
 func (o *OfferedCourseQuery) GetMainTeacherIDsWithOfferedCourseIDs(ctx context.Context, courseIDs []int64) ([]int64, error) {
 	main_teacher_ids := make([]int64, 0)
 	db := o.optionDB(ctx)
-	if courseIDs == nil || len(courseIDs) == 0 {
+	if len(courseIDs) == 0 {
 		result := db.Distinct("main_teacher_id").Pluck("main_teacher_id", &main_teacher_ids)
 		if result.Error != nil {
 			return nil, result.Error

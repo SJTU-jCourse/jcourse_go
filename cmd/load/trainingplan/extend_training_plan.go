@@ -2,21 +2,21 @@ package main
 
 import (
 	"errors"
-	"fmt"
-	"gorm.io/gorm"
 	"jcourse_go/dal"
 	"jcourse_go/model/po"
 	seleniumget "jcourse_go/util/selenium-get"
 	"log"
 	"os"
 	"strconv"
+
+	"gorm.io/gorm"
 )
 
 func main() {
 	dal.InitDBClient()
 	db := dal.GetDBClient()
 	data_path := "./data/trainingPlan.txt"
-	log_file, err := os.OpenFile(fmt.Sprintf("./log/logfile.log"), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	log_file, err := os.OpenFile("./log/logfile.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		panic(err)
 	}
@@ -29,10 +29,10 @@ func main() {
 	var all_courses []po.BaseCoursePO
 	db.Model(po.BaseCoursePO{}).Find(&all_courses)
 
-	var tp_courses []seleniumget.LoadedCourse
-	for _, tp := range allTrainingPlans {
-		tp_courses = append(tp_courses, tp.Courses...)
-	}
+	// var tp_courses []seleniumget.LoadedCourse
+	// for _, tp := range allTrainingPlans {
+	// 	tp_courses = append(tp_courses, tp.Courses...)
+	// }
 
 	for _, tp := range allTrainingPlans {
 		tp_po := po.TrainingPlanPO{
