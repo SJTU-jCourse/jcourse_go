@@ -25,6 +25,15 @@ func ConvertBaseCoursePOToDomain(course po.BaseCoursePO) domain.BaseCourse {
 	}
 }
 
+func ConvertBaseCourseDomainToDTO(course domain.BaseCourse) dto.BaseCourseDTO {
+	return dto.BaseCourseDTO{
+		Code:   course.Code,
+		Name:   course.Name,
+		Credit: course.Credit,
+	}
+
+}
+
 func ConvertCoursePOToDomain(course po.CoursePO) domain.Course {
 	return domain.Course{
 		ID:          int64(course.ID),
@@ -112,16 +121,6 @@ func ConvertOfferedCoursePOToDomain(offeredCourse po.OfferedCoursePO) domain.Off
 		Semester: offeredCourse.Semester,
 		Language: offeredCourse.Language,
 		Grade:    strings.Split(offeredCourse.Grade, ","),
-	}
-}
-
-func ConvertTeacherDomainToDTO(teacher domain.Teacher) dto.TeacherDTO {
-	return dto.TeacherDTO{
-		ID:         teacher.ID,
-		Name:       teacher.Name,
-		Code:       teacher.Code,
-		Department: teacher.Department,
-		Title:      teacher.Title,
 	}
 }
 

@@ -38,6 +38,34 @@ type TrainingPlan struct {
 	EntryYear  string
 	Courses    []BaseCourse
 }
+type TrainingPlanDetail struct {
+	ID         int64
+	Major      string
+	MajorCode  string
+	MajorClass string
+	Department string
+	EntryYear  string
+	MinCredits float64
+	TotalYear  int
+	Courses    []TrainingPlanCourse
+}
+type TrainingPlanCourse struct {
+	ID              int64
+	Code            string
+	Name            string
+	Credit          float64
+	SuggestSemester string
+	Department      string
+}
+
+type TrainingPlanFilter struct {
+	Page             int64
+	PageSize         int64
+	Major            string
+	Department       string
+	EntryYear        string
+	ContainCourseIDs []int64
+}
 
 type BaseCourse struct {
 	ID     int64
