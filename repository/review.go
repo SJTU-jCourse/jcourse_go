@@ -34,7 +34,7 @@ func (c *ReviewQuery) GetCourseReviewInfo(ctx context.Context, courseIDs []int64
 	infoMap := make(map[int64]po.CourseReviewInfo)
 	infos := make([]po.CourseReviewInfo, 0)
 	result := c.db.WithContext(ctx).Model(&po.ReviewPO{}).
-		Select("count(*) as count, avg(rate) as average, course_id").
+		Select("count(*) as count, avg(rating) as average, course_id").
 		Group("course_id").
 		Where("course_id in (?)", courseIDs).
 		Find(&infos)
