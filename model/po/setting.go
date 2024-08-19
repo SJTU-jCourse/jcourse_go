@@ -4,11 +4,12 @@ import "gorm.io/gorm"
 
 type SettingItemPO struct {
 	gorm.Model
-	Key   string
-	Type  string
-	Value string
+	Key       string `gorm:"index"`
+	Type      string
+	Value     string
+	UpdatedBy int64 // user id
 }
 
 func (po *SettingItemPO) TableName() string {
-	return "setting_items"
+	return "settings"
 }
