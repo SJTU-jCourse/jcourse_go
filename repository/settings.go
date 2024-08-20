@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 
+	"gorm.io/gorm"
+
 	"jcourse_go/dal"
 	"jcourse_go/model/po"
 )
@@ -34,10 +36,31 @@ func GetSiteSetting(ctx context.Context, key string) (string, error) {
 }
 
 func SetSiteSetting(ctx context.Context, key string, value string, userID int64) error {
-
+	db := dal.GetDBClient().WithContext(ctx).Model(&po.SettingItemPO{})
 	// 无历史记录，只写入
-
+	var count int64
+	db.Where(&po.SettingItemPO{Key: key}).Count(&count)
+	if count == 0 {
+		err := db.Create(&po.SettingItemPO{Key: key, Value: value, UpdatedBy: userID}).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	}
 	// 有历史记录，需要删除旧的，写入新的（同一个事务）
-
+	err := db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Where("key = ?", key).Delete(&po.SettingItemPO{}).Error
+		if err != nil {
+			return err
+		}
+		err = tx.Create(&po.SettingItemPO{Key: key, Value: value, UpdatedBy: userID}).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }

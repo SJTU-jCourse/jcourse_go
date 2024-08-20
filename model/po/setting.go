@@ -5,7 +5,6 @@ import "gorm.io/gorm"
 type SettingItemPO struct {
 	gorm.Model
 	Key       string `gorm:"index"`
-	Type      string
 	Value     string
 	UpdatedBy int64 // user id
 }
