@@ -34,7 +34,7 @@ func PackReviewWithUser(review *domain.Review, user domain.User) {
 	review.User = user
 }
 
-func ConvertReviewDomainToDTO(review domain.Review, hideUser bool) dto.ReviewDTO {
+func ConvertReviewDomainToDTO(review domain.Review, hideUser bool, hideReactions bool) dto.ReviewDTO {
 	reviewDTO := dto.ReviewDTO{
 		ID:          review.ID,
 		Course:      ConvertCourseDomainToListDTO(review.Course),
@@ -48,13 +48,16 @@ func ConvertReviewDomainToDTO(review domain.Review, hideUser bool) dto.ReviewDTO
 	if !hideUser || !review.IsAnonymous {
 		reviewDTO.User = ConvertUserDomainToReviewDTO(review.User)
 	}
+	if !hideReactions {
+		reviewDTO.Reactions = ConvertReviewReactionDomainToEmbedDTO(review.Reactions)
+	}
 	return reviewDTO
 }
 
-func ConvertReviewDomainToListDTO(reviews []domain.Review, hideUser bool) []dto.ReviewDTO {
+func ConvertReviewDomainToListDTO(reviews []domain.Review, hideUser bool, hideReactions bool) []dto.ReviewDTO {
 	result := make([]dto.ReviewDTO, 0)
 	for _, review := range reviews {
-		result = append(result, ConvertReviewDomainToDTO(review, hideUser))
+		result = append(result, ConvertReviewDomainToDTO(review, hideUser, hideReactions))
 	}
 	return result
 }
@@ -72,4 +75,19 @@ func ConvertUpdateReviewDTOToPO(review dto.UpdateReviewDTO, userID int64) po.Rev
 		reviewPO.ID = uint(review.ID)
 	}
 	return reviewPO
+}
+
+func ConvertReviewReactionDomainToEmbedDTO(reactions []domain.ReviewReaction) []dto.ReviewReactionEmbedDTO {
+	reactionCount := make(map[string]uint)
+	for _, reaction := range reactions {
+		reactionCount[reaction.Reaction]++
+	}
+	result := make([]dto.ReviewReactionEmbedDTO, len(reactionCount))
+	for reaction, count := range reactionCount {
+		result = append(result, dto.ReviewReactionEmbedDTO{
+			Reaction: reaction,
+			Count:    uint(count),
+		})
+	}
+	return result
 }

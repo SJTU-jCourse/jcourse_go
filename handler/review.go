@@ -27,7 +27,7 @@ func GetReviewDetailHandler(c *gin.Context) {
 		return
 	}
 
-	reviewDTO := converter.ConvertReviewDomainToDTO(reviews[0], true)
+	reviewDTO := converter.ConvertReviewDomainToDTO(reviews[0], true, false)
 	c.JSON(http.StatusOK, reviewDTO)
 }
 
@@ -58,7 +58,7 @@ func GetReviewListHandler(c *gin.Context) {
 		Page:     request.Page,
 		PageSize: request.PageSize,
 		Total:    total,
-		Data:     converter.ConvertReviewDomainToListDTO(reviews, true),
+		Data:     converter.ConvertReviewDomainToListDTO(reviews, true, false),
 	}
 	c.JSON(http.StatusOK, response)
 }

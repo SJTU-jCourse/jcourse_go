@@ -9,15 +9,16 @@ type UserInReviewDTO struct {
 }
 
 type ReviewDTO struct {
-	ID          int64             `json:"id"`
-	Course      CourseListItemDTO `json:"course"`
-	User        UserInReviewDTO   `json:"user"`
-	Comment     string            `json:"comment"`
-	Rating      int64             `json:"rating"`
-	Semester    string            `json:"semester"`
-	IsAnonymous bool              `json:"is_anonymous"`
-	CreatedAt   time.Time         `json:"created_at"`
-	UpdatedAt   time.Time         `json:"updated_at,omitempty"`
+	ID          int64                    `json:"id"`
+	Course      CourseListItemDTO        `json:"course"`
+	User        UserInReviewDTO          `json:"user"`
+	Comment     string                   `json:"comment"`
+	Rating      int64                    `json:"rating"`
+	Semester    string                   `json:"semester"`
+	IsAnonymous bool                     `json:"is_anonymous"`
+	CreatedAt   time.Time                `json:"created_at"`
+	UpdatedAt   time.Time                `json:"updated_at,omitempty"`
+	Reactions   []ReviewReactionEmbedDTO `json:"reactions"`
 }
 
 type UpdateReviewDTO struct {

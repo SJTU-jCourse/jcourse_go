@@ -193,7 +193,7 @@ func GetUserReviewsHandler(c *gin.Context) {
 		Page:     request.Page,
 		PageSize: request.PageSize,
 		Total:    total,
-		Data:     converter.ConvertReviewDomainToListDTO(reviews, true),
+		Data:     converter.ConvertReviewDomainToListDTO(reviews, true, true),
 	}
 	c.JSON(http.StatusOK, response)
 }

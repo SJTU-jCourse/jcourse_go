@@ -29,12 +29,11 @@ type Review struct {
 }
 
 type ReviewReaction struct {
-	ID          uint
-	ReviewID    int64
-	UserID      int64
-	IsAnonymous bool
-	Reaction    string
-	CreatedAt   time.Time
+	ID        uint
+	ReviewID  int64
+	UserID    int64
+	Reaction  string
+	CreatedAt time.Time
 }
 
 type ReviewReply struct {
