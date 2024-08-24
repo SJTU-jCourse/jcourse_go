@@ -37,33 +37,48 @@ func toIndex(fields []string) SearchIndex {
 	return SearchIndex(sb.String())
 }
 
-func (c *CoursePO) GenerateSearchIndex() {
+func (c *CoursePO) BeforeCreate(*gorm.DB) error {
 	c.SearchIndex = toIndex([]string{
 		c.Name,
 		c.Code, // 前缀模糊匹配更为适合
 		c.MainTeacherName,
 		c.Department, // 不分词更为适合
 	})
+	return nil
+}
+func (c *CoursePO) BeforeSave(tx *gorm.DB) error {
+	return c.BeforeCreate(tx)
 }
 
-func (t *TeacherPO) GenerateSearchIndex() {
+func (t *TeacherPO) BeforeCreate(*gorm.DB) error {
 	t.SearchIndex = toIndex([]string{
 		t.Name,
 		t.Department,
 		t.Code,
 	})
+	return nil
+}
+func (t *TeacherPO) BeforeSave(tx *gorm.DB) error {
+	return t.BeforeCreate(tx)
 }
 
-func (t *TrainingPlanPO) GenerateSearchIndex() {
+func (t *TrainingPlanPO) BeforeCreate(*gorm.DB) error {
 	t.SearchIndex = toIndex([]string{
-		t.Degree,
 		t.Major,
 		t.Department,
 	})
+	return nil
+}
+func (t *TrainingPlanPO) BeforeSave(tx *gorm.DB) error {
+	return t.BeforeCreate(tx)
 }
 
-func (r *ReviewPO) GenerateSearchIndex() {
+func (r *ReviewPO) BeforeCreate(*gorm.DB) error {
 	r.SearchIndex = toIndex([]string{
 		r.Comment,
 	})
+	return nil
+}
+func (r *ReviewPO) BeforeSave(tx *gorm.DB) error {
+	return r.BeforeCreate(tx)
 }

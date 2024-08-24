@@ -33,7 +33,6 @@ func main() {
 			teachers[0].ProfileURL = t.ProfileUrl
 			teachers[0].Biography = t.Biography
 			teachers[0].Picture = t.HeadImage
-			teachers[0].GenerateSearchIndex()
 			db.Save(&teachers[0])
 			continue
 		}
@@ -46,7 +45,6 @@ func main() {
 					tt.ProfileURL = t.ProfileUrl
 					tt.Biography = t.Biography
 					tt.Picture = t.HeadImage
-					tt.GenerateSearchIndex()
 					db.Save(&tt)
 					confirm = true
 					break
