@@ -37,17 +37,33 @@ func toIndex(fields []string) SearchIndex {
 	return SearchIndex(sb.String())
 }
 
-func (r *ReviewPO) ToSearchIndex() SearchIndex {
-	return toIndex([]string{
-		r.Comment,
+func (c *CoursePO) GenerateSearchIndex() {
+	c.SearchIndex = toIndex([]string{
+		c.Name,
+		c.Code, // 前缀模糊匹配更为适合
+		c.MainTeacherName,
+		c.Department, // 不分词更为适合
 	})
 }
 
-func (c *CoursePO) ToSearchIndex() SearchIndex {
-	return toIndex([]string{
-		c.Code, // 前缀模糊匹配更为适合
-		c.Name,
-		c.MainTeacherName,
-		c.Department, // 不分词更为适合
+func (t *TeacherPO) GenerateSearchIndex() {
+	t.SearchIndex = toIndex([]string{
+		t.Name,
+		t.Department,
+		t.Code,
+	})
+}
+
+func (t *TrainingPlanPO) GenerateSearchIndex() {
+	t.SearchIndex = toIndex([]string{
+		t.Degree,
+		t.Major,
+		t.Department,
+	})
+}
+
+func (r *ReviewPO) GenerateSearchIndex() {
+	r.SearchIndex = toIndex([]string{
+		r.Comment,
 	})
 }

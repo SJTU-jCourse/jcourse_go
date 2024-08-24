@@ -7,10 +7,27 @@ import (
 	"gorm.io/gorm"
 )
 
-func (c *ReviewQuery) WithSearch(query string) DBOption {
+func (*CourseQuery) WithSearch(query string) DBOption       { return withSearch(query) }
+func (*ReviewQuery) WithSearch(query string) DBOption       { return withSearch(query) }
+func (*TeacherQuery) WithSearch(query string) DBOption      { return withSearch(query) }
+func (*TrainingPlanQuery) WithSearch(query string) DBOption { return withSearch(query) }
+
+func withSearch(query string) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("search_idx @@ to_tsquery('simple', ?)",
-			strings.Join(util.Fenci(query), " | "),
+		return db.Where("search_index @@ to_tsquery('simple', ?)",
+			userQueryToTsQuery(query),
 		)
 	}
+}
+
+// 目前只搜用户名
+func (*UserQuery) WithSearch(query string) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("name LIKE ?", query+"%")
+	}
+}
+
+func userQueryToTsQuery(query string) string {
+
+	return strings.Join(util.Fenci(query), " | ")
 }

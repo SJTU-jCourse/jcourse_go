@@ -203,6 +203,7 @@ func parseSingleTeacherFromLine(teacherInfo string) po.TeacherPO {
 	if teacherFromDB, ok := teacherKeyMap[makeTeacherKey(teacher.Code)]; ok {
 		teacher.ID = teacherFromDB.ID
 	}
+	teacher.GenerateSearchIndex()
 	return teacher
 }
 

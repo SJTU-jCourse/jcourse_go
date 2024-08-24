@@ -103,6 +103,7 @@ type ICourseQuery interface {
 	WithMainTeacherID(id int64) DBOption
 	WithLimit(limit int64) DBOption
 	WithOffset(offset int64) DBOption
+	WithSearch(query string) DBOption
 }
 
 type CourseQuery struct {

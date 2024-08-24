@@ -68,6 +68,7 @@ func ConvertUpdateReviewDTOToPO(review dto.UpdateReviewDTO, userID int64) po.Rev
 		Semester:    review.Semester,
 		IsAnonymous: review.IsAnonymous,
 	}
+	reviewPO.GenerateSearchIndex()
 	if review.ID != 0 {
 		reviewPO.ID = uint(review.ID)
 	}

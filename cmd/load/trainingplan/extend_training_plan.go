@@ -40,6 +40,7 @@ func main() {
 			MajorCode:  tp.Code,
 			MajorClass: tp.MajorClass,
 		}
+		tp_po.GenerateSearchIndex()
 		result := db.Model(po.TrainingPlanPO{}).Create(&tp_po)
 		if result.Error != nil {
 			log.Fatalf("In create training plan %#v:%#v", tp, result.Error)

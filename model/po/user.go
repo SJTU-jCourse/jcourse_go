@@ -13,6 +13,8 @@ type UserPO struct {
 	Password   string `gorm:"index:idx_auth"`
 	UserRole   string `gorm:"index"` // 用户在选课社区的身份
 	LastSeenAt time.Time
+
+	SearchIndex SearchIndex `gorm:"index:idx_search, type:gin"`
 }
 
 func (po *UserPO) TableName() string {
