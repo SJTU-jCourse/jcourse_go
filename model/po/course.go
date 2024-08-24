@@ -22,7 +22,7 @@ type CoursePO struct {
 	MainTeacherName string  `gorm:"index"`
 	Department      string  `gorm:"index;index:uniq_course,unique"`
 
-	SearchIndex SearchIndex `gorm:"index:idx_search, type:gin"`
+	SearchIndex SearchIndex // `gorm:"index:idx_search, type:gin"`
 }
 
 func (po *CoursePO) TableName() string {

@@ -15,7 +15,7 @@ type TeacherPO struct {
 	ProfileURL string
 	Biography  string // 个人简述
 
-	SearchIndex SearchIndex `gorm:"index:idx_search, type:gin"`
+	SearchIndex SearchIndex // `gorm:"index:idx_search, type:gin"`
 }
 
 func (po *TeacherPO) TableName() string {

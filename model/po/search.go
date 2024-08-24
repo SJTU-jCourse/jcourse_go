@@ -22,7 +22,7 @@ func (i SearchIndex) GormDataType() string          { return "tsvector" }
 func (i SearchIndex) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
 	return clause.Expr{
 		SQL:  "to_tsvector('simple', ?)",
-		Vars: []interface{}{i},
+		Vars: []interface{}{string(i)},
 	}
 }
 
