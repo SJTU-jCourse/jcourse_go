@@ -32,18 +32,18 @@ func userQueryToTsQuery(query string) string {
 	var sb strings.Builder
 	words := strings.Fields(query)
 	for i, word := range words {
+		if i != 0 {
+			sb.WriteString(" & ")
+		}
 		sb.WriteByte('(')
 		segs := util.Fenci(word)
 		for j, seg := range segs {
-			sb.WriteString(seg)
-			if j != len(segs)-1 {
+			if j != 0 {
 				sb.WriteString(" | ")
 			}
+			sb.WriteString(seg)
 		}
 		sb.WriteByte(')')
-		if i != len(words) {
-			sb.WriteString(" & ")
-		}
 	}
 	return sb.String()
 }

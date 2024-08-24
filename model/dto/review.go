@@ -34,8 +34,9 @@ type CreateReviewResponse struct {
 }
 
 type ReviewListRequest struct {
-	Page     int64 `json:"page" form:"page"`
-	PageSize int64 `json:"page_size" form:"page_size"`
+	Page        int64  `json:"page" form:"page"`
+	PageSize    int64  `json:"page_size" form:"page_size"`
+	SearchQuery string `json:"search_query" form:"search_query"`
 }
 
 type ReviewListResponse = BasePaginateResponse[ReviewDTO]

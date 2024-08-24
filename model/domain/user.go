@@ -39,7 +39,8 @@ type UserProfile struct {
 }
 
 type UserFilter struct {
-	Page     int64
-	PageSize int64
+	Page        int64
+	PageSize    int64
+	SearchQuery string
 	// To be continued ... (add more fields)
 }

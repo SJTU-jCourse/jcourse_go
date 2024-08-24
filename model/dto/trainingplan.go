@@ -37,6 +37,7 @@ type TrainingPlanListQueryRequest struct {
 	SortBy        string `json:"sort_by" form:"sort_by"`
 	Page          int    `json:"page" binding:"required" form:"page"`
 	PageSize      int    `json:"page_size" binding:"required" form:"page_size"`
+	SearchQuery   string `json:"search_query" form:"search_query"`
 }
 type TrainingPlanListRequest struct {
 	Page     int `json:"page" binding:"required" form:"page"`

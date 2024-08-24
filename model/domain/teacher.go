@@ -24,4 +24,5 @@ type TeacherListFilter struct {
 	Pinyin           string
 	PinyinAbbr       string
 	ContainCourseIDs []int64
+	SearchQuery      string
 }

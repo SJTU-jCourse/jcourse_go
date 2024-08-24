@@ -50,6 +50,9 @@ func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter domai
 	if filter.PinyinAbbr != "" {
 		opts = append(opts, query.WithPinyinAbbr(filter.PinyinAbbr))
 	}
+	if filter.SearchQuery != "" {
+		opts = append(opts, query.WithSearch(filter.SearchQuery))
+	}
 
 	opts = append(opts, query.WithPaginate(filter.Page, filter.PageSize))
 	return opts

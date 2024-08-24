@@ -81,6 +81,9 @@ func buildUserDBOptionFromFilter(query repository.IUserQuery, filter domain.User
 	if filter.Page > 0 {
 		opts = append(opts, query.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
 	}
+	if filter.SearchQuery != "" {
+		opts = append(opts, query.WithSearch(filter.SearchQuery))
+	}
 	return opts
 }
 
