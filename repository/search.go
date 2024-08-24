@@ -27,7 +27,23 @@ func (*UserQuery) WithSearch(query string) DBOption {
 	}
 }
 
+// 空格分割的每个词都要匹配，词内分词做模糊匹配
 func userQueryToTsQuery(query string) string {
-
-	return strings.Join(util.Fenci(query), " | ")
+	var sb strings.Builder
+	words := strings.Fields(query)
+	for i, word := range words {
+		sb.WriteByte('(')
+		segs := util.Fenci(word)
+		for j, seg := range segs {
+			sb.WriteString(seg)
+			if j != len(segs)-1 {
+				sb.WriteString(" | ")
+			}
+		}
+		sb.WriteByte(')')
+		if i != len(words) {
+			sb.WriteString(" & ")
+		}
+	}
+	return sb.String()
 }
