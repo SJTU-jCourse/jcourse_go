@@ -6,12 +6,12 @@ import (
 
 var seg gse.Segmenter
 
-func Fenci(src string) []string {
+func SegWord(src string) []string {
 	return seg.Slice(src, true)
 }
 
 // TODO: add assets path
-func InitFenci() error {
+func InitSegWord() error {
 	if err := seg.LoadStop(); err != nil {
 		return err
 	}

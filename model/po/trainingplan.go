@@ -13,7 +13,7 @@ type TrainingPlanPO struct {
 	MinCredits float64 `gorm:"index;index:uniq_training_plan,unique"`
 	MajorClass string  `gorm:"index;index:uniq_training_plan,unique"` // the class of major
 
-	SearchIndex SearchIndex // `gorm:"index:idx_search, type:gin"`
+	SearchIndex SearchIndex `gorm:"->:false;<-"`
 }
 
 func (po *TrainingPlanPO) TableName() string {

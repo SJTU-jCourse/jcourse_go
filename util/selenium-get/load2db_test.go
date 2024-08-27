@@ -26,7 +26,7 @@ func TestLoadTrainingPlan2DB(t *testing.T) {
 	})
 	t.Run("mem db", func(t *testing.T) {
 		dal.InitTestMemDBClient()
-		_ = util.InitFenci()
+		_ = util.InitSegWord()
 		migrate()
 		db := dal.GetDBClient()
 		LoadTrainingPlan2DB("../../data/trainingPlan.txt", db)
@@ -51,7 +51,7 @@ func TestLoadTeacherProfile2DB(t *testing.T) {
 
 	t.Run("mem db", func(t *testing.T) {
 		dal.InitTestMemDBClient()
-		_ = util.InitFenci()
+		_ = util.InitSegWord()
 		migrate()
 		db := dal.GetDBClient()
 		LoadTeacherProfile2DB("../../data/teachers.json", db)

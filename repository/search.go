@@ -36,7 +36,7 @@ func userQueryToTsQuery(query string) string {
 			sb.WriteString(" & ")
 		}
 		sb.WriteByte('(')
-		segs := util.Fenci(word)
+		segs := util.SegWord(word)
 		for j, seg := range segs {
 			if j != 0 {
 				sb.WriteString(" | ")
