@@ -65,6 +65,7 @@ type TrainingPlanFilter struct {
 	Department       string
 	EntryYear        string
 	ContainCourseIDs []int64
+	SearchQuery      string
 }
 
 type BaseCourse struct {
@@ -80,4 +81,5 @@ type CourseListFilter struct {
 	Departments []string
 	Categories  []string
 	Credits     []float64
+	SearchQuery string
 }

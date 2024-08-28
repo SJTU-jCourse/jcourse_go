@@ -24,6 +24,7 @@ type IReviewQuery interface {
 	WithOrderBy(orderBy string, ascending bool) DBOption
 	WithLimit(limit int64) DBOption
 	WithOffset(offset int64) DBOption
+	WithSearch(query string) DBOption
 }
 
 type ReviewQuery struct {

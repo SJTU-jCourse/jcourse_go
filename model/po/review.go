@@ -10,6 +10,7 @@ type ReviewPO struct {
 	Rating      int64  `gorm:"index"`
 	Semester    string `gorm:"index;index:uniq_course_review,unique"`
 	IsAnonymous bool
+	SearchIndex SearchIndex `gorm:"->:false;<-"`
 }
 
 func (po *ReviewPO) TableName() string {

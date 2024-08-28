@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"jcourse_go/dal"
 	"jcourse_go/model/po"
+	"jcourse_go/util"
 	"reflect"
 	"testing"
 )
@@ -25,6 +26,7 @@ func TestLoadTrainingPlan2DB(t *testing.T) {
 	})
 	t.Run("mem db", func(t *testing.T) {
 		dal.InitTestMemDBClient()
+		_ = util.InitSegWord()
 		migrate()
 		db := dal.GetDBClient()
 		LoadTrainingPlan2DB("../../data/trainingPlan.txt", db)
@@ -49,6 +51,7 @@ func TestLoadTeacherProfile2DB(t *testing.T) {
 
 	t.Run("mem db", func(t *testing.T) {
 		dal.InitTestMemDBClient()
+		_ = util.InitSegWord()
 		migrate()
 		db := dal.GetDBClient()
 		LoadTeacherProfile2DB("../../data/teachers.json", db)
