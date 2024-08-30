@@ -32,13 +32,13 @@ func Login(ctx context.Context, email string, password string) (*domain.User, er
 }
 
 func Register(ctx context.Context, email string, password string, code string) (*domain.User, error) {
-	storedCode, err := repository.GetVerifyCode(ctx, email)
-	if err != nil {
-		return nil, err
-	}
-	if storedCode != code {
-		return nil, errors.New("verify code is wrong")
-	}
+	// storedCode, err := repository.GetVerifyCode(ctx, email)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// if storedCode != code {
+	// 	return nil, errors.New("verify code is wrong")
+	// }
 	query := repository.NewUserQuery()
 	userPO, err := query.GetUserDetail(ctx, query.WithEmail(email))
 	if err != nil {
@@ -55,7 +55,7 @@ func Register(ctx context.Context, email string, password string, code string) (
 	if err != nil {
 		return nil, err
 	}
-	_ = repository.ClearVerifyCodeHistory(ctx, email)
+	// _ = repository.ClearVerifyCodeHistory(ctx, email)
 	user := converter.ConvertUserPOToDomain(*userPO)
 	return &user, nil
 }

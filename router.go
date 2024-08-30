@@ -64,4 +64,7 @@ func registerRouter(r *gin.Engine) {
 	adminGroup.GET("/user", handler.AdminGetUserList)
 
 	adminGroup.GET("")
+
+	llmGroup := needAuthGroup.Group(("/llm"))
+	llmGroup.GET("/vectorize/:courseID", handler.VectorizeCourseReviewsHandler)
 }

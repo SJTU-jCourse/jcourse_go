@@ -155,3 +155,7 @@ func ConvertCourseDomainToDetailDTO(course domain.Course) dto.CourseDetailDTO {
 	}
 	return courseDetailDTO
 }
+
+func ConvertVectorToString(vector []float32) string {
+	return "hello"
+}
