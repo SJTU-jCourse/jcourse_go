@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/service"
@@ -16,24 +17,34 @@ func VectorizeCourseReviewsHandler(c *gin.Context) {
 		return
 	}
 
-	vector, err := service.VectorizeCourseReviews(c, request.CourseID)
+	err := service.VectorizeCourseReviews(c, request.CourseID)
 	if err != nil {
+		fmt.Println(err)
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 		return
+	} else {
+		c.JSON(http.StatusOK, dto.BaseResponse{Message: "向量化成功"})
 	}
-
-	courseDetailDTO := converter.ConvertVectorToString(vector)
-
-	c.JSON(http.StatusOK, courseDetailDTO)
 }
 
-func GetMatchCourses(c *gin.Context) {
+func GetMatchCoursesHandler(c *gin.Context) {
 	var request dto.GetMatchCourseRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
 
-	// TODO
+	courses, err := service.GetMatchCourses(c, request.Description)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		return
+	}
 
+	resp := dto.CourseListResponse{
+		Total:    0,
+		Data:     converter.ConvertCourseListDomainToDTO(courses),
+		Page:     0,
+		PageSize: int64(len(courses)),
+	}
+	c.JSON(http.StatusOK, resp)
 }
