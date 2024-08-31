@@ -7,15 +7,26 @@ import (
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
 	"jcourse_go/repository"
+	"os"
 	"strings"
 
 	"github.com/tmc/langchaingo/embeddings"
 	"github.com/tmc/langchaingo/llms/openai"
 	"github.com/tmc/langchaingo/schema"
+	"github.com/tmc/langchaingo/vectorstores"
 	"github.com/tmc/langchaingo/vectorstores/pgvector"
 )
 
-func getVectorStore() (*pgvector.Store, error) {
+func getVectorDBConnUrl() string {
+	return fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=disable",
+		os.Getenv("VECTORDB_USER"),
+		os.Getenv("VECTORDB_PASSWORD"),
+		os.Getenv("VECTORDB_HOST"),
+		os.Getenv("VECTORDB_PORT"),
+		os.Getenv("VECTORDB_DBNAME"),
+	)
+}
+func openVectorStoreConn() (*pgvector.Store, error) {
 	llm, err := openai.New()
 	if err != nil {
 		fmt.Println(err)
@@ -30,7 +41,7 @@ func getVectorStore() (*pgvector.Store, error) {
 
 	store, err := pgvector.New(
 		context.Background(),
-		pgvector.WithConnectionURL("postgresql://jcourse:jcourse@172.17.0.1:5433/jcourse?sslmode=disable"),
+		pgvector.WithConnectionURL(getVectorDBConnUrl()),
 		pgvector.WithEmbedder(embedder),
 	)
 
@@ -68,7 +79,7 @@ func VectorizeCourseReviews(ctx context.Context, courseID int64) error {
 		comments = append(comments, review.Comment)
 	}
 
-	vectorStore, err := getVectorStore()
+	vectorStore, err := openVectorStoreConn()
 
 	if err != nil {
 		fmt.Println(err)
@@ -82,12 +93,24 @@ func VectorizeCourseReviews(ctx context.Context, courseID int64) error {
 			"courseID": courseID,
 		},
 	}
-	_, err = vectorStore.AddDocuments(context.Background(), []schema.Document{doc})
+
+	_, err = vectorStore.AddDocuments(
+		context.Background(),
+		[]schema.Document{doc},
+		vectorstores.WithReplacement(true),
+	)
+
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	err = vectorStore.Close()
 	return err
 }
 
 func GetMatchCourses(ctx context.Context, description string) ([]domain.Course, error) {
-	vectorStore, err := getVectorStore()
+	vectorStore, err := openVectorStoreConn()
 
 	if err != nil {
 		fmt.Println(err)
@@ -95,6 +118,12 @@ func GetMatchCourses(ctx context.Context, description string) ([]domain.Course, 
 	}
 
 	docs, err := vectorStore.SimilaritySearch(context.Background(), description, 2)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	err = vectorStore.Close()
 	if err != nil {
 		fmt.Println(err)
 		return nil, err
