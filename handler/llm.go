@@ -10,6 +10,23 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func OptCourseReviewHandler(c *gin.Context) {
+	var request dto.OptCourseReviewRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		return
+	}
+
+	response, err := service.OptCourseReview(request.CourseName, request.ReviewContent)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
+}
+
 func VectorizeCourseReviewsHandler(c *gin.Context) {
 	var request dto.VectorizeCourseReviewsRequest
 	if err := c.ShouldBindUri(&request); err != nil {

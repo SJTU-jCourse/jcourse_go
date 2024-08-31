@@ -2,50 +2,53 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"jcourse_go/constant"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
+	"jcourse_go/model/dto"
 	"jcourse_go/repository"
-	"os"
+	"jcourse_go/rpc"
 	"strings"
 
-	"github.com/tmc/langchaingo/embeddings"
+	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
 	"github.com/tmc/langchaingo/schema"
 	"github.com/tmc/langchaingo/vectorstores"
-	"github.com/tmc/langchaingo/vectorstores/pgvector"
 )
 
-func getVectorDBConnUrl() string {
-	return fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=disable",
-		os.Getenv("VECTORDB_USER"),
-		os.Getenv("VECTORDB_PASSWORD"),
-		os.Getenv("VECTORDB_HOST"),
-		os.Getenv("VECTORDB_PORT"),
-		os.Getenv("VECTORDB_DBNAME"),
-	)
-}
-func openVectorStoreConn() (*pgvector.Store, error) {
+func OptCourseReview(courseName string, reviewContent string) (dto.OptCourseReviewResponse, error) {
 	llm, err := openai.New()
 	if err != nil {
 		fmt.Println(err)
-		return nil, err
+		return dto.OptCourseReviewResponse{}, err
+	}
+	// 构造提示词生成对话
+	inputJson, _ := json.Marshal(map[string]string{
+		"course": courseName,
+		"review": reviewContent,
+	})
+
+	content := []llms.MessageContent{
+		llms.TextParts(llms.ChatMessageTypeSystem, constant.OptCourseReviewPrompt),
+		llms.TextParts(llms.ChatMessageTypeHuman, string(inputJson)),
 	}
 
-	embedder, err := embeddings.NewEmbedder(llm)
-	if err != nil {
-		fmt.Println(err)
-		return nil, err
-	}
-
-	store, err := pgvector.New(
+	completion, err := llm.GenerateContent(
 		context.Background(),
-		pgvector.WithConnectionURL(getVectorDBConnUrl()),
-		pgvector.WithEmbedder(embedder),
+		content,
 	)
 
-	return &store, err
+	if err != nil {
+		fmt.Println(err)
+		return dto.OptCourseReviewResponse{}, err
+	}
+	var response dto.OptCourseReviewResponse
+	err = json.Unmarshal([]byte(completion.Choices[0].Content), &response)
+
+	return response, err
 }
 
 func VectorizeCourseReviews(ctx context.Context, courseID int64) error {
@@ -79,7 +82,7 @@ func VectorizeCourseReviews(ctx context.Context, courseID int64) error {
 		comments = append(comments, review.Comment)
 	}
 
-	vectorStore, err := openVectorStoreConn()
+	vectorStore, err := rpc.OpenVectorStoreConn()
 
 	if err != nil {
 		fmt.Println(err)
@@ -110,7 +113,7 @@ func VectorizeCourseReviews(ctx context.Context, courseID int64) error {
 }
 
 func GetMatchCourses(ctx context.Context, description string) ([]domain.Course, error) {
-	vectorStore, err := openVectorStoreConn()
+	vectorStore, err := rpc.OpenVectorStoreConn()
 
 	if err != nil {
 		fmt.Println(err)
