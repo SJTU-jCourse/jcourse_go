@@ -28,6 +28,7 @@ type IUserQuery interface {
 	ResetUserPassword(ctx context.Context, userID int64, password string) error
 	WithLimit(limit int64) DBOption
 	WithOffset(offset int64) DBOption
+	WithSearch(query string) DBOption
 }
 
 type IUserProfileQuery interface {

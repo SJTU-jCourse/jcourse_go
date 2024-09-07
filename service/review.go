@@ -31,6 +31,9 @@ func buildReviewDBOptionFromFilter(query repository.IReviewQuery, filter domain.
 	if filter.ReviewID != 0 {
 		opts = append(opts, query.WithID(filter.ReviewID))
 	}
+	if filter.SearchQuery != "" {
+		opts = append(opts, query.WithSearch(filter.SearchQuery))
+	}
 	return opts
 }
 

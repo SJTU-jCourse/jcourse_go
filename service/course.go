@@ -68,6 +68,9 @@ func buildCourseDBOptionFromFilter(query repository.ICourseQuery, filter domain.
 	if len(filter.Credits) > 0 {
 		opts = append(opts, query.WithCredits(filter.Credits))
 	}
+	if filter.SearchQuery != "" {
+		opts = append(opts, query.WithSearch(filter.SearchQuery))
+	}
 	return opts
 }
 

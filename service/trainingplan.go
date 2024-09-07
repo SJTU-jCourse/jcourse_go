@@ -49,6 +49,9 @@ func buildTrainingPlanDBOptionFromFilter(query repository.ITrainingPlanQuery, fi
 	if filter.Department != "" {
 		opts = append(opts, query.WithDepartment(filter.Department))
 	}
+	if filter.SearchQuery != "" {
+		opts = append(opts, query.WithSearch(filter.SearchQuery))
+	}
 
 	opts = append(opts, query.WithPaginate(filter.Page, filter.PageSize))
 	return opts

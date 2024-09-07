@@ -48,6 +48,7 @@ type CourseListRequest struct {
 	Departments string `json:"departments" form:"departments"`
 	Categories  string `json:"categories" form:"categories"`
 	Credits     string `json:"credits" form:"credits"`
+	SearchQuery string `json:"search_query" form:"search_query"`
 }
 
 type CourseListResponse = BasePaginateResponse[CourseListItemDTO]

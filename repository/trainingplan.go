@@ -25,6 +25,7 @@ type ITrainingPlanQuery interface {
 	WithDegree(degree string) DBOption
 	WithIDs(courseIDs []int64) DBOption
 	WithPaginate(page int64, pageSize int64) DBOption
+	WithSearch(query string) DBOption
 }
 
 func NewTrainingPlanQuery() ITrainingPlanQuery {

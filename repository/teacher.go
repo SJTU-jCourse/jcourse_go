@@ -26,6 +26,7 @@ type ITeacherQuery interface {
 	WithProfileURL(profileURL string) DBOption
 	WithIDs(ids []int64) DBOption
 	WithPaginate(page int64, pageSize int64) DBOption
+	WithSearch(query string) DBOption
 }
 
 type TeacherQuery struct {

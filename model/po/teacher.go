@@ -14,6 +14,8 @@ type TeacherPO struct {
 	Picture    string // picture URL
 	ProfileURL string
 	Biography  string // 个人简述
+
+	SearchIndex SearchIndex `gorm:"->:false;<-"`
 }
 
 func (po *TeacherPO) TableName() string {
