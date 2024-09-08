@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
 	"jcourse_go/repository"
@@ -14,7 +15,7 @@ func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*domain.T
 	}
 	trainingPlanQuery := repository.NewTrainingPlanQuery()
 
-	trainingPlanPO, err := trainingPlanQuery.GetTrainingPlan(ctx, trainingPlanQuery.WithID(trainingPlanID))
+	trainingPlanPO, err := trainingPlanQuery.GetTrainingPlan(ctx, repository.WithID(trainingPlanID))
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +29,7 @@ func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*domain.T
 	}
 	domainCourses := make([]domain.TrainingPlanCourse, 0)
 	for _, c := range courses {
-		baseCoursePO, err := baseCourseQuery.GetBaseCourse(ctx, baseCourseQuery.WithID(c.CourseID))
+		baseCoursePO, err := baseCourseQuery.GetBaseCourse(ctx, repository.WithID(c.CourseID))
 		if err != nil {
 			return nil, err
 		}
@@ -41,25 +42,25 @@ func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*domain.T
 func buildTrainingPlanDBOptionFromFilter(query repository.ITrainingPlanQuery, filter domain.TrainingPlanFilter) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if filter.Major != "" {
-		opts = append(opts, query.WithMajor(filter.Major))
+		opts = append(opts, repository.WithMajor(filter.Major))
 	}
 	if filter.EntryYear != "" {
-		opts = append(opts, query.WithEntryYear(filter.EntryYear))
+		opts = append(opts, repository.WithEntryYear(filter.EntryYear))
 	}
 	if filter.Department != "" {
-		opts = append(opts, query.WithDepartment(filter.Department))
+		opts = append(opts, repository.WithDepartment(filter.Department))
 	}
 	if filter.SearchQuery != "" {
-		opts = append(opts, query.WithSearch(filter.SearchQuery))
+		opts = append(opts, repository.WithSearch(filter.SearchQuery))
 	}
 
-	opts = append(opts, query.WithPaginate(filter.Page, filter.PageSize))
+	opts = append(opts, repository.WithPaginate(filter.Page, filter.PageSize))
 	return opts
 }
 func buildTrainingPlanCourseDBOptionFromFilter(query repository.ITrainingPlanCourseQuery, filter domain.TrainingPlanFilter) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if len(filter.ContainCourseIDs) > 0 {
-		opts = append(opts, query.WithCourseIDs(filter.ContainCourseIDs))
+		opts = append(opts, repository.WithCourseIDs(filter.ContainCourseIDs))
 	}
 	return opts
 }
@@ -79,7 +80,7 @@ func SearchTrainingPlanList(ctx context.Context, filter domain.TrainingPlanFilte
 		if err != nil {
 			return nil, err
 		}
-		tp_opts = append(tp_opts, trainingPlanQuery.WithIDs(validTrainingPlanIDs))
+		tp_opts = append(tp_opts, repository.WithIDs(validTrainingPlanIDs))
 	}
 
 	trainingPlanIDs, err := trainingPlanQuery.GetTrainingPlanListIDs(ctx, tp_opts...)

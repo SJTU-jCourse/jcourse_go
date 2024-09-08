@@ -17,14 +17,6 @@ type IReviewQuery interface {
 	UpdateReview(ctx context.Context, review po.ReviewPO) (int64, error)
 	DeleteReview(ctx context.Context, opts ...DBOption) (int64, error)
 	GetCourseReviewInfo(ctx context.Context, courseIDs []int64) (map[int64]po.CourseReviewInfo, error)
-	WithID(id int64) DBOption
-	WithCourseID(courseID int64) DBOption
-	WithUserID(userID int64) DBOption
-	WithSemester(semester string) DBOption
-	WithOrderBy(orderBy string, ascending bool) DBOption
-	WithLimit(limit int64) DBOption
-	WithOffset(offset int64) DBOption
-	WithSearch(query string) DBOption
 }
 
 type ReviewQuery struct {
@@ -56,18 +48,6 @@ func (c *ReviewQuery) GetReviewCount(ctx context.Context, opts ...DBOption) (int
 		return 0, result.Error
 	}
 	return count, nil
-}
-
-func (c *ReviewQuery) WithLimit(limit int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Limit(int(limit))
-	}
-}
-
-func (c *ReviewQuery) WithOffset(offset int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Offset(int(offset))
-	}
 }
 
 func (c *ReviewQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
@@ -113,41 +93,6 @@ func (c *ReviewQuery) DeleteReview(ctx context.Context, opts ...DBOption) (int64
 	db := c.optionDB(ctx, opts...)
 	result := db.Delete(&po.ReviewPO{})
 	return result.RowsAffected, result.Error
-}
-
-func (c *ReviewQuery) WithID(id int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("id = ?", id)
-	}
-}
-
-func (c *ReviewQuery) WithCourseID(courseID int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("course_id = ?", courseID)
-	}
-}
-
-func (c *ReviewQuery) WithUserID(userID int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("user_id = ?", userID)
-	}
-}
-
-func (c *ReviewQuery) WithSemester(semester string) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("semester = ?", semester)
-	}
-}
-
-func (c *ReviewQuery) WithOrderBy(orderBy string, ascending bool) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		if ascending {
-			orderBy = orderBy + " asc"
-		} else {
-			orderBy = orderBy + " desc"
-		}
-		return db.Order(orderBy)
-	}
 }
 
 func NewReviewQuery() IReviewQuery {

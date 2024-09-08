@@ -15,7 +15,7 @@ func GetCourseDetail(ctx context.Context, courseID int64) (*domain.Course, error
 		return nil, errors.New("course id is 0")
 	}
 	courseQuery := repository.NewCourseQuery()
-	coursePO, err := courseQuery.GetCourse(ctx, courseQuery.WithID(courseID))
+	coursePO, err := courseQuery.GetCourse(ctx, repository.WithID(courseID))
 	if err != nil {
 		return nil, err
 	}
@@ -26,13 +26,13 @@ func GetCourseDetail(ctx context.Context, courseID int64) (*domain.Course, error
 	}
 
 	teacherQuery := repository.NewTeacherQuery()
-	teacherPO, err := teacherQuery.GetTeacher(ctx, teacherQuery.WithID(coursePO.MainTeacherID))
+	teacherPO, err := teacherQuery.GetTeacher(ctx, repository.WithID(coursePO.MainTeacherID))
 	if err != nil {
 		return nil, err
 	}
 
 	offeredCourseQuery := repository.NewOfferedCourseQuery()
-	offeredCoursePOs, err := offeredCourseQuery.GetOfferedCourseList(ctx, offeredCourseQuery.WithCourseID(courseID), offeredCourseQuery.WithOrderBy("semester", false))
+	offeredCoursePOs, err := offeredCourseQuery.GetOfferedCourseList(ctx, repository.WithCourseID(courseID), repository.WithOrderBy("semester", false))
 	if err != nil {
 		return nil, err
 	}
@@ -54,22 +54,22 @@ func GetCourseDetail(ctx context.Context, courseID int64) (*domain.Course, error
 func buildCourseDBOptionFromFilter(query repository.ICourseQuery, filter domain.CourseListFilter) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if filter.PageSize > 0 {
-		opts = append(opts, query.WithLimit(filter.PageSize))
+		opts = append(opts, repository.WithLimit(filter.PageSize))
 	}
 	if filter.Page > 0 {
-		opts = append(opts, query.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
+		opts = append(opts, repository.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
 	}
 	if len(filter.Categories) > 0 {
-		opts = append(opts, query.WithCategories(filter.Categories))
+		opts = append(opts, repository.WithCategories(filter.Categories))
 	}
 	if len(filter.Departments) > 0 {
-		opts = append(opts, query.WithDepartments(filter.Departments))
+		opts = append(opts, repository.WithDepartments(filter.Departments))
 	}
 	if len(filter.Credits) > 0 {
-		opts = append(opts, query.WithCredits(filter.Credits))
+		opts = append(opts, repository.WithCredits(filter.Credits))
 	}
 	if filter.SearchQuery != "" {
-		opts = append(opts, query.WithSearch(filter.SearchQuery))
+		opts = append(opts, repository.WithSearch(filter.SearchQuery))
 	}
 	return opts
 }

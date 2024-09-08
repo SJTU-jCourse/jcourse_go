@@ -23,7 +23,7 @@ func Login(ctx context.Context, email string, password string) (*domain.User, er
 		return nil, err
 	}
 	query := repository.NewUserQuery()
-	userPO, err := query.GetUserDetail(ctx, query.WithEmail(email), query.WithPassword(passwordStore))
+	userPO, err := query.GetUserDetail(ctx, repository.WithEmail(email), repository.WithPassword(passwordStore))
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func Register(ctx context.Context, email string, password string, code string) (
 		return nil, errors.New("verify code is wrong")
 	}
 	query := repository.NewUserQuery()
-	userPO, err := query.GetUserDetail(ctx, query.WithEmail(email))
+	userPO, err := query.GetUserDetail(ctx, repository.WithEmail(email))
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func ResetPassword(ctx context.Context, email string, password string, code stri
 		return errors.New("verify code is wrong")
 	}
 	query := repository.NewUserQuery()
-	user, err := query.GetUserDetail(ctx, query.WithEmail(email))
+	user, err := query.GetUserDetail(ctx, repository.WithEmail(email))
 	if err != nil {
 		return err
 	}

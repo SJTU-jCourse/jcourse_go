@@ -14,25 +14,25 @@ import (
 func buildReviewDBOptionFromFilter(query repository.IReviewQuery, filter domain.ReviewFilter) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if filter.PageSize > 0 {
-		opts = append(opts, query.WithLimit(filter.PageSize))
+		opts = append(opts, repository.WithLimit(filter.PageSize))
 	}
 	if filter.Page > 0 {
-		opts = append(opts, query.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
+		opts = append(opts, repository.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
 	}
 	if filter.CourseID != 0 {
-		opts = append(opts, query.WithCourseID(filter.CourseID))
+		opts = append(opts, repository.WithCourseID(filter.CourseID))
 	}
 	if len(filter.Semester) > 0 {
-		opts = append(opts, query.WithSemester(filter.Semester))
+		opts = append(opts, repository.WithSemester(filter.Semester))
 	}
 	if filter.UserID != 0 {
-		opts = append(opts, query.WithUserID(filter.UserID))
+		opts = append(opts, repository.WithUserID(filter.UserID))
 	}
 	if filter.ReviewID != 0 {
-		opts = append(opts, query.WithID(filter.ReviewID))
+		opts = append(opts, repository.WithID(filter.ReviewID))
 	}
 	if filter.SearchQuery != "" {
-		opts = append(opts, query.WithSearch(filter.SearchQuery))
+		opts = append(opts, repository.WithSearch(filter.SearchQuery))
 	}
 	return opts
 }
@@ -119,7 +119,7 @@ func UpdateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.
 
 func DeleteReview(ctx context.Context, reviewID int64) error {
 	query := repository.NewReviewQuery()
-	_, err := query.DeleteReview(ctx, query.WithID(reviewID))
+	_, err := query.DeleteReview(ctx, repository.WithID(reviewID))
 	if err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func DeleteReview(ctx context.Context, reviewID int64) error {
 func validateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.User) bool {
 	// 1. validate course and semester exists
 	offeredCourseQuery := repository.NewOfferedCourseQuery()
-	offeredCourse, err := offeredCourseQuery.GetOfferedCourse(ctx, offeredCourseQuery.WithCourseID(review.CourseID), offeredCourseQuery.WithSemester(review.Semester))
+	offeredCourse, err := offeredCourseQuery.GetOfferedCourse(ctx, repository.WithCourseID(review.CourseID), repository.WithSemester(review.Semester))
 	if err != nil || offeredCourse == nil {
 		return false
 	}

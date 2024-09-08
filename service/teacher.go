@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
 	"jcourse_go/repository"
@@ -14,14 +15,14 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*domain.Teacher, er
 	}
 	teacherQuery := repository.NewTeacherQuery()
 
-	teacherPO, err := teacherQuery.GetTeacher(ctx, teacherQuery.WithID(teacherID))
+	teacherPO, err := teacherQuery.GetTeacher(ctx, repository.WithID(teacherID))
 	if err != nil {
 		return nil, err
 	}
 	teacher := converter.ConvertTeacherPOToDomain(teacherPO)
 
 	courseQuery := repository.NewOfferedCourseQuery()
-	courses, err := courseQuery.GetOfferedCourseList(ctx, courseQuery.WithMainTeacherID(teacherID))
+	courses, err := courseQuery.GetOfferedCourseList(ctx, repository.WithMainTeacherID(teacherID))
 	if err != nil {
 		return nil, err
 	}
@@ -33,28 +34,28 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*domain.Teacher, er
 func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter domain.TeacherListFilter) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if filter.Name != "" {
-		opts = append(opts, query.WithName(filter.Name))
+		opts = append(opts, repository.WithName(filter.Name))
 	}
 	if filter.Code != "" {
-		opts = append(opts, query.WithCode(filter.Code))
+		opts = append(opts, repository.WithCode(filter.Code))
 	}
 	if filter.Department != "" {
-		opts = append(opts, query.WithDepartment(filter.Department))
+		opts = append(opts, repository.WithDepartment(filter.Department))
 	}
 	if filter.Title != "" {
-		opts = append(opts, query.WithTitle(filter.Title))
+		opts = append(opts, repository.WithTitle(filter.Title))
 	}
 	if filter.Pinyin != "" {
-		opts = append(opts, query.WithPinyin(filter.Pinyin))
+		opts = append(opts, repository.WithPinyin(filter.Pinyin))
 	}
 	if filter.PinyinAbbr != "" {
-		opts = append(opts, query.WithPinyinAbbr(filter.PinyinAbbr))
+		opts = append(opts, repository.WithPinyinAbbr(filter.PinyinAbbr))
 	}
 	if filter.SearchQuery != "" {
-		opts = append(opts, query.WithSearch(filter.SearchQuery))
+		opts = append(opts, repository.WithSearch(filter.SearchQuery))
 	}
 
-	opts = append(opts, query.WithPaginate(filter.Page, filter.PageSize))
+	opts = append(opts, repository.WithPaginate(filter.Page, filter.PageSize))
 	return opts
 }
 
@@ -67,7 +68,7 @@ func SearchTeacherList(ctx context.Context, filter domain.TeacherListFilter) ([]
 	if err != nil {
 		return nil, err
 	}
-	t_opts = append(t_opts, teacherQuery.WithIDs(validTeacherIDs))
+	t_opts = append(t_opts, repository.WithIDs(validTeacherIDs))
 
 	teachers, err := teacherQuery.GetTeacherList(ctx, t_opts...)
 	if err != nil {
@@ -77,7 +78,7 @@ func SearchTeacherList(ctx context.Context, filter domain.TeacherListFilter) ([]
 	domainTeachers := make([]domain.Teacher, 0)
 	for _, t := range teachers {
 		q := repository.NewOfferedCourseQuery()
-		offeredCoursePOs, err := q.GetOfferedCourseList(ctx, q.WithMainTeacherID(int64(t.ID)))
+		offeredCoursePOs, err := q.GetOfferedCourseList(ctx, repository.WithMainTeacherID(int64(t.ID)))
 		if err != nil {
 			return nil, err
 		}
@@ -98,7 +99,7 @@ func GetTeacherCount(ctx context.Context, filter domain.TeacherListFilter) (int6
 func GetTeacherListByIDs(ctx context.Context, teacherIDs []int64) (map[int64]domain.Teacher, error) {
 
 	teacherQuery := repository.NewTeacherQuery()
-	teachers, err := teacherQuery.GetTeacherList(ctx, teacherQuery.WithIDs(teacherIDs))
+	teachers, err := teacherQuery.GetTeacherList(ctx, repository.WithIDs(teacherIDs))
 	if err != nil {
 		return nil, err
 	}

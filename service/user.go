@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"jcourse_go/model/dto"
 	"jcourse_go/model/po"
 	"jcourse_go/util"
@@ -76,13 +77,13 @@ func GetUserDomainByID(ctx context.Context, userID int64) (*domain.User, error) 
 func buildUserDBOptionFromFilter(query repository.IUserQuery, filter domain.UserFilter) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if filter.PageSize > 0 {
-		opts = append(opts, query.WithLimit(filter.PageSize))
+		opts = append(opts, repository.WithLimit(filter.PageSize))
 	}
 	if filter.Page > 0 {
-		opts = append(opts, query.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
+		opts = append(opts, repository.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
 	}
 	if filter.SearchQuery != "" {
-		opts = append(opts, query.WithSearch(filter.SearchQuery))
+		opts = append(opts, repository.WithSearch(filter.SearchQuery))
 	}
 	return opts
 }

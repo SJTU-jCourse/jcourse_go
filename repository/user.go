@@ -12,8 +12,6 @@ import (
 	"jcourse_go/model/po"
 )
 
-type DBOption func(*gorm.DB) *gorm.DB
-
 type IUserQuery interface {
 	GetUserDetail(ctx context.Context, opts ...DBOption) (*po.UserPO, error)
 	GetUserList(ctx context.Context, opts ...DBOption) ([]po.UserPO, error)
@@ -21,14 +19,8 @@ type IUserQuery interface {
 	GetUserByID(ctx context.Context, userID int64) (*po.UserPO, error)
 	GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]po.UserPO, error)
 	UpdateUserByID(ctx context.Context, user *po.UserPO) error
-	WithID(id int64) DBOption
-	WithEmail(email string) DBOption
-	WithPassword(password string) DBOption
 	CreateUser(ctx context.Context, email string, password string) (*po.UserPO, error)
 	ResetUserPassword(ctx context.Context, userID int64, password string) error
-	WithLimit(limit int64) DBOption
-	WithOffset(offset int64) DBOption
-	WithSearch(query string) DBOption
 }
 
 type IUserProfileQuery interface {
@@ -37,10 +29,7 @@ type IUserProfileQuery interface {
 	GetUserProfileList(ctx context.Context, opts ...DBOption) ([]po.UserProfilePO, error)
 	GetUserProfileCount(ctx context.Context, opts ...DBOption) (int64, error)
 	UpdateUserProfileByID(ctx context.Context, userProfile *po.UserProfilePO) error
-	WithUserID(id int64) DBOption
-	WithLimit(limit int64) DBOption
-	WithOffset(offset int64) DBOption
-	//CreateUserProfile(ctx context.Context, userID int64) (*po.UserProfilePO, error)
+	// CreateUserProfile(ctx context.Context, userID int64) (*po.UserProfilePO, error)
 }
 
 type UserProfileQuery struct {
@@ -62,7 +51,7 @@ func (u *UserProfileQuery) GetUserProfileByIDs(ctx context.Context, userIDs []in
 }
 
 func (u *UserProfileQuery) GetUserProfileByID(ctx context.Context, userID int64) (*po.UserProfilePO, error) {
-	db := u.optionDB(ctx, u.WithUserID(userID))
+	db := u.optionDB(ctx, WithUserID(userID))
 	userProfilePO := po.UserProfilePO{}
 	result := db.Find(&userProfilePO)
 	if result.Error != nil {
@@ -77,28 +66,6 @@ func (u *UserProfileQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm
 		db = opt(db)
 	}
 	return db
-}
-
-func (u *UserProfileQuery) WithUserIDs(userIDs []int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("user_id in ?", userIDs)
-	}
-}
-
-func (q *UserProfileQuery) WithUserID(id int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("user_id = ?", id)
-	}
-}
-
-func (q *UserProfileQuery) WithLimit(limit int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB { return db.Limit(int(limit)) }
-}
-
-func (q *UserProfileQuery) WithOffset(offset int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Offset(int(offset))
-	}
 }
 
 func NewUserProfileQuery() IUserProfileQuery {
@@ -132,7 +99,7 @@ func (q *UserProfileQuery) GetUserProfileCount(ctx context.Context, opts ...DBOp
 }
 
 func (q *UserProfileQuery) UpdateUserProfileByID(ctx context.Context, userProfile *po.UserProfilePO) error {
-	result := q.optionDB(ctx, q.WithUserID(userProfile.UserID)).Save(&userProfile).Error
+	result := q.optionDB(ctx, WithUserID(userProfile.UserID)).Save(&userProfile).Error
 	return result
 }
 
@@ -155,31 +122,13 @@ func (q *UserQuery) GetUserByIDs(ctx context.Context, userIDs []int64) (map[int6
 }
 
 func (q *UserQuery) GetUserByID(ctx context.Context, userID int64) (*po.UserPO, error) {
-	db := q.optionDB(ctx, q.WithID(userID))
+	db := q.optionDB(ctx, WithID(userID))
 	userPO := po.UserPO{}
 	result := db.Find(&userPO)
 	if result.Error != nil {
 		return &userPO, result.Error
 	}
 	return &userPO, nil
-}
-
-func (q *UserQuery) WithEmail(email string) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("email = ?", email)
-	}
-}
-
-func (q *UserQuery) WithID(id int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("id = ?", id)
-	}
-}
-
-func (q *UserQuery) WithPassword(password string) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("password = ?", password)
-	}
 }
 
 func (q *UserQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
@@ -224,7 +173,7 @@ func (q *UserQuery) GetUserCount(ctx context.Context, opts ...DBOption) (int64, 
 }
 
 func (q *UserQuery) UpdateUserByID(ctx context.Context, user *po.UserPO) error {
-	result := q.optionDB(ctx, q.WithID(int64(user.ID))).Save(&user).Error
+	result := q.optionDB(ctx, WithID(int64(user.ID))).Save(&user).Error
 	return result
 }
 
@@ -244,16 +193,6 @@ func (q *UserQuery) CreateUser(ctx context.Context, email string, passwordStore 
 }
 
 func (q *UserQuery) ResetUserPassword(ctx context.Context, userID int64, passwordStore string) error {
-	result := q.optionDB(ctx, q.WithID(userID)).Debug().Update("password", passwordStore)
+	result := q.optionDB(ctx, WithID(userID)).Debug().Update("password", passwordStore)
 	return result.Error
-}
-
-func (q *UserQuery) WithLimit(limit int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB { return db.Limit(int(limit)) }
-}
-
-func (q *UserQuery) WithOffset(offset int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Offset(int(offset))
-	}
 }
