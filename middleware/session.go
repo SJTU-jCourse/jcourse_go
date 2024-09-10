@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"encoding/gob"
-	"os"
 
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -10,10 +9,11 @@ import (
 	"jcourse_go/constant"
 	"jcourse_go/dal"
 	"jcourse_go/model/domain"
+	"jcourse_go/util"
 )
 
 func InitSession(r *gin.Engine) {
-	secret := os.Getenv(constant.SessionSecret)
+	secret := util.GetSessionSecret()
 	store, err := sessions.NewRedisStore(10, "tcp", dal.GetRedisDSN(), "", []byte(secret))
 	if err != nil {
 		panic(err)

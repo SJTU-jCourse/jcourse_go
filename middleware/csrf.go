@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/bytedance/sonic"
@@ -16,7 +15,7 @@ import (
 )
 
 func CSRF() gin.HandlerFunc {
-	key := os.Getenv(constant.CSRFSecretKey)
+	key := util.GetCSRFSecret()
 	csrfMd := csrf.Protect([]byte(key),
 		csrf.Secure(!util.IsDebug()),
 		csrf.ErrorHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
