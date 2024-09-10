@@ -1,11 +1,12 @@
 package main
 
 import (
+	"log"
+	"os"
+
 	"jcourse_go/dal"
 	"jcourse_go/model/po"
 	seleniumget "jcourse_go/util/selenium-get"
-	"log"
-	"os"
 )
 
 func main() {

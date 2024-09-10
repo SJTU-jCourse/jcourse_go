@@ -2,13 +2,14 @@ package handler
 
 import (
 	"errors"
+	"net/http"
+	"strconv"
+
 	"jcourse_go/constant"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
 	"jcourse_go/service"
-	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )

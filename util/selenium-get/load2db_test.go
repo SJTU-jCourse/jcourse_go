@@ -2,11 +2,12 @@ package seleniumget
 
 import (
 	"fmt"
+	"reflect"
+	"testing"
+
 	"jcourse_go/dal"
 	"jcourse_go/model/po"
 	"jcourse_go/util"
-	"reflect"
-	"testing"
 )
 
 func migrate() {

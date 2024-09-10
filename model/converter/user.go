@@ -1,10 +1,11 @@
 package converter
 
 import (
+	"time"
+
 	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/po"
-	"time"
 )
 
 func ConvertUserPOToDomain(userPO po.UserPO) domain.User {

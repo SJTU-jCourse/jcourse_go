@@ -2,12 +2,13 @@ package main
 
 import (
 	"errors"
-	"jcourse_go/dal"
-	"jcourse_go/model/po"
-	seleniumget "jcourse_go/util/selenium-get"
 	"log"
 	"os"
 	"strconv"
+
+	"jcourse_go/dal"
+	"jcourse_go/model/po"
+	seleniumget "jcourse_go/util/selenium-get"
 
 	"gorm.io/gorm"
 )

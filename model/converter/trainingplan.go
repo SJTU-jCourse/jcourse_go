@@ -1,10 +1,11 @@
 package converter
 
 import (
+	"strconv"
+
 	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/po"
-	"strconv"
 )
 
 func ConvertTrainingPlanCourseDomainToDTO(courseDomain domain.TrainingPlanCourse) dto.TrainingPlanCourseDTO {
