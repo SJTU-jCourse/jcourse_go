@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"jcourse_go/dal"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
 	"jcourse_go/repository"
@@ -13,7 +14,7 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*domain.Teacher, er
 	if teacherID == 0 {
 		return nil, errors.New("training-plan id is 0")
 	}
-	teacherQuery := repository.NewTeacherQuery()
+	teacherQuery := repository.NewTeacherQuery(dal.GetDBClient())
 
 	teacherPO, err := teacherQuery.GetTeacher(ctx, repository.WithID(teacherID))
 	if err != nil {
@@ -21,7 +22,7 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*domain.Teacher, er
 	}
 	teacher := converter.ConvertTeacherPOToDomain(teacherPO)
 
-	courseQuery := repository.NewOfferedCourseQuery()
+	courseQuery := repository.NewOfferedCourseQuery(dal.GetDBClient())
 	courses, err := courseQuery.GetOfferedCourseList(ctx, repository.WithMainTeacherID(teacherID))
 	if err != nil {
 		return nil, err
@@ -60,10 +61,10 @@ func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter domai
 }
 
 func SearchTeacherList(ctx context.Context, filter domain.TeacherListFilter) ([]domain.Teacher, error) {
-	teacherQuery := repository.NewTeacherQuery()
+	teacherQuery := repository.NewTeacherQuery(dal.GetDBClient())
 	t_opts := buildTeacherDBOptionFromFilter(teacherQuery, filter)
 
-	teacherCourseQuery := repository.NewOfferedCourseQuery()
+	teacherCourseQuery := repository.NewOfferedCourseQuery(dal.GetDBClient())
 	validTeacherIDs, err := teacherCourseQuery.GetMainTeacherIDsWithOfferedCourseIDs(ctx, filter.ContainCourseIDs)
 	if err != nil {
 		return nil, err
@@ -77,7 +78,7 @@ func SearchTeacherList(ctx context.Context, filter domain.TeacherListFilter) ([]
 
 	domainTeachers := make([]domain.Teacher, 0)
 	for _, t := range teachers {
-		q := repository.NewOfferedCourseQuery()
+		q := repository.NewOfferedCourseQuery(dal.GetDBClient())
 		offeredCoursePOs, err := q.GetOfferedCourseList(ctx, repository.WithMainTeacherID(int64(t.ID)))
 		if err != nil {
 			return nil, err
@@ -90,7 +91,7 @@ func SearchTeacherList(ctx context.Context, filter domain.TeacherListFilter) ([]
 }
 
 func GetTeacherCount(ctx context.Context, filter domain.TeacherListFilter) (int64, error) {
-	query := repository.NewTeacherQuery()
+	query := repository.NewTeacherQuery(dal.GetDBClient())
 	filter.Page, filter.PageSize = 0, 0
 	opts := buildTeacherDBOptionFromFilter(query, filter)
 	return query.GetTeacherCount(ctx, opts...)
@@ -98,7 +99,7 @@ func GetTeacherCount(ctx context.Context, filter domain.TeacherListFilter) (int6
 
 func GetTeacherListByIDs(ctx context.Context, teacherIDs []int64) (map[int64]domain.Teacher, error) {
 
-	teacherQuery := repository.NewTeacherQuery()
+	teacherQuery := repository.NewTeacherQuery(dal.GetDBClient())
 	teachers, err := teacherQuery.GetTeacherList(ctx, repository.WithIDs(teacherIDs))
 	if err != nil {
 		return nil, err

@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 
-	"jcourse_go/dal"
 	"jcourse_go/model/po"
 
 	"gorm.io/gorm"
@@ -21,8 +20,8 @@ type ITrainingPlanQuery interface {
 	GetTrainingPlanCount(ctx context.Context, opts ...DBOption) int64
 }
 
-func NewTrainingPlanQuery() ITrainingPlanQuery {
-	return &TrainingPlanQuery{db: dal.GetDBClient()}
+func NewTrainingPlanQuery(db *gorm.DB) ITrainingPlanQuery {
+	return &TrainingPlanQuery{db: db}
 }
 
 func (t *TrainingPlanQuery) GetTrainingPlanListIDs(ctx context.Context, opts ...DBOption) ([]int64, error) {
@@ -76,8 +75,8 @@ type TrainingPlanCourseQuery struct {
 	db *gorm.DB
 }
 
-func NewTrainingPlanCourseQuery() ITrainingPlanCourseQuery {
-	return &TrainingPlanCourseQuery{db: dal.GetDBClient()}
+func NewTrainingPlanCourseQuery(db *gorm.DB) ITrainingPlanCourseQuery {
+	return &TrainingPlanCourseQuery{db: db}
 }
 
 func (t *TrainingPlanCourseQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {

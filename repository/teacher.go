@@ -6,7 +6,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"jcourse_go/dal"
 	"jcourse_go/model/po"
 )
 
@@ -21,9 +20,9 @@ type TeacherQuery struct {
 	db *gorm.DB
 }
 
-func NewTeacherQuery() ITeacherQuery {
+func NewTeacherQuery(db *gorm.DB) ITeacherQuery {
 	return &TeacherQuery{
-		db: dal.GetDBClient(),
+		db: db,
 	}
 }
 

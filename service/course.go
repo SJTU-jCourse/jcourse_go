@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"jcourse_go/dal"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
 	"jcourse_go/repository"
@@ -25,19 +26,19 @@ func GetCourseDetail(ctx context.Context, courseID int64) (*domain.Course, error
 		return nil, err
 	}
 
-	teacherQuery := repository.NewTeacherQuery()
+	teacherQuery := repository.NewTeacherQuery(dal.GetDBClient())
 	teacherPO, err := teacherQuery.GetTeacher(ctx, repository.WithID(coursePO.MainTeacherID))
 	if err != nil {
 		return nil, err
 	}
 
-	offeredCourseQuery := repository.NewOfferedCourseQuery()
+	offeredCourseQuery := repository.NewOfferedCourseQuery(dal.GetDBClient())
 	offeredCoursePOs, err := offeredCourseQuery.GetOfferedCourseList(ctx, repository.WithCourseID(courseID), repository.WithOrderBy("semester", false))
 	if err != nil {
 		return nil, err
 	}
 
-	reviewQuery := repository.NewReviewQuery()
+	reviewQuery := repository.NewReviewQuery(dal.GetDBClient())
 	infos, err := reviewQuery.GetCourseReviewInfo(ctx, []int64{courseID})
 	if err != nil {
 		return nil, err
@@ -93,7 +94,7 @@ func GetCourseList(ctx context.Context, filter domain.CourseListFilter) ([]domai
 		return nil, err
 	}
 
-	reviewQuery := repository.NewReviewQuery()
+	reviewQuery := repository.NewReviewQuery(dal.GetDBClient())
 	infos, err := reviewQuery.GetCourseReviewInfo(ctx, courseIDs)
 	if err != nil {
 		return nil, err

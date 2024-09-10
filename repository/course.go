@@ -51,8 +51,8 @@ func (b *BaseCourseQuery) GetBaseCourseList(ctx context.Context, opts ...DBOptio
 	return coursePOs, nil
 }
 
-func NewBaseCourseQuery() IBaseCourseQuery {
-	return &BaseCourseQuery{db: dal.GetDBClient()}
+func NewBaseCourseQuery(db *gorm.DB) IBaseCourseQuery {
+	return &BaseCourseQuery{db: db}
 }
 
 type ICourseQuery interface {
@@ -238,6 +238,6 @@ func (o *OfferedCourseQuery) GetMainTeacherIDsWithOfferedCourseIDs(ctx context.C
 	return mainTeacherIDs, nil
 }
 
-func NewOfferedCourseQuery() IOfferedCourseQuery {
-	return &OfferedCourseQuery{db: dal.GetDBClient()}
+func NewOfferedCourseQuery(db *gorm.DB) IOfferedCourseQuery {
+	return &OfferedCourseQuery{db: db}
 }

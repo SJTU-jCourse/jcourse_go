@@ -8,7 +8,6 @@ import (
 	"gorm.io/gorm"
 
 	"jcourse_go/constant"
-	"jcourse_go/dal"
 	"jcourse_go/model/po"
 )
 
@@ -68,13 +67,13 @@ func (u *UserProfileQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm
 	return db
 }
 
-func NewUserProfileQuery() IUserProfileQuery {
-	return &UserProfileQuery{db: dal.GetDBClient()}
+func NewUserProfileQuery(db *gorm.DB) IUserProfileQuery {
+	return &UserProfileQuery{db: db}
 }
 
-func NewUserQuery() IUserQuery {
+func NewUserQuery(db *gorm.DB) IUserQuery {
 	return &UserQuery{
-		db: dal.GetDBClient(),
+		db: db,
 	}
 }
 

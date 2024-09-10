@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"jcourse_go/dal"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
 	"jcourse_go/repository"
@@ -13,7 +14,7 @@ func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*domain.T
 	if trainingPlanID == 0 {
 		return nil, errors.New("training-plan id is 0")
 	}
-	trainingPlanQuery := repository.NewTrainingPlanQuery()
+	trainingPlanQuery := repository.NewTrainingPlanQuery(dal.GetDBClient())
 
 	trainingPlanPO, err := trainingPlanQuery.GetTrainingPlan(ctx, repository.WithID(trainingPlanID))
 	if err != nil {
@@ -21,9 +22,9 @@ func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*domain.T
 	}
 	trainingPlan := converter.ConvertTrainingPlanPOToDomain(*trainingPlanPO)
 
-	courseQuery := repository.NewTrainingPlanCourseQuery()
+	courseQuery := repository.NewTrainingPlanCourseQuery(dal.GetDBClient())
 	courses, err := courseQuery.GetCourseListOfTrainingPlan(ctx, trainingPlanID)
-	baseCourseQuery := repository.NewBaseCourseQuery()
+	baseCourseQuery := repository.NewBaseCourseQuery(dal.GetDBClient())
 	if err != nil {
 		return nil, err
 	}
@@ -65,15 +66,15 @@ func buildTrainingPlanCourseDBOptionFromFilter(query repository.ITrainingPlanCou
 	return opts
 }
 func GetTrainingPlanCount(ctx context.Context, filter domain.TrainingPlanFilter) int64 {
-	trainingPlanQuery := repository.NewTrainingPlanQuery()
+	trainingPlanQuery := repository.NewTrainingPlanQuery(dal.GetDBClient())
 	opts := buildTrainingPlanDBOptionFromFilter(trainingPlanQuery, filter)
 	return trainingPlanQuery.GetTrainingPlanCount(ctx, opts...)
 }
 func SearchTrainingPlanList(ctx context.Context, filter domain.TrainingPlanFilter) ([]domain.TrainingPlanDetail, error) {
 
-	trainingPlanQuery := repository.NewTrainingPlanQuery()
+	trainingPlanQuery := repository.NewTrainingPlanQuery(dal.GetDBClient())
 	tp_opts := buildTrainingPlanDBOptionFromFilter(trainingPlanQuery, filter)
-	trainingPlanCourseQuery := repository.NewTrainingPlanCourseQuery()
+	trainingPlanCourseQuery := repository.NewTrainingPlanCourseQuery(dal.GetDBClient())
 	if len(filter.ContainCourseIDs) != 0 {
 		tpc_opts := buildTrainingPlanCourseDBOptionFromFilter(trainingPlanCourseQuery, filter)
 		validTrainingPlanIDs, err := trainingPlanCourseQuery.GetTrainingPlanListIDs(ctx, tpc_opts...)

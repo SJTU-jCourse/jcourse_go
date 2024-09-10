@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"jcourse_go/dal"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/po"
 	"jcourse_go/util"
@@ -31,13 +32,13 @@ func GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]domain.User, 
 		return result, nil
 	}
 
-	userQuery := repository.NewUserQuery()
+	userQuery := repository.NewUserQuery(dal.GetDBClient())
 	userMap, err := userQuery.GetUserByIDs(ctx, userIDs)
 	if err != nil {
 		return nil, err
 	}
 
-	userProfileQuery := repository.NewUserProfileQuery()
+	userProfileQuery := repository.NewUserProfileQuery(dal.GetDBClient())
 	userProfileMap, err := userProfileQuery.GetUserProfileByIDs(ctx, userIDs)
 	if err != nil {
 		return nil, err
@@ -56,13 +57,13 @@ func GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]domain.User, 
 
 // 共用函数，用于获取用户基本信息和详细资料并组装成domain.User
 func GetUserDomainByID(ctx context.Context, userID int64) (*domain.User, error) {
-	userQuery := repository.NewUserQuery()
+	userQuery := repository.NewUserQuery(dal.GetDBClient())
 	userPO, err := userQuery.GetUserByID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	userProfileQuery := repository.NewUserProfileQuery()
+	userProfileQuery := repository.NewUserProfileQuery(dal.GetDBClient())
 	userProfilePO, err := userProfileQuery.GetUserProfileByID(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -89,8 +90,8 @@ func buildUserDBOptionFromFilter(query repository.IUserQuery, filter domain.User
 }
 
 func GetUserList(ctx context.Context, filter domain.UserFilter) ([]dto.UserDetailDTO, error) {
-	userQuery := repository.NewUserQuery()
-	userProfileQuery := repository.NewUserProfileQuery()
+	userQuery := repository.NewUserQuery(dal.GetDBClient())
+	userProfileQuery := repository.NewUserProfileQuery(dal.GetDBClient())
 	opts := buildUserDBOptionFromFilter(userQuery, filter)
 	userPOs, err := userQuery.GetUserList(ctx, opts...)
 	if err != nil {
@@ -130,14 +131,14 @@ func AdminGetUserList(ctx context.Context, filter domain.UserFilter) ([]dto.User
 }
 
 func GetUserCount(ctx context.Context, filter domain.UserFilter) (int64, error) {
-	userQuery := repository.NewUserQuery()
+	userQuery := repository.NewUserQuery(dal.GetDBClient())
 	filter.Page, filter.PageSize = 0, 0
 	opts := buildUserDBOptionFromFilter(userQuery, filter)
 	return userQuery.GetUserCount(ctx, opts...)
 }
 
 func UpdateUserProfileByID(ctx context.Context, userProfileDTO *dto.UserProfileDTO) error {
-	userQuery := repository.NewUserQuery()
+	userQuery := repository.NewUserQuery(dal.GetDBClient())
 	oldUserPO, errQuery := userQuery.GetUserByID(ctx, userProfileDTO.UserID)
 	if errQuery != nil {
 		return errQuery
@@ -149,7 +150,7 @@ func UpdateUserProfileByID(ctx context.Context, userProfileDTO *dto.UserProfileD
 		return errUpdate
 	}
 
-	userProfileQuery := repository.NewUserProfileQuery()
+	userProfileQuery := repository.NewUserProfileQuery(dal.GetDBClient())
 	oldUserProfilePO, errQuery2 := userProfileQuery.GetUserProfileByID(ctx, userProfileDTO.UserID)
 	if errQuery2 != nil {
 		return errQuery2

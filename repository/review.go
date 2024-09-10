@@ -5,7 +5,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"jcourse_go/dal"
 	"jcourse_go/model/po"
 )
 
@@ -95,6 +94,6 @@ func (c *ReviewQuery) DeleteReview(ctx context.Context, opts ...DBOption) (int64
 	return result.RowsAffected, result.Error
 }
 
-func NewReviewQuery() IReviewQuery {
-	return &ReviewQuery{db: dal.GetDBClient()}
+func NewReviewQuery(db *gorm.DB) IReviewQuery {
+	return &ReviewQuery{db: db}
 }

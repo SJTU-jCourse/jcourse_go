@@ -11,6 +11,7 @@ import (
 	"github.com/SJTU-jCourse/password_hasher"
 
 	"jcourse_go/constant"
+	"jcourse_go/dal"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/domain"
 	"jcourse_go/repository"
@@ -22,7 +23,7 @@ func Login(ctx context.Context, email string, password string) (*domain.User, er
 	if err != nil {
 		return nil, err
 	}
-	query := repository.NewUserQuery()
+	query := repository.NewUserQuery(dal.GetDBClient())
 	userPO, err := query.GetUserDetail(ctx, repository.WithEmail(email), repository.WithPassword(passwordStore))
 	if err != nil {
 		return nil, err
@@ -39,7 +40,7 @@ func Register(ctx context.Context, email string, password string, code string) (
 	if storedCode != code {
 		return nil, errors.New("verify code is wrong")
 	}
-	query := repository.NewUserQuery()
+	query := repository.NewUserQuery(dal.GetDBClient())
 	userPO, err := query.GetUserDetail(ctx, repository.WithEmail(email))
 	if err != nil {
 		return nil, err
@@ -68,7 +69,7 @@ func ResetPassword(ctx context.Context, email string, password string, code stri
 	if storedCode != code {
 		return errors.New("verify code is wrong")
 	}
-	query := repository.NewUserQuery()
+	query := repository.NewUserQuery(dal.GetDBClient())
 	user, err := query.GetUserDetail(ctx, repository.WithEmail(email))
 	if err != nil {
 		return err
