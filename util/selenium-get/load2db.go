@@ -126,7 +126,7 @@ func SaveTrainingPlanCourses(plan LoadedTrainingPlan, db *gorm.DB, tid int64) {
 	for _, id := range baseCourseIDs {
 		trainingPlanCourses = append(trainingPlanCourses, po.TrainingPlanCoursePO{
 			TrainingPlanID: tid,
-			CourseID:       id,
+			BaseCourseID:   id,
 		})
 	}
 	db.CreateInBatches(&trainingPlanCourses, 100)

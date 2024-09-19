@@ -7,16 +7,16 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"jcourse_go/constant"
-	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
+	"jcourse_go/model/model"
 )
 
-func GetUser(c *gin.Context) *domain.User {
+func GetUser(c *gin.Context) *model.UserDetail {
 	user, exists := c.Get(constant.CtxKeyUser)
 	if !exists {
 		return nil
 	}
-	return user.(*domain.User)
+	return user.(*model.UserDetail)
 }
 
 func RequireAuth() gin.HandlerFunc {
@@ -40,12 +40,12 @@ func RequireAdmin() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, dto.BaseResponse{Message: "未授权的请求"})
 			c.Abort()
 		}
-		userDomain, ok := user.(domain.User)
+		userDomain, ok := user.(model.UserDetail)
 		if !ok {
 			c.JSON(http.StatusUnauthorized, dto.BaseResponse{Message: "未授权的请求"})
 			c.Abort()
 		}
-		if userDomain.Role != domain.UserRoleAdmin {
+		if userDomain.Role != model.UserRoleAdmin {
 			c.JSON(http.StatusForbidden, dto.BaseResponse{Message: "未授权的请求"})
 			c.Abort()
 		}

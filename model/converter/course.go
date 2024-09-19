@@ -3,155 +3,79 @@ package converter
 import (
 	"strings"
 
-	"jcourse_go/model/domain"
-	"jcourse_go/model/dto"
+	"jcourse_go/model/model"
 	"jcourse_go/model/po"
 )
 
-func ConvertBaseCourseDomainToPO(course domain.BaseCourse) po.BaseCoursePO {
-	return po.BaseCoursePO{
-		Code:   course.Code,
-		Name:   course.Name,
-		Credit: course.Credit,
+func ConvertBaseCourseFromPO(po po.BaseCoursePO) model.BaseCourse {
+	return model.BaseCourse{
+		ID:     int64(po.ID),
+		Code:   po.Code,
+		Name:   po.Name,
+		Credit: po.Credit,
 	}
 }
 
-func ConvertBaseCoursePOToDomain(course po.BaseCoursePO) domain.BaseCourse {
-	return domain.BaseCourse{
-		ID:     int64(course.ID),
-		Code:   course.Code,
-		Name:   course.Name,
-		Credit: course.Credit,
+func ConvertCourseSummaryFromPO(po po.CoursePO) model.CourseSummary {
+	return model.CourseSummary{
+		CourseMinimal: model.CourseMinimal{
+			ID: int64(po.ID),
+			BaseCourse: model.BaseCourse{
+				Code:   po.Code,
+				Name:   po.Name,
+				Credit: po.Credit,
+			},
+			MainTeacher: model.TeacherSummary{
+				ID:   po.MainTeacherID,
+				Name: po.MainTeacherName,
+			},
+		},
+		Categories: nil,
+		Department: po.Department,
+		RatingInfo: model.RatingInfo{},
 	}
 }
 
-func ConvertBaseCourseDomainToDTO(course domain.BaseCourse) dto.BaseCourseDTO {
-	return dto.BaseCourseDTO{
-		Code:   course.Code,
-		Name:   course.Name,
-		Credit: course.Credit,
-	}
-
-}
-
-func ConvertCoursePOToDomain(course po.CoursePO) domain.Course {
-	return domain.Course{
-		ID:          int64(course.ID),
-		Code:        course.Code,
-		Name:        course.Name,
-		Credit:      course.Credit,
-		Department:  course.Department,
-		MainTeacher: domain.Teacher{Name: course.MainTeacherName, ID: course.MainTeacherID},
+func ConvertCourseDetailFromPO(po po.CoursePO) model.CourseDetail {
+	return model.CourseDetail{
+		CourseSummary: ConvertCourseSummaryFromPO(po),
 	}
 }
 
-func PackCourseWithCategories(course *domain.Course, categories []string) {
-	if categories == nil {
-		return
-	}
-	if len(categories) == 0 {
-		categories = make([]string, 0)
-	}
-	course.Categories = categories
+func PackCourseWithMainTeacher(c *model.CourseMinimal, teacher model.TeacherSummary) {
+	c.MainTeacher = teacher
 }
 
-func PackCourseWithMainTeacher(course *domain.Course, mainTeacherPO po.TeacherPO) {
-	if course == nil {
-		return
-	}
-	course.MainTeacher = *ConvertTeacherPOToDomain(&mainTeacherPO)
+func PackCourseWithCategories(c *model.CourseSummary, categories []string) {
+	c.Categories = categories
 }
 
-func PackCourseWithOfferedCourse(course *domain.Course, offeredCoursePOs []po.OfferedCoursePO) {
-	if course == nil {
-		return
-	}
-	offeredCourses := make([]domain.OfferedCourse, 0)
-	for _, offeredCoursePO := range offeredCoursePOs {
-		offeredCourse := ConvertOfferedCoursePOToDomain(offeredCoursePO)
-		offeredCourses = append(offeredCourses, offeredCourse)
-	}
-	course.OfferedCourses = offeredCourses
+func PackCourseWithRatingInfo(c *model.CourseSummary, rating model.RatingInfo) {
+	c.RatingInfo = rating
 }
 
-func PackCourseWithReviewInfo(course *domain.Course, info po.CourseReviewInfo) {
-	if course == nil {
-		return
-	}
-	course.RatingInfo = domain.RatingInfo{
-		Average: info.Average,
-		Count:   info.Count,
+func PackCourseWithOfferedCourse(c *model.CourseDetail, offered []model.OfferedCourse) {
+	c.OfferedCourse = offered
+}
+
+func ConvertOfferedCourseFromPO(po po.OfferedCoursePO) model.OfferedCourse {
+	grade := strings.Split(po.Grade, ",")
+	return model.OfferedCourse{
+		ID:       int64(po.ID),
+		Semester: po.Semester,
+		Grade:    grade,
+		Language: po.Language,
 	}
 }
 
-func ConvertCourseDomainToListDTO(course domain.Course) dto.CourseListItemDTO {
-	mainTeacherDTO := dto.TeacherDTO{
-		ID:         course.MainTeacher.ID,
-		Code:       course.MainTeacher.Code,
-		Name:       course.MainTeacher.Name,
-		Department: course.MainTeacher.Department,
-		Title:      course.MainTeacher.Title,
+func ConvertOfferedCoursesFromPOs(pos []po.OfferedCoursePO) []model.OfferedCourse {
+	res := make([]model.OfferedCourse, 0, len(pos))
+	for _, po := range pos {
+		res = append(res, ConvertOfferedCourseFromPO(po))
 	}
-	return dto.CourseListItemDTO{
-		ID:          course.ID,
-		Code:        course.Code,
-		Name:        course.Name,
-		Credit:      course.Credit,
-		MainTeacher: mainTeacherDTO,
-		Categories:  course.Categories,
-		Department:  course.Department,
-		ReviewInfo:  course.RatingInfo,
-	}
+	return res
 }
 
-func ConvertCourseListDomainToDTO(courses []domain.Course) []dto.CourseListItemDTO {
-	result := make([]dto.CourseListItemDTO, 0, len(courses))
-	if len(courses) == 0 {
-		return result
-	}
-	for _, course := range courses {
-		result = append(result, ConvertCourseDomainToListDTO(course))
-	}
-	return result
-}
-
-func ConvertOfferedCoursePOToDomain(offeredCourse po.OfferedCoursePO) domain.OfferedCourse {
-	return domain.OfferedCourse{
-		ID:       int64(offeredCourse.ID),
-		Semester: offeredCourse.Semester,
-		Language: offeredCourse.Language,
-		Grade:    strings.Split(offeredCourse.Grade, ","),
-	}
-}
-
-func ConvertOfferedCourseDomainToDTO(offeredCourse domain.OfferedCourse) dto.OfferedCourseDTO {
-	offeredCourseDTO := dto.OfferedCourseDTO{
-		ID:           offeredCourse.ID,
-		Semester:     offeredCourse.Semester,
-		Grade:        offeredCourse.Grade,
-		Language:     offeredCourse.Language,
-		TeacherGroup: make([]dto.TeacherDTO, 0),
-	}
-	for _, teacher := range offeredCourse.TeacherGroup {
-		teacherDTO := ConvertTeacherDomainToDTO(teacher)
-		offeredCourseDTO.TeacherGroup = append(offeredCourseDTO.TeacherGroup, teacherDTO)
-	}
-	return offeredCourseDTO
-}
-
-func ConvertCourseDomainToDetailDTO(course domain.Course) dto.CourseDetailDTO {
-	courseDetailDTO := dto.CourseDetailDTO{
-		ID:            course.ID,
-		Code:          course.Code,
-		Name:          course.Name,
-		Credit:        course.Credit,
-		MainTeacher:   ConvertTeacherDomainToDTO(course.MainTeacher),
-		OfferedCourse: make([]dto.OfferedCourseDTO, 0),
-		ReviewInfo:    course.RatingInfo,
-	}
-	for _, offeredCourse := range course.OfferedCourses {
-		offeredCourseDTO := ConvertOfferedCourseDomainToDTO(offeredCourse)
-		courseDetailDTO.OfferedCourse = append(courseDetailDTO.OfferedCourse, offeredCourseDTO)
-	}
-	return courseDetailDTO
+func PackOfferedCourseWithTeacher(c *model.OfferedCourse, teacher []model.TeacherDetail) {
+	c.TeacherGroup = teacher
 }

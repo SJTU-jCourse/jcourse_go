@@ -6,11 +6,11 @@ import (
 
 	"jcourse_go/dal"
 	"jcourse_go/model/converter"
-	"jcourse_go/model/domain"
+	"jcourse_go/model/model"
 	"jcourse_go/repository"
 )
 
-func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*domain.TrainingPlanDetail, error) {
+func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*model.TrainingPlanDetail, error) {
 	if trainingPlanID == 0 {
 		return nil, errors.New("training-plan id is 0")
 	}
@@ -20,27 +20,35 @@ func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*domain.T
 	if err != nil {
 		return nil, err
 	}
-	trainingPlan := converter.ConvertTrainingPlanPOToDomain(*trainingPlanPO)
+	trainingPlan := converter.ConvertTrainingPlanDetailFromPO(*trainingPlanPO)
 
 	courseQuery := repository.NewTrainingPlanCourseQuery(dal.GetDBClient())
 	courses, err := courseQuery.GetCourseListOfTrainingPlan(ctx, trainingPlanID)
-	baseCourseQuery := repository.NewBaseCourseQuery(dal.GetDBClient())
 	if err != nil {
 		return nil, err
 	}
-	domainCourses := make([]domain.TrainingPlanCourse, 0)
-	for _, c := range courses {
-		baseCoursePO, err := baseCourseQuery.GetBaseCourse(ctx, repository.WithID(c.CourseID))
-		if err != nil {
-			return nil, err
-		}
-		courseDomain := converter.ConvertTrainingPlanCoursePOToDomain(c, *baseCoursePO)
-		domainCourses = append(domainCourses, courseDomain)
+
+	baseCourseIDs := make([]int64, 0)
+	for _, course := range courses {
+		baseCourseIDs = append(baseCourseIDs, course.BaseCourseID)
 	}
-	converter.PackTrainingPlanDetailWithCourses(&trainingPlan, domainCourses)
+
+	baseCourseQuery := repository.NewBaseCourseQuery(dal.GetDBClient())
+	baseCoursePO, err := baseCourseQuery.GetBaseCoursesByIDs(ctx, baseCourseIDs)
+	if err != nil {
+		return nil, err
+	}
+	domainCourses := make([]model.TrainingPlanCourse, 0)
+	for _, c := range courses {
+		course := converter.ConvertTrainingPlanCourseFromPO(c)
+		baseCourse := converter.ConvertBaseCourseFromPO(baseCoursePO[course.BaseCourse.ID])
+		converter.PackTrainingPlanCourseWithBaseCourse(&course, baseCourse)
+		domainCourses = append(domainCourses, course)
+	}
+	converter.PackTrainingPlanDetailWithCourse(&trainingPlan, domainCourses)
 	return &trainingPlan, nil
 }
-func buildTrainingPlanDBOptionFromFilter(query repository.ITrainingPlanQuery, filter domain.TrainingPlanFilter) []repository.DBOption {
+func buildTrainingPlanDBOptionFromFilter(query repository.ITrainingPlanQuery, filter model.TrainingPlanFilter) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if filter.Major != "" {
 		opts = append(opts, repository.WithMajor(filter.Major))
@@ -58,56 +66,42 @@ func buildTrainingPlanDBOptionFromFilter(query repository.ITrainingPlanQuery, fi
 	opts = append(opts, repository.WithPaginate(filter.Page, filter.PageSize))
 	return opts
 }
-func buildTrainingPlanCourseDBOptionFromFilter(query repository.ITrainingPlanCourseQuery, filter domain.TrainingPlanFilter) []repository.DBOption {
+func buildTrainingPlanCourseDBOptionFromFilter(query repository.ITrainingPlanCourseQuery, filter model.TrainingPlanFilter) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if len(filter.ContainCourseIDs) > 0 {
 		opts = append(opts, repository.WithCourseIDs(filter.ContainCourseIDs))
 	}
 	return opts
 }
-func GetTrainingPlanCount(ctx context.Context, filter domain.TrainingPlanFilter) int64 {
+func GetTrainingPlanCount(ctx context.Context, filter model.TrainingPlanFilter) int64 {
 	trainingPlanQuery := repository.NewTrainingPlanQuery(dal.GetDBClient())
 	opts := buildTrainingPlanDBOptionFromFilter(trainingPlanQuery, filter)
 	return trainingPlanQuery.GetTrainingPlanCount(ctx, opts...)
 }
-func SearchTrainingPlanList(ctx context.Context, filter domain.TrainingPlanFilter) ([]domain.TrainingPlanDetail, error) {
+
+func SearchTrainingPlanList(ctx context.Context, filter model.TrainingPlanFilter) ([]model.TrainingPlanSummary, error) {
 
 	trainingPlanQuery := repository.NewTrainingPlanQuery(dal.GetDBClient())
 	tp_opts := buildTrainingPlanDBOptionFromFilter(trainingPlanQuery, filter)
-	trainingPlanCourseQuery := repository.NewTrainingPlanCourseQuery(dal.GetDBClient())
-	if len(filter.ContainCourseIDs) != 0 {
-		tpc_opts := buildTrainingPlanCourseDBOptionFromFilter(trainingPlanCourseQuery, filter)
-		validTrainingPlanIDs, err := trainingPlanCourseQuery.GetTrainingPlanListIDs(ctx, tpc_opts...)
-		if err != nil {
-			return nil, err
+	/*
+		trainingPlanCourseQuery := repository.NewTrainingPlanCourseQuery(dal.GetDBClient())
+		if len(filter.ContainCourseIDs) != 0 {
+			tpc_opts := buildTrainingPlanCourseDBOptionFromFilter(trainingPlanCourseQuery, filter)
+			validTrainingPlanIDs, err := trainingPlanCourseQuery.GetTrainingPlanListIDs(ctx, tpc_opts...)
+			if err != nil {
+				return nil, err
+			}
+			tp_opts = append(tp_opts, repository.WithIDs(validTrainingPlanIDs))
 		}
-		tp_opts = append(tp_opts, repository.WithIDs(validTrainingPlanIDs))
-	}
+	*/
 
-	trainingPlanIDs, err := trainingPlanQuery.GetTrainingPlanListIDs(ctx, tp_opts...)
+	trainingPlans, err := trainingPlanQuery.GetTrainingPlanList(ctx, tp_opts...)
 	if err != nil {
 		return nil, err
 	}
-	result := make([]domain.TrainingPlanDetail, 0)
-	for _, id := range trainingPlanIDs {
-		d, err := GetTrainingPlanDetail(ctx, id)
-		if err != nil {
-			return nil, err
-		}
-		result = append(result, *d)
+	result := make([]model.TrainingPlanSummary, 0)
+	for _, tp := range trainingPlans {
+		result = append(result, converter.ConvertTrainingPlanSummaryFromPO(tp))
 	}
 	return result, nil
-}
-
-func GetTrainingPlanListByIDs(ctx context.Context, trainingPlanIDs []int64) (map[int64]domain.TrainingPlanDetail, error) {
-
-	domainTrainingPlans := make(map[int64]domain.TrainingPlanDetail)
-	for _, id := range trainingPlanIDs {
-		data, err := GetTrainingPlanDetail(ctx, id)
-		if err != nil {
-			return nil, err
-		}
-		domainTrainingPlans[id] = *data
-	}
-	return domainTrainingPlans, nil
 }

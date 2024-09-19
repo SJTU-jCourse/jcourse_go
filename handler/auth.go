@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"jcourse_go/constant"
-	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
+	"jcourse_go/model/po"
 	"jcourse_go/service"
 )
 
@@ -96,7 +96,7 @@ func clearAuthSession(c *gin.Context) {
 	session.Clear()
 }
 
-func storeAuthSession(c *gin.Context, user *domain.User) error {
+func storeAuthSession(c *gin.Context, user *po.UserPO) error {
 	if user == nil {
 		return errors.New("user is nil")
 	}
@@ -106,13 +106,13 @@ func storeAuthSession(c *gin.Context, user *domain.User) error {
 	return err
 }
 
-func GetCurrentUser(c *gin.Context) *domain.User {
+func GetCurrentUser(c *gin.Context) *po.UserPO {
 	session := sessions.Default(c)
 	sessionValue := session.Get(constant.SessionUserAuthKey)
 	if sessionValue == nil {
 		return nil
 	}
-	user, ok := sessionValue.(*domain.User)
+	user, ok := sessionValue.(*po.UserPO)
 	if !ok {
 		return nil
 	}

@@ -4,17 +4,16 @@ import (
 	"net/http"
 
 	"jcourse_go/constant"
-	"jcourse_go/model/converter"
-	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
+	"jcourse_go/model/model"
 
 	"jcourse_go/service"
 
 	"github.com/gin-gonic/gin"
 )
 
-func convertTeacherListFilter(request dto.TeacherListRequest) domain.TeacherListFilter {
-	filter := domain.TeacherListFilter{
+func convertTeacherListFilter(request dto.TeacherListRequest) model.TeacherListFilter {
+	filter := model.TeacherListFilter{
 		Page:       request.Page,
 		PageSize:   request.PageSize,
 		Name:       request.Name,
@@ -51,7 +50,7 @@ func GetTeacherListHandler(c *gin.Context) {
 
 	resp := dto.TeacherListResponse{
 		Total:    total,
-		Data:     converter.ConvertTeacherListDomainToDTO(teachers),
+		Data:     teachers,
 		Page:     request.Page,
 		PageSize: int64(len(teachers)),
 	}
@@ -69,7 +68,7 @@ func GetTeacherDetailHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 		return
 	}
-	c.JSON(http.StatusOK, converter.ConvertTeacherDomainToDTO(*teacher))
+	c.JSON(http.StatusOK, teacher)
 }
 
 func SearchTeacherListHandler(c *gin.Context) {
@@ -79,7 +78,7 @@ func SearchTeacherListHandler(c *gin.Context) {
 		return
 	}
 
-	filter := domain.TeacherListFilter{
+	filter := model.TeacherListFilter{
 		Name:       request.Name,
 		Department: request.Department,
 		Pinyin:     request.Pinyin,
@@ -102,7 +101,7 @@ func SearchTeacherListHandler(c *gin.Context) {
 
 	resp := dto.TeacherListResponse{
 		Total:    total,
-		Data:     converter.ConvertTeacherListDomainToDTO(teachers),
+		Data:     teachers,
 		Page:     request.Page,
 		PageSize: int64(len(teachers)),
 	}

@@ -6,13 +6,13 @@ import (
 
 	"jcourse_go/dal"
 	"jcourse_go/model/converter"
-	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
+	"jcourse_go/model/model"
 	"jcourse_go/repository"
 	"jcourse_go/util"
 )
 
-func buildReviewDBOptionFromFilter(query repository.IReviewQuery, filter domain.ReviewFilter) []repository.DBOption {
+func buildReviewDBOptionFromFilter(query repository.IReviewQuery, filter model.ReviewFilter) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if filter.PageSize > 0 {
 		opts = append(opts, repository.WithLimit(filter.PageSize))
@@ -38,7 +38,7 @@ func buildReviewDBOptionFromFilter(query repository.IReviewQuery, filter domain.
 	return opts
 }
 
-func GetReviewList(ctx context.Context, filter domain.ReviewFilter) ([]domain.Review, error) {
+func GetReviewList(ctx context.Context, filter model.ReviewFilter) ([]model.Review, error) {
 	reviewQuery := repository.NewReviewQuery(dal.GetDBClient())
 	opts := buildReviewDBOptionFromFilter(reviewQuery, filter)
 	reviewPOs, err := reviewQuery.GetReviewList(ctx, opts...)
@@ -63,14 +63,14 @@ func GetReviewList(ctx context.Context, filter domain.ReviewFilter) ([]domain.Re
 		return nil, err
 	}
 
-	result := make([]domain.Review, 0)
+	result := make([]model.Review, 0)
 
 	for _, reviewPO := range reviewPOs {
-		review := converter.ConvertReviewPOToDomain(reviewPO)
+		review := converter.ConvertReviewFromPO(reviewPO)
 
 		course, ok := courseMap[reviewPO.CourseID]
 		if ok {
-			converter.PackReviewWithCourse(&review, course)
+			converter.PackReviewWithCourse(&review, course.CourseMinimal)
 		}
 		user, ok := userMap[reviewPO.UserID]
 		if ok {
@@ -82,19 +82,19 @@ func GetReviewList(ctx context.Context, filter domain.ReviewFilter) ([]domain.Re
 	return result, nil
 }
 
-func GetReviewCount(ctx context.Context, filter domain.ReviewFilter) (int64, error) {
+func GetReviewCount(ctx context.Context, filter model.ReviewFilter) (int64, error) {
 	query := repository.NewReviewQuery(dal.GetDBClient())
 	filter.Page, filter.PageSize = 0, 0
 	opts := buildReviewDBOptionFromFilter(query, filter)
 	return query.GetReviewCount(ctx, opts...)
 }
 
-func CreateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.User) (int64, error) {
+func CreateReview(ctx context.Context, review dto.UpdateReviewDTO, user *model.UserDetail) (int64, error) {
 	if !validateReview(ctx, review, user) {
 		return 0, errors.New("validate review error")
 	}
 	query := repository.NewReviewQuery(dal.GetDBClient())
-	reviewPO := converter.ConvertUpdateReviewDTOToPO(review, user.ID)
+	reviewPO := converter.ConvertReviewDTOToPO(review, user.ID)
 	reviewID, err := query.CreateReview(ctx, reviewPO)
 	if err != nil {
 		return 0, err
@@ -102,7 +102,7 @@ func CreateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.
 	return reviewID, nil
 }
 
-func UpdateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.User) error {
+func UpdateReview(ctx context.Context, review dto.UpdateReviewDTO, user *model.UserDetail) error {
 	if review.ID == 0 {
 		return errors.New("no review id")
 	}
@@ -110,7 +110,7 @@ func UpdateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.
 		return errors.New("validate review error")
 	}
 	query := repository.NewReviewQuery(dal.GetDBClient())
-	reviewPO := converter.ConvertUpdateReviewDTOToPO(review, user.ID)
+	reviewPO := converter.ConvertReviewDTOToPO(review, user.ID)
 	_, err := query.UpdateReview(ctx, reviewPO)
 	if err != nil {
 		return err
@@ -127,7 +127,7 @@ func DeleteReview(ctx context.Context, reviewID int64) error {
 	return nil
 }
 
-func validateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.User) bool {
+func validateReview(ctx context.Context, review dto.UpdateReviewDTO, user *model.UserDetail) bool {
 	// 1. validate course and semester exists
 	offeredCourseQuery := repository.NewOfferedCourseQuery(dal.GetDBClient())
 	offeredCourse, err := offeredCourseQuery.GetOfferedCourse(ctx, repository.WithCourseID(review.CourseID), repository.WithSemester(review.Semester))

@@ -6,12 +6,12 @@ import (
 
 	"jcourse_go/dal"
 	"jcourse_go/model/converter"
-	"jcourse_go/model/domain"
+	"jcourse_go/model/model"
 	"jcourse_go/repository"
 	"jcourse_go/util"
 )
 
-func GetCourseDetail(ctx context.Context, courseID int64) (*domain.Course, error) {
+func GetCourseDetail(ctx context.Context, courseID int64) (*model.CourseDetail, error) {
 	if courseID == 0 {
 		return nil, errors.New("course id is 0")
 	}
@@ -38,21 +38,22 @@ func GetCourseDetail(ctx context.Context, courseID int64) (*domain.Course, error
 		return nil, err
 	}
 
-	reviewQuery := repository.NewReviewQuery(dal.GetDBClient())
-	infos, err := reviewQuery.GetCourseReviewInfo(ctx, []int64{courseID})
+	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
+	info, err := ratingQuery.GetRatingInfo(ctx, model.RelatedTypeCourse, courseID)
 	if err != nil {
 		return nil, err
 	}
 
-	course := converter.ConvertCoursePOToDomain(*coursePO)
-	converter.PackCourseWithMainTeacher(&course, *teacherPO)
-	converter.PackCourseWithOfferedCourse(&course, offeredCoursePOs)
-	converter.PackCourseWithCategories(&course, courseCategories[course.ID])
-	converter.PackCourseWithReviewInfo(&course, infos[course.ID])
+	course := converter.ConvertCourseDetailFromPO(*coursePO)
+	converter.PackCourseWithMainTeacher(&course.CourseMinimal, converter.ConvertTeacherSummaryFromPO(*teacherPO))
+	offeredCourses := converter.ConvertOfferedCoursesFromPOs(offeredCoursePOs)
+	converter.PackCourseWithOfferedCourse(&course, offeredCourses)
+	converter.PackCourseWithCategories(&course.CourseSummary, courseCategories[course.ID])
+	converter.PackCourseWithRatingInfo(&course.CourseSummary, info)
 	return &course, nil
 }
 
-func buildCourseDBOptionFromFilter(query repository.ICourseQuery, filter domain.CourseListFilter) []repository.DBOption {
+func buildCourseDBOptionFromFilter(query repository.ICourseQuery, filter model.CourseListFilter) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if filter.PageSize > 0 {
 		opts = append(opts, repository.WithLimit(filter.PageSize))
@@ -75,7 +76,7 @@ func buildCourseDBOptionFromFilter(query repository.ICourseQuery, filter domain.
 	return opts
 }
 
-func GetCourseList(ctx context.Context, filter domain.CourseListFilter) ([]domain.Course, error) {
+func GetCourseList(ctx context.Context, filter model.CourseListFilter) ([]model.CourseSummary, error) {
 	query := repository.NewCourseQuery()
 	opts := buildCourseDBOptionFromFilter(query, filter)
 
@@ -94,31 +95,31 @@ func GetCourseList(ctx context.Context, filter domain.CourseListFilter) ([]domai
 		return nil, err
 	}
 
-	reviewQuery := repository.NewReviewQuery(dal.GetDBClient())
-	infos, err := reviewQuery.GetCourseReviewInfo(ctx, courseIDs)
+	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
+	infos, err := ratingQuery.GetRatingInfoByIDs(ctx, model.RelatedTypeCourse, courseIDs)
 	if err != nil {
 		return nil, err
 	}
 
-	courses := make([]domain.Course, 0, len(coursePOs))
+	courses := make([]model.CourseSummary, 0, len(coursePOs))
 	for _, coursePO := range coursePOs {
-		course := converter.ConvertCoursePOToDomain(coursePO)
+		course := converter.ConvertCourseSummaryFromPO(coursePO)
 		converter.PackCourseWithCategories(&course, courseCategories[int64(coursePO.ID)])
-		converter.PackCourseWithReviewInfo(&course, infos[int64(coursePO.ID)])
+		converter.PackCourseWithRatingInfo(&course, infos[int64(coursePO.ID)])
 		courses = append(courses, course)
 	}
 	return courses, nil
 }
 
-func GetCourseCount(ctx context.Context, filter domain.CourseListFilter) (int64, error) {
+func GetCourseCount(ctx context.Context, filter model.CourseListFilter) (int64, error) {
 	query := repository.NewCourseQuery()
 	filter.Page, filter.PageSize = 0, 0
 	opts := buildCourseDBOptionFromFilter(query, filter)
 	return query.GetCourseCount(ctx, opts...)
 }
 
-func GetCourseByIDs(ctx context.Context, courseIDs []int64) (map[int64]domain.Course, error) {
-	result := make(map[int64]domain.Course)
+func GetCourseByIDs(ctx context.Context, courseIDs []int64) (map[int64]model.CourseSummary, error) {
+	result := make(map[int64]model.CourseSummary)
 	if len(courseIDs) == 0 {
 		return result, nil
 	}
@@ -128,7 +129,7 @@ func GetCourseByIDs(ctx context.Context, courseIDs []int64) (map[int64]domain.Co
 		return nil, err
 	}
 	for _, course := range courseMap {
-		result[int64(course.ID)] = converter.ConvertCoursePOToDomain(course)
+		result[int64(course.ID)] = converter.ConvertCourseSummaryFromPO(course)
 	}
 	return result, nil
 }

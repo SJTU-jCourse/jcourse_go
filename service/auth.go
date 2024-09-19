@@ -12,13 +12,12 @@ import (
 
 	"jcourse_go/constant"
 	"jcourse_go/dal"
-	"jcourse_go/model/converter"
-	"jcourse_go/model/domain"
+	"jcourse_go/model/po"
 	"jcourse_go/repository"
 	"jcourse_go/rpc"
 )
 
-func Login(ctx context.Context, email string, password string) (*domain.User, error) {
+func Login(ctx context.Context, email string, password string) (*po.UserPO, error) {
 	passwordStore, err := password_hasher.MakeHashedPasswordStore(password)
 	if err != nil {
 		return nil, err
@@ -28,11 +27,10 @@ func Login(ctx context.Context, email string, password string) (*domain.User, er
 	if err != nil {
 		return nil, err
 	}
-	user := converter.ConvertUserPOToDomain(*userPO)
-	return &user, nil
+	return userPO, nil
 }
 
-func Register(ctx context.Context, email string, password string, code string) (*domain.User, error) {
+func Register(ctx context.Context, email string, password string, code string) (*po.UserPO, error) {
 	storedCode, err := repository.GetVerifyCode(ctx, email)
 	if err != nil {
 		return nil, err
@@ -57,8 +55,7 @@ func Register(ctx context.Context, email string, password string, code string) (
 		return nil, err
 	}
 	_ = repository.ClearVerifyCodeHistory(ctx, email)
-	user := converter.ConvertUserPOToDomain(*userPO)
-	return &user, nil
+	return userPO, nil
 }
 
 func ResetPassword(ctx context.Context, email string, password string, code string) error {
@@ -132,7 +129,7 @@ func ValidateEmail(email string) bool {
 		return false
 	}
 
-	// 2. validate specific email domain
+	// 2. validate specific email model
 	// TODO
 	return true
 }

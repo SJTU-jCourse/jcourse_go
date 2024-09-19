@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"jcourse_go/model/converter"
-	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
+	"jcourse_go/model/model"
 	"jcourse_go/service"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +17,7 @@ func GetTrainingPlanListHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	filter := domain.TrainingPlanFilter{
+	filter := model.TrainingPlanFilter{
 		Page:     int64(request.Page),
 		PageSize: int64(request.PageSize),
 	}
@@ -26,12 +25,12 @@ func GetTrainingPlanListHandler(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 	}
-	data := converter.ConvertTrainingPlanDomainListToDTO(trainingPlanList)
+
 	response := dto.TrainingPlanListResponse{
 		Page:     int64(request.Page),
 		PageSize: int64(request.PageSize),
-		Total:    int64(len(data)),
-		Data:     data,
+		Total:    int64(len(trainingPlanList)),
+		Data:     trainingPlanList,
 	}
 	c.JSON(http.StatusOK, response)
 }
@@ -47,8 +46,7 @@ func GetTrainingPlanHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 		return
 	}
-	response := converter.ConvertTrainingPlanDomainToDTO(*trainingPlan)
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, trainingPlan)
 }
 
 func SearchTrainingPlanHandler(c *gin.Context) {
@@ -57,7 +55,7 @@ func SearchTrainingPlanHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	filter := domain.TrainingPlanFilter{
+	filter := model.TrainingPlanFilter{
 		Major:      request.MajorName,
 		EntryYear:  fmt.Sprintf("%d", request.EntryYear),
 		Department: request.Department,
@@ -69,12 +67,11 @@ func SearchTrainingPlanHandler(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 	}
-	data := converter.ConvertTrainingPlanDomainListToDTO(trainingPlanList)
 	response := dto.TrainingPlanListResponse{
 		Page:     int64(request.Page),
-		PageSize: int64(len(data)),
+		PageSize: int64(len(trainingPlanList)),
 		Total:    count,
-		Data:     data,
+		Data:     trainingPlanList,
 	}
 	c.JSON(http.StatusOK, response)
 }

@@ -8,7 +8,7 @@ import (
 
 	"jcourse_go/constant"
 	"jcourse_go/dal"
-	"jcourse_go/model/domain"
+	"jcourse_go/model/model"
 	"jcourse_go/util"
 )
 
@@ -19,5 +19,5 @@ func InitSession(r *gin.Engine) {
 		panic(err)
 	}
 	r.Use(sessions.Sessions(constant.CookieSessionKey, store))
-	gob.Register(&domain.User{})
+	gob.Register(&model.UserDetail{})
 }

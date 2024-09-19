@@ -22,84 +22,10 @@ type IUserQuery interface {
 	ResetUserPassword(ctx context.Context, userID int64, password string) error
 }
 
-type IUserProfileQuery interface {
-	GetUserProfileByIDs(ctx context.Context, userIDs []int64) (map[int64]po.UserProfilePO, error)
-	GetUserProfileByID(ctx context.Context, userID int64) (*po.UserProfilePO, error)
-	GetUserProfileList(ctx context.Context, opts ...DBOption) ([]po.UserProfilePO, error)
-	GetUserProfileCount(ctx context.Context, opts ...DBOption) (int64, error)
-	UpdateUserProfileByID(ctx context.Context, userProfile *po.UserProfilePO) error
-	// CreateUserProfile(ctx context.Context, userID int64) (*po.UserProfilePO, error)
-}
-
-type UserProfileQuery struct {
-	db *gorm.DB
-}
-
-func (u *UserProfileQuery) GetUserProfileByIDs(ctx context.Context, userIDs []int64) (map[int64]po.UserProfilePO, error) {
-	db := u.optionDB(ctx)
-	userProfiles := make([]po.UserProfilePO, 0)
-	userProfileMap := make(map[int64]po.UserProfilePO)
-	result := db.Where("user_id in ?", userIDs).Find(&userProfiles)
-	if result.Error != nil {
-		return userProfileMap, result.Error
-	}
-	for _, userProfile := range userProfiles {
-		userProfileMap[userProfile.UserID] = userProfile
-	}
-	return userProfileMap, nil
-}
-
-func (u *UserProfileQuery) GetUserProfileByID(ctx context.Context, userID int64) (*po.UserProfilePO, error) {
-	db := u.optionDB(ctx, WithUserID(userID))
-	userProfilePO := po.UserProfilePO{}
-	result := db.Find(&userProfilePO)
-	if result.Error != nil {
-		return &userProfilePO, result.Error
-	}
-	return &userProfilePO, nil
-}
-
-func (u *UserProfileQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
-	db := u.db.WithContext(ctx).Model(&po.UserProfilePO{})
-	for _, opt := range opts {
-		db = opt(db)
-	}
-	return db
-}
-
-func NewUserProfileQuery(db *gorm.DB) IUserProfileQuery {
-	return &UserProfileQuery{db: db}
-}
-
 func NewUserQuery(db *gorm.DB) IUserQuery {
 	return &UserQuery{
 		db: db,
 	}
-}
-
-func (q *UserProfileQuery) GetUserProfileList(ctx context.Context, opts ...DBOption) ([]po.UserProfilePO, error) {
-	db := q.optionDB(ctx, opts...)
-	userProfilePOs := make([]po.UserProfilePO, 0)
-	result := db.Find(&userProfilePOs)
-	if result.Error != nil {
-		return userProfilePOs, result.Error
-	}
-	return userProfilePOs, nil
-}
-
-func (q *UserProfileQuery) GetUserProfileCount(ctx context.Context, opts ...DBOption) (int64, error) {
-	db := q.optionDB(ctx, opts...)
-	count := int64(0)
-	result := db.Count(&count)
-	if result.Error != nil {
-		return 0, result.Error
-	}
-	return count, nil
-}
-
-func (q *UserProfileQuery) UpdateUserProfileByID(ctx context.Context, userProfile *po.UserProfilePO) error {
-	result := q.optionDB(ctx, WithUserID(userProfile.UserID)).Save(&userProfile).Error
-	return result
 }
 
 type UserQuery struct {
@@ -172,7 +98,7 @@ func (q *UserQuery) GetUserCount(ctx context.Context, opts ...DBOption) (int64, 
 }
 
 func (q *UserQuery) UpdateUserByID(ctx context.Context, user *po.UserPO) error {
-	result := q.optionDB(ctx, WithID(int64(user.ID))).Save(&user).Error
+	result := q.optionDB(ctx, WithID(int64(user.ID))).Updates(&user).Error
 	return result
 }
 

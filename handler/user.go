@@ -6,9 +6,8 @@ import (
 	"strconv"
 
 	"jcourse_go/constant"
-	"jcourse_go/model/converter"
-	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
+	"jcourse_go/model/model"
 	"jcourse_go/service"
 
 	"github.com/gin-gonic/gin"
@@ -23,7 +22,7 @@ func GetUserListHandler(c *gin.Context) {
 		return
 	}
 
-	filter := domain.UserFilter{
+	filter := model.UserFilter{
 		Page:     request.Page,
 		PageSize: request.PageSize,
 	}
@@ -64,7 +63,7 @@ func GetUserSummaryHandler(c *gin.Context) {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "用户未登录！"})
 		return
 	}
-	user, _ := userInterface.(*domain.User)
+	user, _ := userInterface.(*model.UserDetail)
 
 	if user.ID != userID {
 		c.JSON(http.StatusForbidden, dto.BaseResponse{Message: "无权查看他人信息！"})
@@ -87,45 +86,13 @@ func GetUserDetailHandler(c *gin.Context) {
 		return
 	}
 
-	userDomain, err := service.GetUserDomainByID(c, userID)
+	user, err := service.GetUserDetailByID(c, userID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "此用户不存在！"})
 		return
 	}
 
-	userDetail := converter.ConvertUserDomainToUserDetailDTO(userDomain)
-	c.JSON(http.StatusOK, userDetail)
-}
-
-// 非公开信息
-func GetUserProfileHandler(c *gin.Context) {
-	userID, err := getUserIDFromRequest(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "非法用户ID"})
-		return
-	}
-
-	// UserProfile鉴权
-	userInterface, exists := c.Get(constant.CtxKeyUser)
-	if !exists {
-		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "用户未登录！"})
-		return
-	}
-	user, _ := userInterface.(*domain.User)
-
-	if user.ID != userID {
-		c.JSON(http.StatusForbidden, dto.BaseResponse{Message: "无权查看他人信息！"})
-		return
-	}
-
-	userDomain, err := service.GetUserDomainByID(c, user.ID)
-	if err != nil {
-		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "此用户不存在！"})
-		return
-	}
-
-	userProfile := converter.ConvertUserDomainToUserProfileDTO(userDomain)
-	c.JSON(http.StatusOK, userProfile)
+	c.JSON(http.StatusOK, user)
 }
 
 func WatchUserHandler(c *gin.Context) {}
@@ -138,7 +105,7 @@ func UpdateUserProfileHandler(c *gin.Context) {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "用户未登录！"})
 		return
 	}
-	user, _ := userInterface.(*domain.User)
+	user, _ := userInterface.(*model.UserDetail)
 
 	var request dto.UserProfileDTO
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -146,55 +113,10 @@ func UpdateUserProfileHandler(c *gin.Context) {
 		return
 	}
 
-	if user.ID != request.UserID {
-		c.JSON(http.StatusForbidden, dto.BaseResponse{Message: "无权更新其他用户信息！"})
-		return
-	}
-
-	err := service.UpdateUserProfileByID(c, &request)
+	err := service.UpdateUserProfileByID(c, request, user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "用户信息更新失败。"})
 		return
 	}
 	c.JSON(http.StatusOK, dto.BaseResponse{Message: "用户信息更新成功。"})
-}
-
-func GetUserReviewsHandler(c *gin.Context) {
-	userID, err := getUserIDFromRequest(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "非法用户ID"})
-		return
-	}
-
-	var request dto.ReviewListRequest
-	if err := c.ShouldBind(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
-		return
-	}
-
-	filter := domain.ReviewFilter{
-		Page:     request.Page,
-		PageSize: request.PageSize,
-		UserID:   userID,
-	}
-
-	reviews, err := service.GetReviewList(c, filter)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
-		return
-	}
-
-	total, err := service.GetReviewCount(c, filter)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
-		return
-	}
-
-	response := dto.ReviewListResponse{
-		Page:     request.Page,
-		PageSize: request.PageSize,
-		Total:    total,
-		Data:     converter.ConvertReviewDomainToListDTO(reviews, true),
-	}
-	c.JSON(http.StatusOK, response)
 }

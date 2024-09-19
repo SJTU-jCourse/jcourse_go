@@ -14,10 +14,25 @@ import (
 type IBaseCourseQuery interface {
 	GetBaseCourse(ctx context.Context, opts ...DBOption) (*po.BaseCoursePO, error)
 	GetBaseCourseList(ctx context.Context, opts ...DBOption) ([]po.BaseCoursePO, error)
+	GetBaseCoursesByIDs(ctx context.Context, ids []int64) (map[int64]po.BaseCoursePO, error)
 }
 
 type BaseCourseQuery struct {
 	db *gorm.DB
+}
+
+func (b *BaseCourseQuery) GetBaseCoursesByIDs(ctx context.Context, ids []int64) (map[int64]po.BaseCoursePO, error) {
+	db := b.optionDB(ctx)
+	courses := make([]po.BaseCoursePO, 0)
+	coursesMap := make(map[int64]po.BaseCoursePO)
+	result := db.Where("id in ?", ids).Find(&courses)
+	if result.Error != nil {
+		return coursesMap, result.Error
+	}
+	for _, course := range courses {
+		coursesMap[int64(course.ID)] = course
+	}
+	return coursesMap, nil
 }
 
 func (b *BaseCourseQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {

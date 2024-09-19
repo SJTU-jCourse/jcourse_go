@@ -1,75 +1,44 @@
 package converter
 
 import (
-	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
+	"jcourse_go/model/model"
 	"jcourse_go/model/po"
 )
 
-func ConvertReviewPOToDomain(review po.ReviewPO) domain.Review {
-	return domain.Review{
-		ID:          int64(review.ID),
-		Course:      domain.Course{ID: review.CourseID},
-		User:        domain.User{ID: review.UserID},
-		Semester:    review.Semester,
-		Rating:      review.Rating,
-		IsAnonymous: review.IsAnonymous,
-		Comment:     review.Comment,
-		CreatedAt:   review.CreatedAt,
-		UpdatedAt:   review.UpdatedAt,
+func ConvertReviewFromPO(po po.ReviewPO) model.Review {
+	return model.Review{
+		ID: int64(po.ID),
+		Course: model.CourseMinimal{
+			ID: po.CourseID,
+		},
+		User: model.UserMinimal{
+			ID: po.UserID,
+		},
+		Comment:     po.Comment,
+		Rating:      po.Rating,
+		Semester:    po.Semester,
+		IsAnonymous: po.IsAnonymous,
+		CreatedAt:   po.CreatedAt,
+		UpdatedAt:   po.UpdatedAt,
 	}
 }
 
-func PackReviewWithCourse(review *domain.Review, course domain.Course) {
-	if review == nil {
-		return
-	}
+func PackReviewWithCourse(review *model.Review, course model.CourseMinimal) {
 	review.Course = course
 }
 
-func PackReviewWithUser(review *domain.Review, user domain.User) {
-	if review == nil {
-		return
-	}
+func PackReviewWithUser(review *model.Review, user model.UserMinimal) {
 	review.User = user
 }
 
-func ConvertReviewDomainToDTO(review domain.Review, hideUser bool) dto.ReviewDTO {
-	reviewDTO := dto.ReviewDTO{
-		ID:          review.ID,
-		Course:      ConvertCourseDomainToListDTO(review.Course),
-		Semester:    review.Semester,
-		Rating:      review.Rating,
-		IsAnonymous: review.IsAnonymous,
-		Comment:     review.Comment,
-		UpdatedAt:   review.UpdatedAt,
-		CreatedAt:   review.CreatedAt,
-	}
-	if !hideUser || !review.IsAnonymous {
-		reviewDTO.User = ConvertUserDomainToReviewDTO(review.User)
-	}
-	return reviewDTO
-}
-
-func ConvertReviewDomainToListDTO(reviews []domain.Review, hideUser bool) []dto.ReviewDTO {
-	result := make([]dto.ReviewDTO, 0)
-	for _, review := range reviews {
-		result = append(result, ConvertReviewDomainToDTO(review, hideUser))
-	}
-	return result
-}
-
-func ConvertUpdateReviewDTOToPO(review dto.UpdateReviewDTO, userID int64) po.ReviewPO {
-	reviewPO := po.ReviewPO{
-		CourseID:    review.CourseID,
+func ConvertReviewDTOToPO(dto dto.UpdateReviewDTO, userID int64) po.ReviewPO {
+	return po.ReviewPO{
+		CourseID:    dto.CourseID,
 		UserID:      userID,
-		Comment:     review.Comment,
-		Rating:      review.Rating,
-		Semester:    review.Semester,
-		IsAnonymous: review.IsAnonymous,
+		Comment:     dto.Comment,
+		Rating:      dto.Rating,
+		Semester:    dto.Semester,
+		IsAnonymous: dto.IsAnonymous,
 	}
-	if review.ID != 0 {
-		reviewPO.ID = uint(review.ID)
-	}
-	return reviewPO
 }

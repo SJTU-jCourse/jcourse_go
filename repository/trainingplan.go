@@ -16,7 +16,7 @@ type ITrainingPlanQuery interface {
 	optionDB(ctx context.Context, opts ...DBOption) *gorm.DB
 	GetTrainingPlan(ctx context.Context, opts ...DBOption) (*po.TrainingPlanPO, error)
 	GetTrainingPlanList(ctx context.Context, opts ...DBOption) ([]po.TrainingPlanPO, error)
-	GetTrainingPlanListIDs(ctx context.Context, opts ...DBOption) ([]int64, error)
+	// GetTrainingPlanListIDs(ctx context.Context, opts ...DBOption) ([]int64, error)
 	GetTrainingPlanCount(ctx context.Context, opts ...DBOption) int64
 }
 
@@ -24,15 +24,17 @@ func NewTrainingPlanQuery(db *gorm.DB) ITrainingPlanQuery {
 	return &TrainingPlanQuery{db: db}
 }
 
-func (t *TrainingPlanQuery) GetTrainingPlanListIDs(ctx context.Context, opts ...DBOption) ([]int64, error) {
-	db := t.optionDB(ctx, opts...)
-	var ids []int64
-	result := db.Select("id").Find(&ids)
-	if result.Error != nil {
-		return nil, result.Error
+/*
+	func (t *TrainingPlanQuery) GetTrainingPlanListIDs(ctx context.Context, opts ...DBOption) ([]int64, error) {
+		db := t.optionDB(ctx, opts...)
+		var ids []int64
+		result := db.Select("id").Find(&ids)
+		if result.Error != nil {
+			return nil, result.Error
+		}
+		return ids, nil
 	}
-	return ids, nil
-}
+*/
 func (t *TrainingPlanQuery) GetTrainingPlanCount(ctx context.Context, opts ...DBOption) int64 {
 	db := t.optionDB(ctx, opts...)
 	var count int64
