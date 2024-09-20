@@ -16,11 +16,12 @@ func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*model.Tr
 	}
 	trainingPlanQuery := repository.NewTrainingPlanQuery(dal.GetDBClient())
 
-	trainingPlanPO, err := trainingPlanQuery.GetTrainingPlan(ctx, repository.WithID(trainingPlanID))
-	if err != nil {
+	trainingPlanPOs, err := trainingPlanQuery.GetTrainingPlan(ctx, repository.WithID(trainingPlanID))
+	if err != nil || len(trainingPlanPOs) == 0 {
 		return nil, err
 	}
-	trainingPlan := converter.ConvertTrainingPlanDetailFromPO(*trainingPlanPO)
+	trainingPlanPO := trainingPlanPOs[0]
+	trainingPlan := converter.ConvertTrainingPlanDetailFromPO(trainingPlanPO)
 
 	courseQuery := repository.NewTrainingPlanCourseQuery(dal.GetDBClient())
 	courses, err := courseQuery.GetCourseListOfTrainingPlan(ctx, trainingPlanID)
@@ -95,7 +96,7 @@ func SearchTrainingPlanList(ctx context.Context, filter model.TrainingPlanFilter
 		}
 	*/
 
-	trainingPlans, err := trainingPlanQuery.GetTrainingPlanList(ctx, tp_opts...)
+	trainingPlans, err := trainingPlanQuery.GetTrainingPlan(ctx, tp_opts...)
 	if err != nil {
 		return nil, err
 	}

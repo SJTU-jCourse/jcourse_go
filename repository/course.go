@@ -71,8 +71,7 @@ func NewBaseCourseQuery(db *gorm.DB) IBaseCourseQuery {
 }
 
 type ICourseQuery interface {
-	GetCourse(ctx context.Context, opts ...DBOption) (*po.CoursePO, error)
-	GetCourseList(ctx context.Context, opts ...DBOption) ([]po.CoursePO, error)
+	GetCourse(ctx context.Context, opts ...DBOption) ([]po.CoursePO, error)
 	GetCourseCount(ctx context.Context, opts ...DBOption) (int64, error)
 	GetCourseCategories(ctx context.Context, courseIDs []int64) (map[int64][]string, error)
 	GetCourseByIDs(ctx context.Context, courseIDs []int64) (map[int64]po.CoursePO, error)
@@ -123,20 +122,7 @@ func (c *CourseQuery) GetCourseCategories(ctx context.Context, courseIDs []int64
 	return courseCategoryMap, nil
 }
 
-func (c *CourseQuery) GetCourse(ctx context.Context, opts ...DBOption) (*po.CoursePO, error) {
-	db := c.optionDB(ctx, opts...)
-	course := po.CoursePO{}
-	result := db.First(&course)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil, nil
-	}
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return &course, nil
-}
-
-func (c *CourseQuery) GetCourseList(ctx context.Context, opts ...DBOption) ([]po.CoursePO, error) {
+func (c *CourseQuery) GetCourse(ctx context.Context, opts ...DBOption) ([]po.CoursePO, error) {
 	db := c.optionDB(ctx, opts...)
 	coursePOs := make([]po.CoursePO, 0)
 	result := db.Find(&coursePOs)
@@ -161,8 +147,7 @@ func NewCourseQuery() ICourseQuery {
 }
 
 type IOfferedCourseQuery interface {
-	GetOfferedCourse(ctx context.Context, opts ...DBOption) (*po.OfferedCoursePO, error)
-	GetOfferedCourseList(ctx context.Context, opts ...DBOption) ([]po.OfferedCoursePO, error)
+	GetOfferedCourse(ctx context.Context, opts ...DBOption) ([]po.OfferedCoursePO, error)
 	GetOfferedCourseTeacherGroup(ctx context.Context, offeredCourseIDs []int64) (map[int64][]po.TeacherPO, error)
 	// 获取教过courseIDs之中所有课的主教师的ID List
 	GetMainTeacherIDsWithOfferedCourseIDs(ctx context.Context, courseIDs []int64) ([]int64, error)
@@ -212,20 +197,7 @@ func (o *OfferedCourseQuery) optionDB(ctx context.Context, opts ...DBOption) *go
 	return db
 }
 
-func (o *OfferedCourseQuery) GetOfferedCourse(ctx context.Context, opts ...DBOption) (*po.OfferedCoursePO, error) {
-	db := o.optionDB(ctx, opts...)
-	course := po.OfferedCoursePO{}
-	result := db.First(&course)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil, nil
-	}
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return &course, nil
-}
-
-func (o *OfferedCourseQuery) GetOfferedCourseList(ctx context.Context, opts ...DBOption) ([]po.OfferedCoursePO, error) {
+func (o *OfferedCourseQuery) GetOfferedCourse(ctx context.Context, opts ...DBOption) ([]po.OfferedCoursePO, error) {
 	db := o.optionDB(ctx, opts...)
 	coursePOs := make([]po.OfferedCoursePO, 0)
 	result := db.Find(&coursePOs)

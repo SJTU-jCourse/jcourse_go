@@ -23,11 +23,11 @@ func Login(ctx context.Context, email string, password string) (*po.UserPO, erro
 		return nil, err
 	}
 	query := repository.NewUserQuery(dal.GetDBClient())
-	userPO, err := query.GetUserDetail(ctx, repository.WithEmail(email), repository.WithPassword(passwordStore))
-	if err != nil {
+	userPO, err := query.GetUser(ctx, repository.WithEmail(email), repository.WithPassword(passwordStore))
+	if err != nil || len(userPO) == 0 {
 		return nil, err
 	}
-	return userPO, nil
+	return &userPO[0], nil
 }
 
 func Register(ctx context.Context, email string, password string, code string) (*po.UserPO, error) {
@@ -39,18 +39,18 @@ func Register(ctx context.Context, email string, password string, code string) (
 		return nil, errors.New("verify code is wrong")
 	}
 	query := repository.NewUserQuery(dal.GetDBClient())
-	userPO, err := query.GetUserDetail(ctx, repository.WithEmail(email))
+	userPOs, err := query.GetUser(ctx, repository.WithEmail(email))
 	if err != nil {
 		return nil, err
 	}
-	if userPO != nil {
+	if len(userPOs) > 0 {
 		return nil, errors.New("user exists for this email")
 	}
 	passwordStore, err := password_hasher.MakeHashedPasswordStore(password)
 	if err != nil {
 		return nil, err
 	}
-	userPO, err = query.CreateUser(ctx, email, passwordStore)
+	userPO, err := query.CreateUser(ctx, email, passwordStore)
 	if err != nil {
 		return nil, err
 	}
@@ -67,18 +67,18 @@ func ResetPassword(ctx context.Context, email string, password string, code stri
 		return errors.New("verify code is wrong")
 	}
 	query := repository.NewUserQuery(dal.GetDBClient())
-	user, err := query.GetUserDetail(ctx, repository.WithEmail(email))
+	user, err := query.GetUser(ctx, repository.WithEmail(email))
 	if err != nil {
 		return err
 	}
-	if user == nil {
+	if user == nil || len(user) == 0 {
 		return errors.New("user does not exist for this email")
 	}
 	passwordStore, err := password_hasher.MakeHashedPasswordStore(password)
 	if err != nil {
 		return err
 	}
-	err = query.ResetUserPassword(ctx, int64(user.ID), passwordStore)
+	err = query.ResetUserPassword(ctx, int64(user[0].ID), passwordStore)
 	if err != nil {
 		return err
 	}

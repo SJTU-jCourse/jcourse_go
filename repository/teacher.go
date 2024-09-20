@@ -11,8 +11,7 @@ import (
 
 // TODO: 暂时没有添加从ProfileDesc中搜索的功能
 type ITeacherQuery interface {
-	GetTeacher(ctx context.Context, opts ...DBOption) (*po.TeacherPO, error)
-	GetTeacherList(ctx context.Context, opts ...DBOption) ([]po.TeacherPO, error)
+	GetTeacher(ctx context.Context, opts ...DBOption) ([]po.TeacherPO, error)
 	GetTeacherCount(ctx context.Context, opts ...DBOption) (int64, error)
 }
 
@@ -34,20 +33,7 @@ func (q *TeacherQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB 
 	return db
 }
 
-func (q *TeacherQuery) GetTeacher(ctx context.Context, opts ...DBOption) (*po.TeacherPO, error) {
-	db := q.optionDB(ctx, opts...)
-	teacher := po.TeacherPO{}
-	result := db.First(&teacher)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil, nil
-	}
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return &teacher, nil
-}
-
-func (q *TeacherQuery) GetTeacherList(ctx context.Context, opts ...DBOption) ([]po.TeacherPO, error) {
+func (q *TeacherQuery) GetTeacher(ctx context.Context, opts ...DBOption) ([]po.TeacherPO, error) {
 	db := q.optionDB(ctx, opts...)
 	teacherPOs := make([]po.TeacherPO, 0)
 	result := db.Find(&teacherPOs)

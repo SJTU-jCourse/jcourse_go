@@ -16,24 +16,25 @@ func GetCourseDetail(ctx context.Context, courseID int64) (*model.CourseDetail, 
 		return nil, errors.New("course id is 0")
 	}
 	courseQuery := repository.NewCourseQuery()
-	coursePO, err := courseQuery.GetCourse(ctx, repository.WithID(courseID))
-	if err != nil {
+	coursePOs, err := courseQuery.GetCourse(ctx, repository.WithID(courseID))
+	if err != nil || len(coursePOs) == 0 {
 		return nil, err
 	}
-
+	coursePO := coursePOs[0]
 	courseCategories, err := courseQuery.GetCourseCategories(ctx, []int64{int64(coursePO.ID)})
 	if err != nil {
 		return nil, err
 	}
 
 	teacherQuery := repository.NewTeacherQuery(dal.GetDBClient())
-	teacherPO, err := teacherQuery.GetTeacher(ctx, repository.WithID(coursePO.MainTeacherID))
-	if err != nil {
+	teacherPOs, err := teacherQuery.GetTeacher(ctx, repository.WithID(coursePO.MainTeacherID))
+	if err != nil || len(teacherPOs) == 0 {
 		return nil, err
 	}
+	teacherPO := teacherPOs[0]
 
 	offeredCourseQuery := repository.NewOfferedCourseQuery(dal.GetDBClient())
-	offeredCoursePOs, err := offeredCourseQuery.GetOfferedCourseList(ctx, repository.WithCourseID(courseID), repository.WithOrderBy("semester", false))
+	offeredCoursePOs, err := offeredCourseQuery.GetOfferedCourse(ctx, repository.WithCourseID(courseID), repository.WithOrderBy("semester", false))
 	if err != nil {
 		return nil, err
 	}
@@ -44,8 +45,8 @@ func GetCourseDetail(ctx context.Context, courseID int64) (*model.CourseDetail, 
 		return nil, err
 	}
 
-	course := converter.ConvertCourseDetailFromPO(*coursePO)
-	converter.PackCourseWithMainTeacher(&course.CourseMinimal, converter.ConvertTeacherSummaryFromPO(*teacherPO))
+	course := converter.ConvertCourseDetailFromPO(coursePO)
+	converter.PackCourseWithMainTeacher(&course.CourseMinimal, converter.ConvertTeacherSummaryFromPO(teacherPO))
 	offeredCourses := converter.ConvertOfferedCoursesFromPOs(offeredCoursePOs)
 	converter.PackCourseWithOfferedCourse(&course, offeredCourses)
 	converter.PackCourseWithCategories(&course.CourseSummary, courseCategories[course.ID])
@@ -80,7 +81,7 @@ func GetCourseList(ctx context.Context, filter model.CourseListFilter) ([]model.
 	query := repository.NewCourseQuery()
 	opts := buildCourseDBOptionFromFilter(query, filter)
 
-	coursePOs, err := query.GetCourseList(ctx, opts...)
+	coursePOs, err := query.GetCourse(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}

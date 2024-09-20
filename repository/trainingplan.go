@@ -14,9 +14,7 @@ type TrainingPlanQuery struct {
 
 type ITrainingPlanQuery interface {
 	optionDB(ctx context.Context, opts ...DBOption) *gorm.DB
-	GetTrainingPlan(ctx context.Context, opts ...DBOption) (*po.TrainingPlanPO, error)
-	GetTrainingPlanList(ctx context.Context, opts ...DBOption) ([]po.TrainingPlanPO, error)
-	// GetTrainingPlanListIDs(ctx context.Context, opts ...DBOption) ([]int64, error)
+	GetTrainingPlan(ctx context.Context, opts ...DBOption) ([]po.TrainingPlanPO, error)
 	GetTrainingPlanCount(ctx context.Context, opts ...DBOption) int64
 }
 
@@ -54,19 +52,10 @@ func (t *TrainingPlanQuery) optionDB(ctx context.Context, opts ...DBOption) *gor
 	return db
 }
 
-func (t *TrainingPlanQuery) GetTrainingPlan(ctx context.Context, opts ...DBOption) (*po.TrainingPlanPO, error) {
-	db := t.optionDB(ctx, opts...)
-	trainingPlan := po.TrainingPlanPO{}
-	result := db.Debug().First(&trainingPlan)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return &trainingPlan, nil
-}
-func (t *TrainingPlanQuery) GetTrainingPlanList(ctx context.Context, opts ...DBOption) ([]po.TrainingPlanPO, error) {
+func (t *TrainingPlanQuery) GetTrainingPlan(ctx context.Context, opts ...DBOption) ([]po.TrainingPlanPO, error) {
 	db := t.optionDB(ctx, opts...)
 	trainingPlans := make([]po.TrainingPlanPO, 0)
-	result := db.Debug().Find(&trainingPlans)
+	result := db.Find(&trainingPlans)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -108,7 +97,7 @@ func (t *TrainingPlanCourseQuery) GetTrainingPlanListIDs(ctx context.Context, op
 func (t *TrainingPlanCourseQuery) GetTrainingPlanCourseList(ctx context.Context, opts ...DBOption) ([]po.TrainingPlanCoursePO, error) {
 	db := t.optionDB(ctx, opts...)
 	trainingPlanCourses := make([]po.TrainingPlanCoursePO, 0)
-	result := db.Debug().Find(&trainingPlanCourses)
+	result := db.Find(&trainingPlanCourses)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -118,7 +107,7 @@ func (t *TrainingPlanCourseQuery) GetTrainingPlanCourseList(ctx context.Context,
 func (t *TrainingPlanCourseQuery) GetCourseListOfTrainingPlan(ctx context.Context, trainingPlanID int64) ([]po.TrainingPlanCoursePO, error) {
 	db := t.optionDB(ctx, WithTrainingPlanID(trainingPlanID))
 	courses := make([]po.TrainingPlanCoursePO, 0)
-	result := db.Debug().Find(&courses)
+	result := db.Find(&courses)
 	if result.Error != nil {
 		return nil, result.Error
 	}

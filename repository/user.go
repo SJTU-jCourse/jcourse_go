@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"gorm.io/gorm"
@@ -12,12 +11,10 @@ import (
 )
 
 type IUserQuery interface {
-	GetUserDetail(ctx context.Context, opts ...DBOption) (*po.UserPO, error)
-	GetUserList(ctx context.Context, opts ...DBOption) ([]po.UserPO, error)
+	GetUser(ctx context.Context, opts ...DBOption) ([]po.UserPO, error)
 	GetUserCount(ctx context.Context, opts ...DBOption) (int64, error)
-	GetUserByID(ctx context.Context, userID int64) (*po.UserPO, error)
 	GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]po.UserPO, error)
-	UpdateUserByID(ctx context.Context, user *po.UserPO) error
+	UpdateUser(ctx context.Context, user po.UserPO) error
 	CreateUser(ctx context.Context, email string, password string) (*po.UserPO, error)
 	ResetUserPassword(ctx context.Context, userID int64, password string) error
 }
@@ -46,16 +43,6 @@ func (q *UserQuery) GetUserByIDs(ctx context.Context, userIDs []int64) (map[int6
 	return userMap, nil
 }
 
-func (q *UserQuery) GetUserByID(ctx context.Context, userID int64) (*po.UserPO, error) {
-	db := q.optionDB(ctx, WithID(userID))
-	userPO := po.UserPO{}
-	result := db.Find(&userPO)
-	if result.Error != nil {
-		return &userPO, result.Error
-	}
-	return &userPO, nil
-}
-
 func (q *UserQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
 	db := q.db.WithContext(ctx).Model(po.UserPO{})
 	for _, opt := range opts {
@@ -64,20 +51,7 @@ func (q *UserQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
 	return db
 }
 
-func (q *UserQuery) GetUserDetail(ctx context.Context, opts ...DBOption) (*po.UserPO, error) {
-	db := q.optionDB(ctx, opts...)
-	user := po.UserPO{}
-	result := db.First(&user)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil, nil
-	}
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return &user, nil
-}
-
-func (q *UserQuery) GetUserList(ctx context.Context, opts ...DBOption) ([]po.UserPO, error) {
+func (q *UserQuery) GetUser(ctx context.Context, opts ...DBOption) ([]po.UserPO, error) {
 	db := q.optionDB(ctx, opts...)
 	userPOs := make([]po.UserPO, 0)
 	result := db.Find(&userPOs)
@@ -97,7 +71,7 @@ func (q *UserQuery) GetUserCount(ctx context.Context, opts ...DBOption) (int64, 
 	return count, nil
 }
 
-func (q *UserQuery) UpdateUserByID(ctx context.Context, user *po.UserPO) error {
+func (q *UserQuery) UpdateUser(ctx context.Context, user po.UserPO) error {
 	result := q.optionDB(ctx, WithID(int64(user.ID))).Updates(&user).Error
 	return result
 }
@@ -110,7 +84,7 @@ func (q *UserQuery) CreateUser(ctx context.Context, email string, passwordStore 
 		LastSeenAt: time.Now(),
 		Password:   passwordStore,
 	}
-	result := q.optionDB(ctx).Debug().Create(&user)
+	result := q.optionDB(ctx).Create(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -118,6 +92,6 @@ func (q *UserQuery) CreateUser(ctx context.Context, email string, passwordStore 
 }
 
 func (q *UserQuery) ResetUserPassword(ctx context.Context, userID int64, passwordStore string) error {
-	result := q.optionDB(ctx, WithID(userID)).Debug().Update("password", passwordStore)
+	result := q.optionDB(ctx, WithID(userID)).Update("password", passwordStore)
 	return result.Error
 }

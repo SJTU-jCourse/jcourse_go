@@ -16,14 +16,15 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*model.TeacherDetai
 	}
 	teacherQuery := repository.NewTeacherQuery(dal.GetDBClient())
 
-	teacherPO, err := teacherQuery.GetTeacher(ctx, repository.WithID(teacherID))
-	if err != nil {
+	teacherPOs, err := teacherQuery.GetTeacher(ctx, repository.WithID(teacherID))
+	if err != nil || len(teacherPOs) == 0 {
 		return nil, err
 	}
-	teacher := converter.ConvertTeacherDetailFromPO(*teacherPO)
+	teacherPO := teacherPOs[0]
+	teacher := converter.ConvertTeacherDetailFromPO(teacherPO)
 
 	courseQuery := repository.NewOfferedCourseQuery(dal.GetDBClient())
-	coursePOs, err := courseQuery.GetOfferedCourseList(ctx, repository.WithMainTeacherID(teacherID))
+	coursePOs, err := courseQuery.GetOfferedCourse(ctx, repository.WithMainTeacherID(teacherID))
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +72,7 @@ func SearchTeacherList(ctx context.Context, filter model.TeacherListFilter) ([]m
 	}
 	t_opts = append(t_opts, repository.WithIDs(validTeacherIDs))
 
-	teachers, err := teacherQuery.GetTeacherList(ctx, t_opts...)
+	teachers, err := teacherQuery.GetTeacher(ctx, t_opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +94,7 @@ func GetTeacherCount(ctx context.Context, filter model.TeacherListFilter) (int64
 
 func GetTeacherListByIDs(ctx context.Context, teacherIDs []int64) (map[int64]model.TeacherSummary, error) {
 	teacherQuery := repository.NewTeacherQuery(dal.GetDBClient())
-	teachers, err := teacherQuery.GetTeacherList(ctx, repository.WithIDs(teacherIDs))
+	teachers, err := teacherQuery.GetTeacher(ctx, repository.WithIDs(teacherIDs))
 	if err != nil {
 		return nil, err
 	}

@@ -111,7 +111,7 @@ func UpdateReview(ctx context.Context, review dto.UpdateReviewDTO, user *model.U
 	}
 	query := repository.NewReviewQuery(dal.GetDBClient())
 	reviewPO := converter.ConvertReviewDTOToPO(review, user.ID)
-	_, err := query.UpdateReview(ctx, reviewPO)
+	err := query.UpdateReview(ctx, reviewPO)
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func UpdateReview(ctx context.Context, review dto.UpdateReviewDTO, user *model.U
 
 func DeleteReview(ctx context.Context, reviewID int64) error {
 	query := repository.NewReviewQuery(dal.GetDBClient())
-	_, err := query.DeleteReview(ctx, repository.WithID(reviewID))
+	err := query.DeleteReview(ctx, repository.WithID(reviewID))
 	if err != nil {
 		return err
 	}

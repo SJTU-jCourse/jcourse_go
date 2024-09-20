@@ -48,11 +48,11 @@ func GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]model.UserMin
 // 共用函数，用于获取用户基本信息和详细资料并组装成domain.User
 func GetUserDetailByID(ctx context.Context, userID int64) (*model.UserDetail, error) {
 	userQuery := repository.NewUserQuery(dal.GetDBClient())
-	userPO, err := userQuery.GetUserByID(ctx, userID)
-	if err != nil {
+	userPO, err := userQuery.GetUser(ctx, repository.WithID(userID))
+	if err != nil || len(userPO) == 0 {
 		return nil, err
 	}
-	user := converter.ConvertUserDetailFromPO(*userPO)
+	user := converter.ConvertUserDetailFromPO(userPO[0])
 	return &user, nil
 }
 
@@ -73,7 +73,7 @@ func buildUserDBOptionFromFilter(query repository.IUserQuery, filter model.UserF
 func GetUserList(ctx context.Context, filter model.UserFilter) ([]model.UserMinimal, error) {
 	userQuery := repository.NewUserQuery(dal.GetDBClient())
 	opts := buildUserDBOptionFromFilter(userQuery, filter)
-	userPOs, err := userQuery.GetUserList(ctx, opts...)
+	userPOs, err := userQuery.GetUser(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func UpdateUserProfileByID(ctx context.Context, userProfileDTO dto.UserProfileDT
 	userQuery := repository.NewUserQuery(dal.GetDBClient())
 	newUserPO := converter.ConvertUserProfileToPO(userProfileDTO)
 	newUserPO.ID = uint(userID)
-	errUpdate := userQuery.UpdateUserByID(ctx, &newUserPO)
+	errUpdate := userQuery.UpdateUser(ctx, newUserPO)
 	if errUpdate != nil {
 		return errUpdate
 	}

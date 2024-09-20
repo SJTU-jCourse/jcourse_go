@@ -2,7 +2,9 @@ package model
 
 type RatingRelatedType = string
 
-const RelatedTypeCourse RatingRelatedType = "course"
+const (
+	RelatedTypeCourse RatingRelatedType = "course"
+)
 
 type RatingInfoDistItemByID struct {
 	RelatedID int64
