@@ -24,6 +24,21 @@ func ConvertReviewFromPO(po po.ReviewPO) model.Review {
 	}
 }
 
+func RemoveReviewUserInfo(review *model.Review, hideUser bool) {
+	if review == nil {
+		return
+	}
+	if hideUser && review.IsAnonymous {
+		review.User = model.UserMinimal{}
+	}
+}
+
+func RemoveReviewsUserInfo(reviews []model.Review, hideUser bool) {
+	for i := range reviews {
+		RemoveReviewUserInfo(&reviews[i], hideUser)
+	}
+}
+
 func PackReviewWithCourse(review *model.Review, course model.CourseMinimal) {
 	review.Course = course
 }

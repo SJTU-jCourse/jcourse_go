@@ -70,8 +70,8 @@ func ConvertOfferedCourseFromPO(po po.OfferedCoursePO) model.OfferedCourse {
 
 func ConvertOfferedCoursesFromPOs(pos []po.OfferedCoursePO) []model.OfferedCourse {
 	res := make([]model.OfferedCourse, 0, len(pos))
-	for _, po := range pos {
-		res = append(res, ConvertOfferedCourseFromPO(po))
+	for _, p := range pos {
+		res = append(res, ConvertOfferedCourseFromPO(p))
 	}
 	return res
 }

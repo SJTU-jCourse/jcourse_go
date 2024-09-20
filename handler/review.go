@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"jcourse_go/middleware"
+	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/service"
@@ -51,6 +52,8 @@ func GetReviewListHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 		return
 	}
+
+	converter.RemoveReviewsUserInfo(reviews, true)
 
 	response := dto.ReviewListResponse{
 		Page:     request.Page,
