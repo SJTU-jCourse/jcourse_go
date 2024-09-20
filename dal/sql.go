@@ -5,9 +5,9 @@ import (
 
 	"jcourse_go/util"
 
+	"github.com/glebarez/sqlite"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 

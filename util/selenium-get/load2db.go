@@ -94,7 +94,7 @@ func TrainingPlan2PO(plan LoadedTrainingPlan) po.TrainingPlanPO {
 		Major:      plan.Name,
 		Department: plan.Department,
 		EntryYear:  strconv.Itoa(plan.EntryYear),
-		TotalYear:  plan.TotalYear,
+		TotalYear:  int64(plan.TotalYear),
 		MinCredits: plan.MinCredits,
 		MajorCode:  plan.Code,
 		MajorClass: plan.MajorClass,
