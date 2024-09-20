@@ -71,7 +71,7 @@ func ResetPassword(ctx context.Context, email string, password string, code stri
 	if err != nil {
 		return err
 	}
-	if user == nil || len(user) == 0 {
+	if len(user) == 0 {
 		return errors.New("user does not exist for this email")
 	}
 	passwordStore, err := password_hasher.MakeHashedPasswordStore(password)
