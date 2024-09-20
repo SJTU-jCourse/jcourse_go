@@ -1,68 +1,30 @@
 package converter
 
 import (
-	"jcourse_go/model/domain"
-	"jcourse_go/model/dto"
+	"jcourse_go/model/model"
 	"jcourse_go/model/po"
 )
 
-func ConvertTeacherPOToDomain(teacher *po.TeacherPO) *domain.Teacher {
-	if teacher == nil {
-		return nil
-	}
-
-	return &domain.Teacher{
-		ID:         int64(teacher.ID),
-		Name:       teacher.Name,
-		Email:      teacher.Email,
-		Code:       teacher.Code,
-		Department: teacher.Department,
-		Title:      teacher.Title,
-		Picture:    teacher.Picture,
-		ProfileURL: teacher.ProfileURL,
-		Biography:  teacher.Biography,
+func ConvertTeacherDetailFromPO(po po.TeacherPO) model.TeacherDetail {
+	return model.TeacherDetail{
+		TeacherSummary: ConvertTeacherSummaryFromPO(po),
+		Email:          po.Email,
+		Code:           po.Code,
+		Title:          po.Title,
+		ProfileURL:     po.ProfileURL,
+		Biography:      po.Biography,
 	}
 }
 
-func PackTeacherWithCourses(teacher *domain.Teacher, courses []po.OfferedCoursePO) {
-	if teacher == nil {
-		return
-	}
-	teacherCourses := make([]domain.OfferedCourse, 0)
-	for _, offeredCoursePO := range courses {
-		offeredCourse := ConvertOfferedCoursePOToDomain(offeredCoursePO)
-		teacherCourses = append(teacherCourses, offeredCourse)
-	}
-	teacher.Courses = teacherCourses
+func PackTeacherWithOfferedCourses(t *model.TeacherDetail, courses []model.OfferedCourse) {
+	t.Courses = courses
 }
 
-func ConvertTeacherDomainToDTO(teacher domain.Teacher) dto.TeacherDTO {
-	teacherDTO := dto.TeacherDTO{
-		ID:         teacher.ID,
-		Email:      teacher.Email,
-		Code:       teacher.Code,
-		Name:       teacher.Name,
-		Department: teacher.Department,
-		Title:      teacher.Title,
-		Picture:    teacher.Picture,
-		ProfileURL: teacher.ProfileURL,
-		Biography:  teacher.Biography,
-		Courses:    make([]dto.OfferedCourseDTO, 0),
+func ConvertTeacherSummaryFromPO(po po.TeacherPO) model.TeacherSummary {
+	return model.TeacherSummary{
+		ID:         int64(po.ID),
+		Name:       po.Name,
+		Department: po.Department,
+		Picture:    po.Picture,
 	}
-	for _, offeredCourse := range teacher.Courses {
-		offeredCourseDTO := ConvertOfferedCourseDomainToDTO(offeredCourse)
-		teacherDTO.Courses = append(teacherDTO.Courses, offeredCourseDTO)
-	}
-	return teacherDTO
-}
-
-func ConvertTeacherListDomainToDTO(teachers []domain.Teacher) []dto.TeacherDTO {
-	result := make([]dto.TeacherDTO, 0, len(teachers))
-	if len(teachers) == 0 {
-		return result
-	}
-	for _, teacher := range teachers {
-		result = append(result, ConvertTeacherDomainToDTO(teacher))
-	}
-	return result
 }

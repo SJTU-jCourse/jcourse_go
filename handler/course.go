@@ -8,9 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"jcourse_go/constant"
-	"jcourse_go/model/converter"
-	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
+	"jcourse_go/model/model"
 	"jcourse_go/service"
 )
 
@@ -27,13 +26,11 @@ func GetCourseDetailHandler(c *gin.Context) {
 		return
 	}
 
-	courseDetailDTO := converter.ConvertCourseDomainToDetailDTO(*course)
-
-	c.JSON(http.StatusOK, courseDetailDTO)
+	c.JSON(http.StatusOK, course)
 }
 
-func convertCourseListFilter(request dto.CourseListRequest) domain.CourseListFilter {
-	filter := domain.CourseListFilter{
+func convertCourseListFilter(request dto.CourseListRequest) model.CourseListFilter {
+	filter := model.CourseListFilter{
 		Page:        request.Page,
 		PageSize:    request.PageSize,
 		Categories:  make([]string, 0),
@@ -93,7 +90,7 @@ func GetCourseListHandler(c *gin.Context) {
 
 	resp := dto.CourseListResponse{
 		Total:    total,
-		Data:     converter.ConvertCourseListDomainToDTO(courses),
+		Data:     courses,
 		Page:     request.Page,
 		PageSize: int64(len(courses)),
 	}

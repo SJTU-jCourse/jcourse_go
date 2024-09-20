@@ -14,22 +14,27 @@ import (
 type IBaseCourseQuery interface {
 	GetBaseCourse(ctx context.Context, opts ...DBOption) (*po.BaseCoursePO, error)
 	GetBaseCourseList(ctx context.Context, opts ...DBOption) ([]po.BaseCoursePO, error)
-	WithCode(code string) DBOption
-	WithName(name string) DBOption
-	WithCredit(credit float64) DBOption
-	WithIDs(IDs []int64) DBOption
-	WithID(id int64) DBOption
+	GetBaseCoursesByIDs(ctx context.Context, ids []int64) (map[int64]po.BaseCoursePO, error)
 }
 
 type BaseCourseQuery struct {
 	db *gorm.DB
 }
 
-func (b *BaseCourseQuery) WithID(id int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("id = ?", id)
+func (b *BaseCourseQuery) GetBaseCoursesByIDs(ctx context.Context, ids []int64) (map[int64]po.BaseCoursePO, error) {
+	db := b.optionDB(ctx)
+	courses := make([]po.BaseCoursePO, 0)
+	coursesMap := make(map[int64]po.BaseCoursePO)
+	result := db.Where("id in ?", ids).Find(&courses)
+	if result.Error != nil {
+		return coursesMap, result.Error
 	}
+	for _, course := range courses {
+		coursesMap[int64(course.ID)] = course
+	}
+	return coursesMap, nil
 }
+
 func (b *BaseCourseQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
 	db := b.db.WithContext(ctx).Model(&po.BaseCoursePO{})
 	for _, opt := range opts {
@@ -37,11 +42,7 @@ func (b *BaseCourseQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.
 	}
 	return db
 }
-func (b *BaseCourseQuery) WithIDs(IDs []int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("id in ?", IDs)
-	}
-}
+
 func (b *BaseCourseQuery) GetBaseCourse(ctx context.Context, opts ...DBOption) (*po.BaseCoursePO, error) {
 	db := b.optionDB(ctx, opts...)
 	course := po.BaseCoursePO{}
@@ -65,45 +66,15 @@ func (b *BaseCourseQuery) GetBaseCourseList(ctx context.Context, opts ...DBOptio
 	return coursePOs, nil
 }
 
-func (b *BaseCourseQuery) WithCode(code string) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("code = ?", code)
-	}
-}
-
-func (b *BaseCourseQuery) WithName(name string) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("name = ?", name)
-	}
-}
-
-func (b *BaseCourseQuery) WithCredit(credit float64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("credit = ?", credit)
-	}
-}
-
-func NewBaseCourseQuery() IBaseCourseQuery {
-	return &BaseCourseQuery{db: dal.GetDBClient()}
+func NewBaseCourseQuery(db *gorm.DB) IBaseCourseQuery {
+	return &BaseCourseQuery{db: db}
 }
 
 type ICourseQuery interface {
-	GetCourse(ctx context.Context, opts ...DBOption) (*po.CoursePO, error)
-	GetCourseList(ctx context.Context, opts ...DBOption) ([]po.CoursePO, error)
+	GetCourse(ctx context.Context, opts ...DBOption) ([]po.CoursePO, error)
 	GetCourseCount(ctx context.Context, opts ...DBOption) (int64, error)
 	GetCourseCategories(ctx context.Context, courseIDs []int64) (map[int64][]string, error)
 	GetCourseByIDs(ctx context.Context, courseIDs []int64) (map[int64]po.CoursePO, error)
-	WithID(id int64) DBOption
-	WithCode(code string) DBOption
-	WithName(name string) DBOption
-	WithCredits(credits []float64) DBOption
-	WithCategories(categories []string) DBOption
-	WithDepartments(departments []string) DBOption
-	WithMainTeacherName(name string) DBOption
-	WithMainTeacherID(id int64) DBOption
-	WithLimit(limit int64) DBOption
-	WithOffset(offset int64) DBOption
-	WithSearch(query string) DBOption
 }
 
 type CourseQuery struct {
@@ -122,18 +93,6 @@ func (c *CourseQuery) GetCourseByIDs(ctx context.Context, courseIDs []int64) (ma
 		coursesMap[int64(course.ID)] = course
 	}
 	return coursesMap, nil
-}
-
-func (c *CourseQuery) WithLimit(limit int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Limit(int(limit))
-	}
-}
-
-func (c *CourseQuery) WithOffset(offset int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Offset(int(offset))
-	}
 }
 
 func (c *CourseQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
@@ -163,20 +122,7 @@ func (c *CourseQuery) GetCourseCategories(ctx context.Context, courseIDs []int64
 	return courseCategoryMap, nil
 }
 
-func (c *CourseQuery) GetCourse(ctx context.Context, opts ...DBOption) (*po.CoursePO, error) {
-	db := c.optionDB(ctx, opts...)
-	course := po.CoursePO{}
-	result := db.First(&course)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil, nil
-	}
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return &course, nil
-}
-
-func (c *CourseQuery) GetCourseList(ctx context.Context, opts ...DBOption) ([]po.CoursePO, error) {
+func (c *CourseQuery) GetCourse(ctx context.Context, opts ...DBOption) ([]po.CoursePO, error) {
 	db := c.optionDB(ctx, opts...)
 	coursePOs := make([]po.CoursePO, 0)
 	result := db.Find(&coursePOs)
@@ -196,70 +142,15 @@ func (c *CourseQuery) GetCourseCount(ctx context.Context, opts ...DBOption) (int
 	return count, nil
 }
 
-func (c *CourseQuery) WithID(id int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("id = ?", id)
-	}
-}
-
-func (c *CourseQuery) WithCode(code string) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("code = ?", code)
-	}
-}
-
-func (c *CourseQuery) WithName(name string) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("name = ?", name)
-	}
-}
-
-func (c *CourseQuery) WithCredits(credits []float64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("credit in ?", credits)
-	}
-}
-
-func (c *CourseQuery) WithDepartments(departments []string) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("department in ?", departments)
-	}
-}
-
-func (c *CourseQuery) WithCategories(categories []string) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Joins("inner join course_categories on course_categories.course_id = courses.id").Where("category in ?", categories)
-	}
-}
-
-func (c *CourseQuery) WithMainTeacherName(name string) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("main_teacher_name = ?", name)
-	}
-}
-
-func (c *CourseQuery) WithMainTeacherID(id int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("main_teacher_id = ?", id)
-	}
-}
-
 func NewCourseQuery() ICourseQuery {
 	return &CourseQuery{db: dal.GetDBClient()}
 }
 
 type IOfferedCourseQuery interface {
-	GetOfferedCourse(ctx context.Context, opts ...DBOption) (*po.OfferedCoursePO, error)
-	GetOfferedCourseList(ctx context.Context, opts ...DBOption) ([]po.OfferedCoursePO, error)
+	GetOfferedCourse(ctx context.Context, opts ...DBOption) ([]po.OfferedCoursePO, error)
 	GetOfferedCourseTeacherGroup(ctx context.Context, offeredCourseIDs []int64) (map[int64][]po.TeacherPO, error)
 	// 获取教过courseIDs之中所有课的主教师的ID List
 	GetMainTeacherIDsWithOfferedCourseIDs(ctx context.Context, courseIDs []int64) ([]int64, error)
-	WithID(id int64) DBOption
-	WithIDs(ids []int64) DBOption
-	WithCourseID(id int64) DBOption
-	WithMainTeacherID(id int64) DBOption
-	WithSemester(semester string) DBOption
-	WithOrderBy(field string, ascending bool) DBOption
 }
 
 type OfferedCourseQuery struct {
@@ -306,20 +197,7 @@ func (o *OfferedCourseQuery) optionDB(ctx context.Context, opts ...DBOption) *go
 	return db
 }
 
-func (o *OfferedCourseQuery) GetOfferedCourse(ctx context.Context, opts ...DBOption) (*po.OfferedCoursePO, error) {
-	db := o.optionDB(ctx, opts...)
-	course := po.OfferedCoursePO{}
-	result := db.First(&course)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil, nil
-	}
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return &course, nil
-}
-
-func (o *OfferedCourseQuery) GetOfferedCourseList(ctx context.Context, opts ...DBOption) ([]po.OfferedCoursePO, error) {
+func (o *OfferedCourseQuery) GetOfferedCourse(ctx context.Context, opts ...DBOption) ([]po.OfferedCoursePO, error) {
 	db := o.optionDB(ctx, opts...)
 	coursePOs := make([]po.OfferedCoursePO, 0)
 	result := db.Find(&coursePOs)
@@ -329,52 +207,24 @@ func (o *OfferedCourseQuery) GetOfferedCourseList(ctx context.Context, opts ...D
 	return coursePOs, nil
 }
 func (o *OfferedCourseQuery) GetMainTeacherIDsWithOfferedCourseIDs(ctx context.Context, courseIDs []int64) ([]int64, error) {
-	main_teacher_ids := make([]int64, 0)
+	mainTeacherIDs := make([]int64, 0)
 	db := o.optionDB(ctx)
 	if len(courseIDs) == 0 {
-		result := db.Distinct("main_teacher_id").Pluck("main_teacher_id", &main_teacher_ids)
+		result := db.Distinct("main_teacher_id").Pluck("main_teacher_id", &mainTeacherIDs)
 		if result.Error != nil {
 			return nil, result.Error
 		}
-		return main_teacher_ids, nil
+		return mainTeacherIDs, nil
 	}
 	result := db.Where("id IN ?", courseIDs).
 		Group("training_plan_id").
-		Having("count(DISTINCT id) = ?", len(courseIDs)).Find(&main_teacher_ids)
+		Having("count(DISTINCT id) = ?", len(courseIDs)).Find(&mainTeacherIDs)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return main_teacher_ids, nil
+	return mainTeacherIDs, nil
 }
 
-func (o *OfferedCourseQuery) WithID(id int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("id = ?", id)
-	}
-}
-func (o *OfferedCourseQuery) WithIDs(ids []int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("id in ?", ids)
-	}
-}
-func (o *OfferedCourseQuery) WithCourseID(id int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("course_id = ?", id)
-	}
-}
-
-func (o *OfferedCourseQuery) WithMainTeacherID(id int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("main_teacher_id = ?", id)
-	}
-}
-
-func (o *OfferedCourseQuery) WithSemester(semester string) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("semester = ?", semester)
-	}
-}
-
-func NewOfferedCourseQuery() IOfferedCourseQuery {
-	return &OfferedCourseQuery{db: dal.GetDBClient()}
+func NewOfferedCourseQuery(db *gorm.DB) IOfferedCourseQuery {
+	return &OfferedCourseQuery{db: db}
 }

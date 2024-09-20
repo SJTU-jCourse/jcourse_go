@@ -56,7 +56,6 @@ func registerRouter(r *gin.Engine) {
 	userGroup.GET("/:userID/reviews", handler.GetUserReviewsHandler)
 	userGroup.POST("/:userID/watch", handler.WatchUserHandler)
 	userGroup.POST("/:userID/unwatch", handler.UnWatchUserHandler)
-	userGroup.GET("/:userID/profile", handler.GetUserProfileHandler)
 	userGroup.PUT("/:userID/profile", handler.UpdateUserProfileHandler)
 
 	adminGroup := needAuthGroup.Group("/admin")

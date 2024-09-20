@@ -1,24 +1,6 @@
 package dto
 
-import "time"
-
-type UserInReviewDTO struct {
-	ID       int64  `json:"id"`
-	Username string `json:"username"`
-	Avatar   string `json:"avatar"`
-}
-
-type ReviewDTO struct {
-	ID          int64             `json:"id"`
-	Course      CourseListItemDTO `json:"course"`
-	User        UserInReviewDTO   `json:"user"`
-	Comment     string            `json:"comment"`
-	Rating      int64             `json:"rating"`
-	Semester    string            `json:"semester"`
-	IsAnonymous bool              `json:"is_anonymous"`
-	CreatedAt   time.Time         `json:"created_at"`
-	UpdatedAt   time.Time         `json:"updated_at,omitempty"`
-}
+import "jcourse_go/model/model"
 
 type UpdateReviewDTO struct {
 	ID          int64  `json:"id"`
@@ -39,7 +21,7 @@ type ReviewListRequest struct {
 	SearchQuery string `json:"search_query" form:"search_query"`
 }
 
-type ReviewListResponse = BasePaginateResponse[ReviewDTO]
+type ReviewListResponse = BasePaginateResponse[model.Review]
 
 type ReviewDetailRequest struct {
 	ReviewID int64 `uri:"reviewID" binding:"required"`

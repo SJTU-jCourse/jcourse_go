@@ -1,8 +1,9 @@
 package util_test
 
 import (
-	"jcourse_go/util"
 	"testing"
+
+	"jcourse_go/util"
 
 	"github.com/stretchr/testify/assert"
 )

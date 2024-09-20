@@ -5,7 +5,8 @@ import (
 
 	"gorm.io/gorm"
 
-	"jcourse_go/dal"
+	"jcourse_go/model/converter"
+	"jcourse_go/model/model"
 	"jcourse_go/model/po"
 )
 
@@ -14,17 +15,9 @@ type IReviewQuery interface {
 	GetReviewDetail(ctx context.Context, opts ...DBOption) (*po.ReviewPO, error)
 	GetReviewList(ctx context.Context, opts ...DBOption) ([]po.ReviewPO, error)
 	CreateReview(ctx context.Context, review po.ReviewPO) (int64, error)
-	UpdateReview(ctx context.Context, review po.ReviewPO) (int64, error)
-	DeleteReview(ctx context.Context, opts ...DBOption) (int64, error)
+	UpdateReview(ctx context.Context, review po.ReviewPO) error
+	DeleteReview(ctx context.Context, opts ...DBOption) error
 	GetCourseReviewInfo(ctx context.Context, courseIDs []int64) (map[int64]po.CourseReviewInfo, error)
-	WithID(id int64) DBOption
-	WithCourseID(courseID int64) DBOption
-	WithUserID(userID int64) DBOption
-	WithSemester(semester string) DBOption
-	WithOrderBy(orderBy string, ascending bool) DBOption
-	WithLimit(limit int64) DBOption
-	WithOffset(offset int64) DBOption
-	WithSearch(query string) DBOption
 }
 
 type ReviewQuery struct {
@@ -58,18 +51,6 @@ func (c *ReviewQuery) GetReviewCount(ctx context.Context, opts ...DBOption) (int
 	return count, nil
 }
 
-func (c *ReviewQuery) WithLimit(limit int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Limit(int(limit))
-	}
-}
-
-func (c *ReviewQuery) WithOffset(offset int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Offset(int(offset))
-	}
-}
-
 func (c *ReviewQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
 	db := c.db.WithContext(ctx).Model(&po.ReviewPO{})
 	for _, opt := range opts {
@@ -99,57 +80,58 @@ func (c *ReviewQuery) GetReviewList(ctx context.Context, opts ...DBOption) ([]po
 }
 
 func (c *ReviewQuery) CreateReview(ctx context.Context, review po.ReviewPO) (int64, error) {
-	db := c.optionDB(ctx)
-	result := db.Create(&review)
-	return int64(review.ID), result.Error
-}
-
-func (c *ReviewQuery) UpdateReview(ctx context.Context, review po.ReviewPO) (int64, error) {
-	result := c.db.WithContext(ctx).Save(&review)
-	return result.RowsAffected, result.Error
-}
-
-func (c *ReviewQuery) DeleteReview(ctx context.Context, opts ...DBOption) (int64, error) {
-	db := c.optionDB(ctx, opts...)
-	result := db.Delete(&po.ReviewPO{})
-	return result.RowsAffected, result.Error
-}
-
-func (c *ReviewQuery) WithID(id int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("id = ?", id)
-	}
-}
-
-func (c *ReviewQuery) WithCourseID(courseID int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("course_id = ?", courseID)
-	}
-}
-
-func (c *ReviewQuery) WithUserID(userID int64) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("user_id = ?", userID)
-	}
-}
-
-func (c *ReviewQuery) WithSemester(semester string) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("semester = ?", semester)
-	}
-}
-
-func (c *ReviewQuery) WithOrderBy(orderBy string, ascending bool) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		if ascending {
-			orderBy = orderBy + " asc"
-		} else {
-			orderBy = orderBy + " desc"
+	db := c.db.WithContext(ctx)
+	ratingPO := converter.BuildRatingFromReview(review)
+	err := db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&po.ReviewPO{}).Create(&review).Error; err != nil {
+			return err
 		}
-		return db.Order(orderBy)
-	}
+		if err := tx.Model(&po.RatingPO{}).Create(&ratingPO).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+	return int64(review.ID), err
 }
 
-func NewReviewQuery() IReviewQuery {
-	return &ReviewQuery{db: dal.GetDBClient()}
+func (c *ReviewQuery) UpdateReview(ctx context.Context, review po.ReviewPO) error {
+	db := c.db.WithContext(ctx)
+	ratingPO := converter.BuildRatingFromReview(review)
+	err := db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&po.ReviewPO{}).Updates(&review).Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&po.RatingPO{}).Updates(&ratingPO).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+	return err
+}
+
+func (c *ReviewQuery) DeleteReview(ctx context.Context, opts ...DBOption) error {
+	db := c.optionDB(ctx, opts...)
+	reviews := make([]po.ReviewPO, 0)
+	err := db.Find(&reviews).Error
+	if err != nil {
+		return err
+	}
+	ids := make([]int64, 0)
+	for _, review := range reviews {
+		ids = append(ids, int64(review.ID))
+	}
+	err = db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Delete(&po.ReviewPO{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Delete(&po.RatingPO{}, "related_id in ? and related_type = ?", ids, model.RelatedTypeCourse).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+	return err
+}
+
+func NewReviewQuery(db *gorm.DB) IReviewQuery {
+	return &ReviewQuery{db: db}
 }

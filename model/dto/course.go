@@ -1,45 +1,9 @@
 package dto
 
-import "jcourse_go/model/domain"
-
-type BaseCourseDTO struct {
-	ID     int64   `json:"id"`
-	Code   string  `json:"code"`
-	Name   string  `json:"name"`
-	Credit float64 `json:"credit"`
-}
-
-type OfferedCourseDTO struct {
-	ID           int64        `json:"id"`
-	Semester     string       `json:"semester"`
-	Grade        []string     `json:"grade"`
-	Language     string       `json:"language"`
-	TeacherGroup []TeacherDTO `json:"teacher_group"`
-}
-
-type CourseDetailDTO struct {
-	ID            int64              `json:"id"`
-	Code          string             `json:"code"`
-	Name          string             `json:"name"`
-	Credit        float64            `json:"credit"`
-	MainTeacher   TeacherDTO         `json:"main_teacher"`
-	OfferedCourse []OfferedCourseDTO `json:"offered_courses"`
-	ReviewInfo    domain.RatingInfo  `json:"rating_info"`
-}
+import "jcourse_go/model/model"
 
 type CourseDetailRequest struct {
 	CourseID int64 `uri:"courseID" binding:"required"`
-}
-
-type CourseListItemDTO struct {
-	ID          int64             `json:"id"`
-	Code        string            `json:"code"`
-	Name        string            `json:"name"`
-	Credit      float64           `json:"credit"`
-	MainTeacher TeacherDTO        `json:"main_teacher"`
-	Categories  []string          `json:"categories"`
-	Department  string            `json:"department"`
-	ReviewInfo  domain.RatingInfo `json:"rating_info"`
 }
 
 type CourseListRequest struct {
@@ -51,4 +15,4 @@ type CourseListRequest struct {
 	SearchQuery string `json:"search_query" form:"search_query"`
 }
 
-type CourseListResponse = BasePaginateResponse[CourseListItemDTO]
+type CourseListResponse = BasePaginateResponse[model.CourseSummary]

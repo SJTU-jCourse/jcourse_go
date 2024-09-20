@@ -3,7 +3,6 @@ package rpc
 import (
 	"context"
 	"log"
-	"os"
 	"strconv"
 
 	"gopkg.in/gomail.v2"
@@ -15,16 +14,16 @@ func SendMail(ctx context.Context, recipient string, subject string, body string
 	if util.IsDebug() {
 		return nil
 	}
-	host := os.Getenv("SMTP_HOST")
-	portStr := os.Getenv("SMTP_PORT")
+	host := util.GetSMTPHost()
+	portStr := util.GetSMTPPort()
 	port, err := strconv.ParseInt(portStr, 10, 64)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	smtpSender := os.Getenv("SMTP_SENDER")
-	username := os.Getenv("SMTP_USERNAME")
-	password := os.Getenv("SMTP_PASSWORD")
+	smtpSender := util.GetSMTPSender()
+	username := util.GetSMTPUser()
+	password := util.GetSMTPPassword()
 
 	msg := gomail.NewMessage()
 	msg.SetHeader("From", smtpSender)

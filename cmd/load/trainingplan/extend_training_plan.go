@@ -2,12 +2,13 @@ package main
 
 import (
 	"errors"
-	"jcourse_go/dal"
-	"jcourse_go/model/po"
-	seleniumget "jcourse_go/util/selenium-get"
 	"log"
 	"os"
 	"strconv"
+
+	"jcourse_go/dal"
+	"jcourse_go/model/po"
+	seleniumget "jcourse_go/util/selenium-get"
 
 	"gorm.io/gorm"
 )
@@ -35,7 +36,7 @@ func main() {
 			Major:      tp.Name,
 			Department: tp.Department,
 			EntryYear:  strconv.Itoa(tp.EntryYear),
-			TotalYear:  tp.TotalYear,
+			TotalYear:  int64(tp.TotalYear),
 			MinCredits: tp.MinCredits,
 			MajorCode:  tp.Code,
 			MajorClass: tp.MajorClass,
@@ -57,7 +58,7 @@ func main() {
 			}
 			tpc_po := po.TrainingPlanCoursePO{
 				TrainingPlanID:  int64(tp_po.ID),
-				CourseID:        int64(course.ID),
+				BaseCourseID:    int64(course.ID),
 				SuggestSemester: c.SuggestSemester,
 				Department:      c.Department,
 			}

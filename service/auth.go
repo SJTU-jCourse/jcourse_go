@@ -11,27 +11,26 @@ import (
 	"github.com/SJTU-jCourse/password_hasher"
 
 	"jcourse_go/constant"
-	"jcourse_go/model/converter"
-	"jcourse_go/model/domain"
+	"jcourse_go/dal"
+	"jcourse_go/model/po"
 	"jcourse_go/repository"
 	"jcourse_go/rpc"
 )
 
-func Login(ctx context.Context, email string, password string) (*domain.User, error) {
+func Login(ctx context.Context, email string, password string) (*po.UserPO, error) {
 	passwordStore, err := password_hasher.MakeHashedPasswordStore(password)
 	if err != nil {
 		return nil, err
 	}
-	query := repository.NewUserQuery()
-	userPO, err := query.GetUserDetail(ctx, query.WithEmail(email), query.WithPassword(passwordStore))
-	if err != nil {
+	query := repository.NewUserQuery(dal.GetDBClient())
+	userPO, err := query.GetUser(ctx, repository.WithEmail(email), repository.WithPassword(passwordStore))
+	if err != nil || len(userPO) == 0 {
 		return nil, err
 	}
-	user := converter.ConvertUserPOToDomain(*userPO)
-	return &user, nil
+	return &userPO[0], nil
 }
 
-func Register(ctx context.Context, email string, password string, code string) (*domain.User, error) {
+func Register(ctx context.Context, email string, password string, code string) (*po.UserPO, error) {
 	storedCode, err := repository.GetVerifyCode(ctx, email)
 	if err != nil {
 		return nil, err
@@ -39,25 +38,24 @@ func Register(ctx context.Context, email string, password string, code string) (
 	if storedCode != code {
 		return nil, errors.New("verify code is wrong")
 	}
-	query := repository.NewUserQuery()
-	userPO, err := query.GetUserDetail(ctx, query.WithEmail(email))
+	query := repository.NewUserQuery(dal.GetDBClient())
+	userPOs, err := query.GetUser(ctx, repository.WithEmail(email))
 	if err != nil {
 		return nil, err
 	}
-	if userPO != nil {
+	if len(userPOs) > 0 {
 		return nil, errors.New("user exists for this email")
 	}
 	passwordStore, err := password_hasher.MakeHashedPasswordStore(password)
 	if err != nil {
 		return nil, err
 	}
-	userPO, err = query.CreateUser(ctx, email, passwordStore)
+	userPO, err := query.CreateUser(ctx, email, passwordStore)
 	if err != nil {
 		return nil, err
 	}
 	_ = repository.ClearVerifyCodeHistory(ctx, email)
-	user := converter.ConvertUserPOToDomain(*userPO)
-	return &user, nil
+	return userPO, nil
 }
 
 func ResetPassword(ctx context.Context, email string, password string, code string) error {
@@ -68,19 +66,19 @@ func ResetPassword(ctx context.Context, email string, password string, code stri
 	if storedCode != code {
 		return errors.New("verify code is wrong")
 	}
-	query := repository.NewUserQuery()
-	user, err := query.GetUserDetail(ctx, query.WithEmail(email))
+	query := repository.NewUserQuery(dal.GetDBClient())
+	user, err := query.GetUser(ctx, repository.WithEmail(email))
 	if err != nil {
 		return err
 	}
-	if user == nil {
+	if len(user) == 0 {
 		return errors.New("user does not exist for this email")
 	}
 	passwordStore, err := password_hasher.MakeHashedPasswordStore(password)
 	if err != nil {
 		return err
 	}
-	err = query.ResetUserPassword(ctx, int64(user.ID), passwordStore)
+	err = query.ResetUserPassword(ctx, int64(user[0].ID), passwordStore)
 	if err != nil {
 		return err
 	}
@@ -131,7 +129,7 @@ func ValidateEmail(email string) bool {
 		return false
 	}
 
-	// 2. validate specific email domain
+	// 2. validate specific email model
 	// TODO
 	return true
 }
