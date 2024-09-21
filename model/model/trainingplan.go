@@ -14,7 +14,6 @@ type TrainingPlanCourse struct {
 	BaseCourse
 	ID              int64  `json:"id"`
 	SuggestSemester string `json:"suggest_semester"`
-	Department      string `json:"department"`
 }
 
 type TrainingPlanSummary struct {

@@ -41,7 +41,7 @@ func LoadedCourse2PO(course LoadedCourse) (po.BaseCoursePO, po.TrainingPlanCours
 			Credit: float64(course.Credit),
 		}, po.TrainingPlanCoursePO{
 			SuggestSemester: course.SuggestSemester,
-			Department:      course.Department,
+			// Department:      course.Department,
 		}
 }
 func Line2Course(line string) LoadedCourse {

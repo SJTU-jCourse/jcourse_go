@@ -140,6 +140,43 @@ func createCourseCategories(db *gorm.DB) error {
 	return err
 }
 
+func createTrainingPlan(db *gorm.DB) error {
+	trainingPlans := []po.TrainingPlanPO{
+		{
+			Model:      gorm.Model{ID: 1},
+			Degree:     "本科",
+			Department: "SEIEE",
+			EntryYear:  "2020",
+			Major:      "计算机科学与技术",
+			MajorClass: "工学",
+		},
+	}
+	err := db.Create(&trainingPlans).Error
+	if err != nil {
+		return err
+	}
+
+	trainingPlanCourses := []po.TrainingPlanCoursePO{
+		{
+			TrainingPlanID: 1,
+			BaseCourseID:   1,
+		},
+		{
+			TrainingPlanID: 1,
+			BaseCourseID:   2,
+		},
+		{
+			TrainingPlanID: 1,
+			BaseCourseID:   3,
+		},
+	}
+	err = db.Create(&trainingPlanCourses).Error
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func CreateTestEnv(ctx context.Context, db *gorm.DB) error {
 	db = db.WithContext(ctx)
 	createFunc := []func(db *gorm.DB) error{
@@ -147,6 +184,7 @@ func CreateTestEnv(ctx context.Context, db *gorm.DB) error {
 		createTestTeacher,
 		createTestCourse,
 		createCourseCategories,
+		createTrainingPlan,
 	}
 	for _, fn := range createFunc {
 		err := fn(db)

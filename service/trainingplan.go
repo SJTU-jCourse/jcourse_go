@@ -24,7 +24,7 @@ func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*model.Tr
 	trainingPlan := converter.ConvertTrainingPlanDetailFromPO(trainingPlanPO)
 
 	courseQuery := repository.NewTrainingPlanCourseQuery(dal.GetDBClient())
-	courses, err := courseQuery.GetCourseListOfTrainingPlan(ctx, trainingPlanID)
+	courses, err := courseQuery.GetTrainingPlanCourseList(ctx, repository.WithTrainingPlanID(trainingPlanID))
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func buildTrainingPlanCourseDBOptionFromFilter(query repository.ITrainingPlanCou
 	}
 	return opts
 }
-func GetTrainingPlanCount(ctx context.Context, filter model.TrainingPlanFilter) int64 {
+func GetTrainingPlanCount(ctx context.Context, filter model.TrainingPlanFilter) (int64, error) {
 	trainingPlanQuery := repository.NewTrainingPlanQuery(dal.GetDBClient())
 	opts := buildTrainingPlanDBOptionFromFilter(trainingPlanQuery, filter)
 	return trainingPlanQuery.GetTrainingPlanCount(ctx, opts...)

@@ -60,7 +60,7 @@ func main() {
 				TrainingPlanID:  int64(tp_po.ID),
 				BaseCourseID:    int64(course.ID),
 				SuggestSemester: c.SuggestSemester,
-				Department:      c.Department,
+				// Department:      c.Department,
 			}
 			cresult = db.Model(po.TrainingPlanCoursePO{}).Create(&tpc_po)
 			if cresult.Error != nil {

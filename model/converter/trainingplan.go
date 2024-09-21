@@ -36,7 +36,6 @@ func ConvertTrainingPlanCourseFromPO(po po.TrainingPlanCoursePO) model.TrainingP
 		},
 		ID:              int64(po.ID),
 		SuggestSemester: po.SuggestSemester,
-		Department:      po.Department,
 	}
 }
 

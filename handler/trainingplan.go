@@ -63,7 +63,10 @@ func SearchTrainingPlanHandler(c *gin.Context) {
 		PageSize:   int64(request.PageSize),
 	}
 	trainingPlanList, err := service.SearchTrainingPlanList(c, filter)
-	count := service.GetTrainingPlanCount(c, filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+	}
+	count, err := service.GetTrainingPlanCount(c, filter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 	}
