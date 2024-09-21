@@ -13,7 +13,7 @@ var rdb *redis.Client
 
 func GetRedisDSN() string {
 	host := util.GetRedisHost()
-	port := util.GetPostgresPort()
+	port := util.GetRedisPort()
 	return fmt.Sprintf("%s:%s", host, port)
 }
 
