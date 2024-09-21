@@ -12,13 +12,23 @@ import (
 )
 
 type IBaseCourseQuery interface {
-	GetBaseCourse(ctx context.Context, opts ...DBOption) (*po.BaseCoursePO, error)
-	GetBaseCourseList(ctx context.Context, opts ...DBOption) ([]po.BaseCoursePO, error)
+	GetBaseCourse(ctx context.Context, opts ...DBOption) ([]po.BaseCoursePO, error)
+	GetBaseCourseCount(ctx context.Context, opts ...DBOption) (int64, error)
 	GetBaseCoursesByIDs(ctx context.Context, ids []int64) (map[int64]po.BaseCoursePO, error)
 }
 
 type BaseCourseQuery struct {
 	db *gorm.DB
+}
+
+func (b *BaseCourseQuery) GetBaseCourseCount(ctx context.Context, opts ...DBOption) (int64, error) {
+	db := b.optionDB(ctx, opts...)
+	var count int64
+	result := db.Model(&po.BaseCoursePO{}).Count(&count)
+	if result.Error != nil {
+		return 0, result.Error
+	}
+	return count, nil
 }
 
 func (b *BaseCourseQuery) GetBaseCoursesByIDs(ctx context.Context, ids []int64) (map[int64]po.BaseCoursePO, error) {
@@ -43,23 +53,10 @@ func (b *BaseCourseQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.
 	return db
 }
 
-func (b *BaseCourseQuery) GetBaseCourse(ctx context.Context, opts ...DBOption) (*po.BaseCoursePO, error) {
-	db := b.optionDB(ctx, opts...)
-	course := po.BaseCoursePO{}
-	result := db.Debug().First(&course)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil, nil
-	}
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return &course, nil
-}
-
-func (b *BaseCourseQuery) GetBaseCourseList(ctx context.Context, opts ...DBOption) ([]po.BaseCoursePO, error) {
+func (b *BaseCourseQuery) GetBaseCourse(ctx context.Context, opts ...DBOption) ([]po.BaseCoursePO, error) {
 	db := b.optionDB(ctx, opts...)
 	coursePOs := make([]po.BaseCoursePO, 0)
-	result := db.Debug().Find(&coursePOs)
+	result := db.Find(&coursePOs)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}

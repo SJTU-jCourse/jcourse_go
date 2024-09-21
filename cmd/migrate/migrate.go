@@ -4,17 +4,14 @@ import (
 	"github.com/joho/godotenv"
 
 	"jcourse_go/dal"
-	"jcourse_go/model/po"
+	"jcourse_go/repository"
 )
 
 func main() {
 	_ = godotenv.Load()
 	dal.InitDBClient()
 	db := dal.GetDBClient()
-	err := db.AutoMigrate(&po.UserPO{},
-		&po.BaseCoursePO{}, &po.CoursePO{}, &po.TeacherPO{}, &po.CourseCategoryPO{},
-		&po.OfferedCoursePO{}, &po.OfferedCourseTeacherPO{},
-		&po.ReviewPO{}, &po.RatingPO{}, &po.TrainingPlanPO{}, &po.TrainingPlanCoursePO{})
+	err := repository.Migrate(db)
 	if err != nil {
 		panic(err)
 	}
