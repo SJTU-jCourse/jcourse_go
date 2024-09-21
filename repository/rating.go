@@ -12,10 +12,20 @@ import (
 type IRatingQuery interface {
 	GetRatingInfo(ctx context.Context, relatedType model.RatingRelatedType, relatedID int64) (model.RatingInfo, error)
 	GetRatingInfoByIDs(ctx context.Context, relatedType model.RatingRelatedType, relatedIDs []int64) (map[int64]model.RatingInfo, error)
+	CreateRating(ctx context.Context, ratingPO po.RatingPO) error
 }
 
 type RatingQuery struct {
 	db *gorm.DB
+}
+
+func (r *RatingQuery) CreateRating(ctx context.Context, ratingPO po.RatingPO) error {
+	db := r.optionDB(ctx)
+	err := db.Create(&ratingPO).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *RatingQuery) GetRatingInfoByIDs(ctx context.Context, relatedType model.RatingRelatedType, relatedIDs []int64) (map[int64]model.RatingInfo, error) {

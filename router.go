@@ -28,10 +28,10 @@ func registerRouter(r *gin.Engine) {
 
 	courseGroup := needAuthGroup.Group("/course")
 	courseGroup.GET("", handler.GetCourseListHandler)
-	courseGroup.GET("/suggest", handler.GetSuggestedCourseHandler)
+	// courseGroup.GET("/suggest", handler.GetSuggestedCourseHandler)
 	courseGroup.GET("/:courseID", handler.GetCourseDetailHandler)
-	courseGroup.POST("/:courseID/watch", handler.WatchCourseHandler)
-	courseGroup.POST("/:courseID/unwatch", handler.UnWatchCourseHandler)
+	// courseGroup.POST("/:courseID/watch", handler.WatchCourseHandler)
+	// courseGroup.POST("/:courseID/unwatch", handler.UnWatchCourseHandler)
 
 	ratingGroup := needAuthGroup.Group("/rating")
 	ratingGroup.POST("", handler.CreateRatingHandler)
@@ -39,7 +39,7 @@ func registerRouter(r *gin.Engine) {
 	reviewGroup := needAuthGroup.Group("/review")
 	reviewGroup.GET("", handler.GetReviewListHandler)
 	reviewGroup.POST("", handler.CreateReviewHandler)
-	reviewGroup.GET("/suggest", handler.GetSuggestedReviewHandler)
+	// reviewGroup.GET("/suggest", handler.GetSuggestedReviewHandler)
 	reviewGroup.GET("/:reviewID", handler.GetReviewDetailHandler)
 	reviewGroup.PUT("/:reviewID", handler.UpdateReviewHandler)
 	reviewGroup.DELETE("/:reviewID", handler.DeleteReviewHandler)
@@ -50,17 +50,15 @@ func registerRouter(r *gin.Engine) {
 
 	userGroup := needAuthGroup.Group("/user")
 	userGroup.GET("", handler.GetUserListHandler)
-	userGroup.GET("/suggest", handler.GetSuggestedUserHandler)
+	// userGroup.GET("/suggest", handler.GetSuggestedUserHandler)
 	userGroup.GET("/:userID/summary", handler.GetUserSummaryHandler)
 	userGroup.GET("/:userID/detail", handler.GetUserDetailHandler)
 	userGroup.GET("/:userID/reviews", handler.GetUserReviewsHandler)
-	userGroup.POST("/:userID/watch", handler.WatchUserHandler)
-	userGroup.POST("/:userID/unwatch", handler.UnWatchUserHandler)
+	// userGroup.POST("/:userID/watch", handler.WatchUserHandler)
+	// userGroup.POST("/:userID/unwatch", handler.UnWatchUserHandler)
 	userGroup.PUT("/:userID/profile", handler.UpdateUserProfileHandler)
 
 	adminGroup := needAuthGroup.Group("/admin")
 	adminGroup.Use(middleware.RequireAdmin())
 	adminGroup.GET("/user", handler.AdminGetUserList)
-
-	adminGroup.GET("")
 }
