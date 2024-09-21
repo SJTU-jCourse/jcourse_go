@@ -9,7 +9,6 @@ import (
 	"jcourse_go/model/po"
 )
 
-// TODO: 暂时没有添加从ProfileDesc中搜索的功能
 type ITeacherQuery interface {
 	GetTeacher(ctx context.Context, opts ...DBOption) ([]po.TeacherPO, error)
 	GetTeacherCount(ctx context.Context, opts ...DBOption) (int64, error)
