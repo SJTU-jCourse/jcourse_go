@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"jcourse_go/constant"
 	"jcourse_go/middleware"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
@@ -31,7 +32,10 @@ func GetReviewDetailHandler(c *gin.Context) {
 }
 
 func GetReviewListHandler(c *gin.Context) {
-	var request dto.ReviewListRequest
+	var request = dto.ReviewListRequest{
+		Page:     constant.DefaultPage,
+		PageSize: constant.DefaultPageSize,
+	}
 	if err := c.ShouldBind(&request); err != nil {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return

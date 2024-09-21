@@ -14,6 +14,12 @@ func GetEnvDefault(key, defaultValue string) string {
 	return val
 }
 
+// === auth ===
+
+func IsNoLoginMode() bool {
+	return GetEnvDefault("NO_LOGIN_MODE", "") != ""
+}
+
 //  === db ===
 
 func GetPostgresHost() string {

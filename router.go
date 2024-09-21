@@ -3,6 +3,7 @@ package main
 import (
 	"jcourse_go/handler"
 	"jcourse_go/middleware"
+	"jcourse_go/util"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,7 +21,9 @@ func registerRouter(r *gin.Engine) {
 	authGroup.POST("/reset-password", handler.ResetPasswordHandler)
 
 	needAuthGroup := api.Group("")
-	needAuthGroup.Use(middleware.RequireAuth())
+	if !util.IsNoLoginMode() {
+		needAuthGroup.Use(middleware.RequireAuth())
+	}
 
 	teacherGroup := needAuthGroup.Group("/teacher")
 	teacherGroup.GET("", handler.GetTeacherListHandler)
