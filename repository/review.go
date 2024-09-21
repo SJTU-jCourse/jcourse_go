@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
@@ -12,8 +13,7 @@ import (
 
 type IReviewQuery interface {
 	GetReviewCount(ctx context.Context, opts ...DBOption) (int64, error)
-	GetReviewDetail(ctx context.Context, opts ...DBOption) (*po.ReviewPO, error)
-	GetReviewList(ctx context.Context, opts ...DBOption) ([]po.ReviewPO, error)
+	GetReview(ctx context.Context, opts ...DBOption) ([]po.ReviewPO, error)
 	CreateReview(ctx context.Context, review po.ReviewPO) (int64, error)
 	UpdateReview(ctx context.Context, review po.ReviewPO) error
 	DeleteReview(ctx context.Context, opts ...DBOption) error
@@ -59,17 +59,7 @@ func (c *ReviewQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
 	return db
 }
 
-func (c *ReviewQuery) GetReviewDetail(ctx context.Context, opts ...DBOption) (*po.ReviewPO, error) {
-	db := c.optionDB(ctx, opts...)
-	review := po.ReviewPO{}
-	result := db.WithContext(ctx).First(&review)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return &review, nil
-}
-
-func (c *ReviewQuery) GetReviewList(ctx context.Context, opts ...DBOption) ([]po.ReviewPO, error) {
+func (c *ReviewQuery) GetReview(ctx context.Context, opts ...DBOption) ([]po.ReviewPO, error) {
 	db := c.optionDB(ctx, opts...)
 	reviews := make([]po.ReviewPO, 0)
 	result := db.WithContext(ctx).Find(&reviews)
@@ -98,10 +88,12 @@ func (c *ReviewQuery) UpdateReview(ctx context.Context, review po.ReviewPO) erro
 	db := c.db.WithContext(ctx)
 	ratingPO := converter.BuildRatingFromReview(review)
 	err := db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&po.ReviewPO{}).Updates(&review).Error; err != nil {
+		if err := tx.Model(&po.ReviewPO{}).Where("id = ?", review.ID).Updates(&review).Error; err != nil {
 			return err
 		}
-		if err := tx.Model(&po.RatingPO{}).Updates(&ratingPO).Error; err != nil {
+		if err := tx.Model(&po.RatingPO{}).
+			Where("related_type = ? and related_id = ?", model.RelatedTypeCourse, review.ID).
+			Updates(&ratingPO).Error; err != nil {
 			return err
 		}
 		return nil
@@ -110,21 +102,22 @@ func (c *ReviewQuery) UpdateReview(ctx context.Context, review po.ReviewPO) erro
 }
 
 func (c *ReviewQuery) DeleteReview(ctx context.Context, opts ...DBOption) error {
-	db := c.optionDB(ctx, opts...)
-	reviews := make([]po.ReviewPO, 0)
-	err := db.Find(&reviews).Error
-	if err != nil {
-		return err
-	}
-	ids := make([]int64, 0)
-	for _, review := range reviews {
-		ids = append(ids, int64(review.ID))
-	}
-	err = db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Delete(&po.ReviewPO{}).Error; err != nil {
+	err := c.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		tx1 := tx.Session(&gorm.Session{})
+		for _, opt := range opts {
+			tx1 = opt(tx1)
+		}
+		reviews := make([]po.ReviewPO, 0)
+		if err := tx1.Model(&po.ReviewPO{}).Clauses(clause.Returning{}).Delete(&reviews).Error; err != nil {
 			return err
 		}
-		if err := tx.Delete(&po.RatingPO{}, "related_id in ? and related_type = ?", ids, model.RelatedTypeCourse).Error; err != nil {
+
+		ids := make([]int64, 0)
+		for _, review := range reviews {
+			ids = append(ids, int64(review.ID))
+		}
+		tx2 := tx.Session(&gorm.Session{})
+		if err := tx2.Model(&po.RatingPO{}).Delete(&po.RatingPO{}, "related_id in ? and related_type = ?", ids, model.RelatedTypeCourse).Error; err != nil {
 			return err
 		}
 		return nil

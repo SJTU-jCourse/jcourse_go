@@ -62,7 +62,7 @@ func (r *RatingQuery) GetRatingInfo(ctx context.Context, relatedType model.Ratin
 	res := model.RatingInfo{}
 	dists := make([]model.RatingInfoDistItem, 0)
 	db := r.optionDB(ctx)
-	err := db.Select("rating, count(id)").
+	err := db.Debug().Select("rating, count(*) as count").
 		Where("related_type = ? and related_id = ?", relatedType, relatedID).
 		Group("rating").
 		Find(&dists).Error

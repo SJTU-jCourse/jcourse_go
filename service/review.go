@@ -41,7 +41,7 @@ func buildReviewDBOptionFromFilter(query repository.IReviewQuery, filter model.R
 func GetReviewList(ctx context.Context, filter model.ReviewFilter) ([]model.Review, error) {
 	reviewQuery := repository.NewReviewQuery(dal.GetDBClient())
 	opts := buildReviewDBOptionFromFilter(reviewQuery, filter)
-	reviewPOs, err := reviewQuery.GetReviewList(ctx, opts...)
+	reviewPOs, err := reviewQuery.GetReview(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}

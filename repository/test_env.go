@@ -5,6 +5,7 @@ import (
 
 	"gorm.io/gorm"
 
+	"jcourse_go/model/model"
 	"jcourse_go/model/po"
 )
 
@@ -177,6 +178,68 @@ func createTrainingPlan(db *gorm.DB) error {
 	return nil
 }
 
+func createTestUser(db *gorm.DB) error {
+	users := []po.UserPO{
+		{
+			Model:    gorm.Model{ID: 1},
+			Username: "test1",
+			Email:    "test1@example.com",
+		},
+		{
+			Model:    gorm.Model{ID: 2},
+			Username: "test2",
+			Email:    "test2@example.com",
+		},
+		{
+			Model:    gorm.Model{ID: 3},
+			Username: "test3",
+			Email:    "test3@example.com",
+		},
+	}
+	err := db.Create(&users).Error
+	return err
+}
+
+func createTestReview(db *gorm.DB) error {
+	reviews := []po.ReviewPO{
+		{
+			Model:    gorm.Model{ID: 1},
+			CourseID: 1,
+			UserID:   1,
+			Comment:  "test review",
+			Rating:   5,
+		},
+		{
+			Model:    gorm.Model{ID: 2},
+			CourseID: 2,
+			UserID:   1,
+			Comment:  "test review",
+			Rating:   4,
+		},
+	}
+	err := db.Create(&reviews).Error
+	if err != nil {
+		return err
+	}
+	ratings := []po.RatingPO{
+		{
+			Rating:      5,
+			RelatedID:   1,
+			UserID:      1,
+			RelatedType: model.RelatedTypeCourse,
+		},
+		{
+			Rating:      5,
+			RelatedID:   2,
+			UserID:      1,
+			RelatedType: model.RelatedTypeCourse,
+		},
+	}
+
+	err = db.Create(&ratings).Error
+	return err
+}
+
 func CreateTestEnv(ctx context.Context, db *gorm.DB) error {
 	db = db.WithContext(ctx)
 	createFunc := []func(db *gorm.DB) error{
@@ -185,11 +248,13 @@ func CreateTestEnv(ctx context.Context, db *gorm.DB) error {
 		createTestCourse,
 		createCourseCategories,
 		createTrainingPlan,
+		createTestUser,
+		createTestReview,
 	}
 	for _, fn := range createFunc {
 		err := fn(db)
 		if err != nil {
-			return err
+			panic(err)
 		}
 	}
 	return nil
