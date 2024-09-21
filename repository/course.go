@@ -3,11 +3,9 @@ package repository
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"gorm.io/gorm"
 
-	"jcourse_go/dal"
 	"jcourse_go/model/po"
 )
 
@@ -101,13 +99,18 @@ func (c *CourseQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
 }
 
 func (c *CourseQuery) GetCourseCategories(ctx context.Context, courseIDs []int64) (map[int64][]string, error) {
+	courseCategoryMap := make(map[int64][]string)
+	for _, id := range courseIDs {
+		courseCategoryMap[id] = make([]string, 0)
+	}
+
 	db := c.db.WithContext(ctx).Model(po.CourseCategoryPO{})
 	courseCategoryPOs := make([]po.CourseCategoryPO, 0)
 	result := db.Where("course_id in ?", courseIDs).Find(&courseCategoryPOs)
 	if result.Error != nil {
-		return nil, result.Error
+		return courseCategoryMap, result.Error
 	}
-	courseCategoryMap := make(map[int64][]string)
+
 	for _, courseCategoryPO := range courseCategoryPOs {
 		categories, ok := courseCategoryMap[courseCategoryPO.CourseID]
 		if !ok {
@@ -122,9 +125,12 @@ func (c *CourseQuery) GetCourseCategories(ctx context.Context, courseIDs []int64
 func (c *CourseQuery) GetCourse(ctx context.Context, opts ...DBOption) ([]po.CoursePO, error) {
 	db := c.optionDB(ctx, opts...)
 	coursePOs := make([]po.CoursePO, 0)
-	result := db.Find(&coursePOs)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil, nil
+	err := db.Find(&coursePOs).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return coursePOs, nil
+	}
+	if err != nil {
+		return coursePOs, err
 	}
 	return coursePOs, nil
 }
@@ -139,8 +145,8 @@ func (c *CourseQuery) GetCourseCount(ctx context.Context, opts ...DBOption) (int
 	return count, nil
 }
 
-func NewCourseQuery() ICourseQuery {
-	return &CourseQuery{db: dal.GetDBClient()}
+func NewCourseQuery(db *gorm.DB) ICourseQuery {
+	return &CourseQuery{db: db}
 }
 
 type IOfferedCourseQuery interface {
@@ -152,17 +158,6 @@ type IOfferedCourseQuery interface {
 
 type OfferedCourseQuery struct {
 	db *gorm.DB
-}
-
-func (o *OfferedCourseQuery) WithOrderBy(field string, ascending bool) DBOption {
-	return func(db *gorm.DB) *gorm.DB {
-		if ascending {
-			field = fmt.Sprintf("%s %s", field, "asc")
-		} else {
-			field = fmt.Sprintf("%s %s", field, "desc")
-		}
-		return db.Order(field)
-	}
 }
 
 func (o *OfferedCourseQuery) GetOfferedCourseTeacherGroup(ctx context.Context, offeredCourseIDs []int64) (map[int64][]po.TeacherPO, error) {

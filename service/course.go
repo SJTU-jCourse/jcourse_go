@@ -15,7 +15,7 @@ func GetCourseDetail(ctx context.Context, courseID int64) (*model.CourseDetail, 
 	if courseID == 0 {
 		return nil, errors.New("course id is 0")
 	}
-	courseQuery := repository.NewCourseQuery()
+	courseQuery := repository.NewCourseQuery(dal.GetDBClient())
 	coursePOs, err := courseQuery.GetCourse(ctx, repository.WithID(courseID))
 	if err != nil || len(coursePOs) == 0 {
 		return nil, err
@@ -78,7 +78,7 @@ func buildCourseDBOptionFromFilter(query repository.ICourseQuery, filter model.C
 }
 
 func GetCourseList(ctx context.Context, filter model.CourseListFilter) ([]model.CourseSummary, error) {
-	query := repository.NewCourseQuery()
+	query := repository.NewCourseQuery(dal.GetDBClient())
 	opts := buildCourseDBOptionFromFilter(query, filter)
 
 	coursePOs, err := query.GetCourse(ctx, opts...)
@@ -113,7 +113,7 @@ func GetCourseList(ctx context.Context, filter model.CourseListFilter) ([]model.
 }
 
 func GetCourseCount(ctx context.Context, filter model.CourseListFilter) (int64, error) {
-	query := repository.NewCourseQuery()
+	query := repository.NewCourseQuery(dal.GetDBClient())
 	filter.Page, filter.PageSize = 0, 0
 	opts := buildCourseDBOptionFromFilter(query, filter)
 	return query.GetCourseCount(ctx, opts...)
@@ -124,7 +124,7 @@ func GetCourseByIDs(ctx context.Context, courseIDs []int64) (map[int64]model.Cou
 	if len(courseIDs) == 0 {
 		return result, nil
 	}
-	courseQuery := repository.NewCourseQuery()
+	courseQuery := repository.NewCourseQuery(dal.GetDBClient())
 	courseMap, err := courseQuery.GetCourseByIDs(ctx, courseIDs)
 	if err != nil {
 		return nil, err
