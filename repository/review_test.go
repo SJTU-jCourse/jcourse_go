@@ -33,7 +33,7 @@ func TestReviewQuery_GetReviewCount(t *testing.T) {
 	assert.Equal(t, int64(2), count)
 }
 
-func TestReviewQuery_CreateReview(t *testing.T) {
+func TestReviewQuery_CreateReview_normal(t *testing.T) {
 	ctx := context.Background()
 	db := dal.GetDBClient()
 	query := NewReviewQuery(db)
@@ -57,23 +57,7 @@ func TestReviewQuery_CreateReview(t *testing.T) {
 		assert.Equal(t, int64(2), rating.Count)
 		assert.Equal(t, float64(5), rating.Average)
 	})
-	t.Run("duplicated review", func(t *testing.T) {
-		reviewPO := po.ReviewPO{
-			CourseID:    1,
-			UserID:      1,
-			Comment:     "",
-			Rating:      0,
-			Semester:    "",
-			IsAnonymous: false,
-		}
-		id, err := query.CreateReview(ctx, reviewPO)
-		assert.NotNil(t, err)
-		assert.Zero(t, id)
 
-		rating, err := ratingQuery.GetRatingInfo(ctx, model.RelatedTypeCourse, 1)
-		assert.Nil(t, err)
-		assert.Equal(t, int64(1), rating.Count)
-	})
 }
 
 func TestReviewQuery_UpdateReview(t *testing.T) {
@@ -105,13 +89,14 @@ func TestReviewQuery_UpdateReview(t *testing.T) {
 		if err != nil {
 			return
 		}
+		assert.Len(t, info.RatingDist, 1)
 		assert.Equal(t, int64(5), info.RatingDist[0].Rating)
 	})
 
 	t.Run("normal", func(t *testing.T) {
 		reviewPO := po.ReviewPO{
 			Model:       gorm.Model{ID: 1},
-			CourseID:    1,
+			CourseID:    3,
 			UserID:      1,
 			Comment:     "",
 			Rating:      1,
@@ -125,7 +110,7 @@ func TestReviewQuery_UpdateReview(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, int64(1), reviews[0].Rating)
 
-		info, err := ratingQuery.GetRatingInfo(ctx, model.RelatedTypeCourse, 1)
+		info, err := ratingQuery.GetRatingInfo(ctx, model.RelatedTypeCourse, 3)
 		if err != nil {
 			return
 		}

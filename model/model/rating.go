@@ -3,7 +3,9 @@ package model
 type RatingRelatedType = string
 
 const (
-	RelatedTypeCourse RatingRelatedType = "course"
+	RelatedTypeCourse       RatingRelatedType = "course"
+	RelatedTypeTeacher      RatingRelatedType = "teacher"
+	RelatedTypeTrainingPlan RatingRelatedType = "training_plan"
 )
 
 type RatingInfoDistItemByID struct {

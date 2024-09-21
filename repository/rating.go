@@ -13,10 +13,22 @@ type IRatingQuery interface {
 	GetRatingInfo(ctx context.Context, relatedType model.RatingRelatedType, relatedID int64) (model.RatingInfo, error)
 	GetRatingInfoByIDs(ctx context.Context, relatedType model.RatingRelatedType, relatedIDs []int64) (map[int64]model.RatingInfo, error)
 	CreateRating(ctx context.Context, ratingPO po.RatingPO) error
+	UpdateRating(ctx context.Context, ratingPO po.RatingPO) error
+	DeleteRating(ctx context.Context, ratingPO po.RatingPO) error
 }
 
 type RatingQuery struct {
 	db *gorm.DB
+}
+
+func (r *RatingQuery) UpdateRating(ctx context.Context, ratingPO po.RatingPO) error {
+	db := r.optionDB(ctx)
+	return db.Where("user_id = ? and related_id = ? and related_type = ?", ratingPO.UserID, ratingPO.RelatedID, ratingPO.RelatedType).Updates(&ratingPO).Error
+}
+
+func (r *RatingQuery) DeleteRating(ctx context.Context, ratingPO po.RatingPO) error {
+	db := r.optionDB(ctx)
+	return db.Where("user_id = ? and related_type = ? and related_id = ?", ratingPO.UserID, ratingPO.RelatedType, ratingPO.RelatedID).Delete(&po.RatingPO{}).Error
 }
 
 func (r *RatingQuery) CreateRating(ctx context.Context, ratingPO po.RatingPO) error {
@@ -32,7 +44,7 @@ func (r *RatingQuery) GetRatingInfoByIDs(ctx context.Context, relatedType model.
 	res := make(map[int64]model.RatingInfo)
 	distByIDs := make([]model.RatingInfoDistItemByID, 0)
 	db := r.optionDB(ctx)
-	err := db.Select("rating, count(id)").
+	err := db.Select("rating, count(id) as count, related_id").
 		Where("related_type = ? and related_id in ?", relatedType, relatedIDs).
 		Group("rating").Group("related_id").
 		Find(&distByIDs).Error
@@ -45,6 +57,7 @@ func (r *RatingQuery) GetRatingInfoByIDs(ctx context.Context, relatedType model.
 			info = model.RatingInfo{RatingDist: make([]model.RatingInfoDistItem, 0)}
 		}
 		info.RatingDist = append(info.RatingDist, model.RatingInfoDistItem{Rating: dist.Rating, Count: dist.Count})
+		info.Calc()
 		res[dist.RelatedID] = info
 	}
 	return res, nil

@@ -234,6 +234,12 @@ func createTestReview(db *gorm.DB) error {
 			UserID:      1,
 			RelatedType: model.RelatedTypeCourse,
 		},
+		{
+			Rating:      5,
+			RelatedID:   2,
+			UserID:      1,
+			RelatedType: model.RelatedTypeTeacher,
+		},
 	}
 
 	err = db.Create(&ratings).Error
