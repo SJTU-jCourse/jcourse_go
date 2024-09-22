@@ -29,6 +29,9 @@ func registerRouter(r *gin.Engine) {
 	teacherGroup.GET("", handler.GetTeacherListHandler)
 	teacherGroup.GET("/:teacherID", handler.GetTeacherDetailHandler)
 
+	baseCourseGroup := needAuthGroup.Group("/base_course")
+	baseCourseGroup.GET("/:code", handler.GetBaseCourse)
+
 	courseGroup := needAuthGroup.Group("/course")
 	courseGroup.GET("", handler.GetCourseListHandler)
 	// courseGroup.GET("/suggest", handler.GetSuggestedCourseHandler)

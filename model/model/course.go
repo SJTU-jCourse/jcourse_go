@@ -16,12 +16,14 @@ type OfferedCourse struct {
 }
 
 type CourseListFilter struct {
-	Page        int64
-	PageSize    int64
-	Departments []string
-	Categories  []string
-	Credits     []float64
-	SearchQuery string
+	Page          int64
+	PageSize      int64
+	Code          string
+	MainTeacherID int64
+	Departments   []string
+	Categories    []string
+	Credits       []float64
+	SearchQuery   string
 }
 
 type CourseMinimal struct {

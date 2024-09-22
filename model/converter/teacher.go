@@ -16,7 +16,7 @@ func ConvertTeacherDetailFromPO(po po.TeacherPO) model.TeacherDetail {
 	}
 }
 
-func PackTeacherWithOfferedCourses(t *model.TeacherDetail, courses []model.OfferedCourse) {
+func PackTeacherWithCourses(t *model.TeacherDetail, courses []model.CourseSummary) {
 	t.Courses = courses
 }
 
@@ -27,4 +27,8 @@ func ConvertTeacherSummaryFromPO(po po.TeacherPO) model.TeacherSummary {
 		Department: po.Department,
 		Picture:    po.Picture,
 	}
+}
+
+func PackTeacherWithRatingInfo(t *model.TeacherSummary, rating model.RatingInfo) {
+	t.RatingInfo = rating
 }

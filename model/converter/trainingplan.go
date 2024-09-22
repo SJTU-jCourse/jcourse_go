@@ -42,3 +42,7 @@ func ConvertTrainingPlanCourseFromPO(po po.TrainingPlanCoursePO) model.TrainingP
 func PackTrainingPlanCourseWithBaseCourse(c *model.TrainingPlanCourse, course model.BaseCourse) {
 	c.BaseCourse = course
 }
+
+func PackTrainingPlanWithRatingInfo(t *model.TrainingPlanSummary, rating model.RatingInfo) {
+	t.RatingInfo = rating
+}

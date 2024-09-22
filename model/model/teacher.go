@@ -20,7 +20,7 @@ type TeacherDetail struct {
 	Title      string          `json:"title"`
 	ProfileURL string          `json:"profile_url"`
 	Biography  string          `json:"biography"`
-	Courses    []OfferedCourse `json:"courses"`
+	Courses    []CourseSummary `json:"courses"`
 }
 
 type TeacherSummary struct {
@@ -28,5 +28,5 @@ type TeacherSummary struct {
 	Name       string     `json:"name"`
 	Department string     `json:"department"`
 	Picture    string     `json:"picture"`
-	ReviewInfo RatingInfo `json:"rating_info"`
+	RatingInfo RatingInfo `json:"rating_info"`
 }

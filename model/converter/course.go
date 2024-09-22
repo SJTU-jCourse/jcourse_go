@@ -36,6 +36,13 @@ func ConvertCourseSummaryFromPO(po po.CoursePO) model.CourseSummary {
 	}
 }
 
+func ConvertCourseSummariesFromPO(pos []po.CoursePO) []model.CourseSummary {
+	res := make([]model.CourseSummary, 0)
+	for _, v := range pos {
+		res = append(res, ConvertCourseSummaryFromPO(v))
+	}
+	return res
+}
 func ConvertCourseDetailFromPO(po po.CoursePO) model.CourseDetail {
 	return model.CourseDetail{
 		CourseSummary: ConvertCourseSummaryFromPO(po),

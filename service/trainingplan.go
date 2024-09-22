@@ -8,6 +8,7 @@ import (
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
 	"jcourse_go/repository"
+	"jcourse_go/util"
 )
 
 func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*model.TrainingPlanDetail, error) {
@@ -46,6 +47,14 @@ func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*model.Tr
 		converter.PackTrainingPlanCourseWithBaseCourse(&course, baseCourse)
 		domainCourses = append(domainCourses, course)
 	}
+
+	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
+	info, err := ratingQuery.GetRatingInfo(ctx, model.RelatedTypeTrainingPlan, trainingPlanID)
+	if err != nil {
+		return nil, err
+	}
+	converter.PackTrainingPlanWithRatingInfo(&trainingPlan.TrainingPlanSummary, info)
+
 	converter.PackTrainingPlanDetailWithCourse(&trainingPlan, domainCourses)
 	return &trainingPlan, nil
 }
@@ -63,8 +72,12 @@ func buildTrainingPlanDBOptionFromFilter(query repository.ITrainingPlanQuery, fi
 	if filter.SearchQuery != "" {
 		opts = append(opts, repository.WithSearch(filter.SearchQuery))
 	}
-
-	opts = append(opts, repository.WithPaginate(filter.Page, filter.PageSize))
+	if filter.PageSize > 0 {
+		opts = append(opts, repository.WithLimit(filter.PageSize))
+	}
+	if filter.Page > 0 {
+		opts = append(opts, repository.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
+	}
 	return opts
 }
 func buildTrainingPlanCourseDBOptionFromFilter(query repository.ITrainingPlanCourseQuery, filter model.TrainingPlanFilter) []repository.DBOption {
@@ -96,13 +109,27 @@ func SearchTrainingPlanList(ctx context.Context, filter model.TrainingPlanFilter
 		}
 	*/
 
-	trainingPlans, err := trainingPlanQuery.GetTrainingPlan(ctx, tp_opts...)
+	trainingPlanPOs, err := trainingPlanQuery.GetTrainingPlan(ctx, tp_opts...)
 	if err != nil {
 		return nil, err
 	}
+
+	trainingPlanIDs := make([]int64, 0)
+	for _, tp := range trainingPlanPOs {
+		trainingPlanIDs = append(trainingPlanIDs, int64(tp.ID))
+	}
+
+	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
+	infos, err := ratingQuery.GetRatingInfoByIDs(ctx, model.RelatedTypeTrainingPlan, trainingPlanIDs)
+	if err != nil {
+		return nil, err
+	}
+
 	result := make([]model.TrainingPlanSummary, 0)
-	for _, tp := range trainingPlans {
-		result = append(result, converter.ConvertTrainingPlanSummaryFromPO(tp))
+	for _, tpPO := range trainingPlanPOs {
+		tp := converter.ConvertTrainingPlanSummaryFromPO(tpPO)
+		converter.PackTrainingPlanWithRatingInfo(&tp, infos[tp.ID])
+		result = append(result, tp)
 	}
 	return result, nil
 }

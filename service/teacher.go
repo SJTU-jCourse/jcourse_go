@@ -8,6 +8,7 @@ import (
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
 	"jcourse_go/repository"
+	"jcourse_go/util"
 )
 
 func GetTeacherDetail(ctx context.Context, teacherID int64) (*model.TeacherDetail, error) {
@@ -23,13 +24,19 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*model.TeacherDetai
 	teacherPO := teacherPOs[0]
 	teacher := converter.ConvertTeacherDetailFromPO(teacherPO)
 
-	courseQuery := repository.NewOfferedCourseQuery(dal.GetDBClient())
-	coursePOs, err := courseQuery.GetOfferedCourse(ctx, repository.WithMainTeacherID(teacherID))
+	courses, err := GetCourseList(ctx, model.CourseListFilter{MainTeacherID: teacherID})
 	if err != nil {
 		return nil, err
 	}
-	courses := converter.ConvertOfferedCoursesFromPOs(coursePOs)
-	converter.PackTeacherWithOfferedCourses(&teacher, courses)
+	converter.PackTeacherWithCourses(&teacher, courses)
+
+	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
+	info, err := ratingQuery.GetRatingInfo(ctx, model.RelatedTypeTeacher, teacherID)
+	if err != nil {
+		return nil, err
+	}
+	converter.PackTeacherWithRatingInfo(&teacher.TeacherSummary, info)
+
 	return &teacher, nil
 }
 
@@ -56,8 +63,12 @@ func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter model
 	if filter.SearchQuery != "" {
 		opts = append(opts, repository.WithSearch(filter.SearchQuery))
 	}
-
-	opts = append(opts, repository.WithPaginate(filter.Page, filter.PageSize))
+	if filter.PageSize > 0 {
+		opts = append(opts, repository.WithLimit(filter.PageSize))
+	}
+	if filter.Page > 0 {
+		opts = append(opts, repository.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
+	}
 	return opts
 }
 
@@ -77,9 +88,21 @@ func SearchTeacherList(ctx context.Context, filter model.TeacherListFilter) ([]m
 		return nil, err
 	}
 
+	teacherIDs := make([]int64, 0)
+	for _, teacher := range teachers {
+		teacherIDs = append(teacherIDs, int64(teacher.ID))
+	}
+
+	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
+	infos, err := ratingQuery.GetRatingInfoByIDs(ctx, model.RelatedTypeTeacher, teacherIDs)
+	if err != nil {
+		return nil, err
+	}
+
 	domainTeachers := make([]model.TeacherSummary, 0)
 	for _, t := range teachers {
 		teacherDomain := converter.ConvertTeacherSummaryFromPO(t)
+		converter.PackTeacherWithRatingInfo(&teacherDomain, infos[teacherDomain.ID])
 		domainTeachers = append(domainTeachers, teacherDomain)
 	}
 	return domainTeachers, nil
@@ -90,18 +113,4 @@ func GetTeacherCount(ctx context.Context, filter model.TeacherListFilter) (int64
 	filter.Page, filter.PageSize = 0, 0
 	opts := buildTeacherDBOptionFromFilter(query, filter)
 	return query.GetTeacherCount(ctx, opts...)
-}
-
-func GetTeacherListByIDs(ctx context.Context, teacherIDs []int64) (map[int64]model.TeacherSummary, error) {
-	teacherQuery := repository.NewTeacherQuery(dal.GetDBClient())
-	teachers, err := teacherQuery.GetTeacher(ctx, repository.WithIDs(teacherIDs))
-	if err != nil {
-		return nil, err
-	}
-
-	domainTeachers := make(map[int64]model.TeacherSummary)
-	for _, t := range teachers {
-		domainTeachers[int64(t.ID)] = converter.ConvertTeacherSummaryFromPO(t)
-	}
-	return domainTeachers, nil
 }

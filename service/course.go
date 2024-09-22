@@ -71,6 +71,12 @@ func buildCourseDBOptionFromFilter(query repository.ICourseQuery, filter model.C
 	if len(filter.Credits) > 0 {
 		opts = append(opts, repository.WithCredits(filter.Credits))
 	}
+	if filter.Code != "" {
+		opts = append(opts, repository.WithCode(filter.Code))
+	}
+	if filter.MainTeacherID > 0 {
+		opts = append(opts, repository.WithMainTeacherID(filter.MainTeacherID))
+	}
 	if filter.SearchQuery != "" {
 		opts = append(opts, repository.WithSearch(filter.SearchQuery))
 	}
@@ -133,4 +139,17 @@ func GetCourseByIDs(ctx context.Context, courseIDs []int64) (map[int64]model.Cou
 		result[int64(course.ID)] = converter.ConvertCourseSummaryFromPO(course)
 	}
 	return result, nil
+}
+
+func GetBaseCourse(ctx context.Context, code string) (*model.BaseCourse, error) {
+	query := repository.NewBaseCourseQuery(dal.GetDBClient())
+	baseCourses, err := query.GetBaseCourse(ctx, repository.WithCode(code))
+	if err != nil {
+		return nil, err
+	}
+	if len(baseCourses) == 0 {
+		return nil, errors.New("no base course")
+	}
+	baseCourse := converter.ConvertBaseCourseFromPO(baseCourses[0])
+	return &baseCourse, nil
 }
