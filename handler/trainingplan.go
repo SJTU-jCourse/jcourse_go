@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 
 	"jcourse_go/model/dto"
@@ -57,7 +56,7 @@ func SearchTrainingPlanHandler(c *gin.Context) {
 	}
 	filter := model.TrainingPlanFilter{
 		Major:      request.MajorName,
-		EntryYear:  fmt.Sprintf("%d", request.EntryYear),
+		EntryYear:  request.EntryYear,
 		Department: request.Department,
 		Page:       int64(request.Page),
 		PageSize:   int64(request.PageSize),

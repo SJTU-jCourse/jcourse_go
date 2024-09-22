@@ -10,7 +10,7 @@ type TrainingPlanDetailRequest struct {
 	TrainingPlanID int64 `uri:"trainingPlanID" binding:"required"`
 }
 type TrainingPlanListQueryRequest struct {
-	EntryYear     int64  `json:"entry_year" form:"entry_year"`
+	EntryYear     string `json:"entry_year" form:"entry_year"`
 	Department    string `json:"department" form:"department"`
 	MajorName     string `json:"major_name" form:"major_name"`
 	MajorCode     string `json:"major_code" form:"major_code"`

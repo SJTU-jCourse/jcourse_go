@@ -11,9 +11,10 @@ type TrainingPlanFilter struct {
 }
 
 type TrainingPlanCourse struct {
-	BaseCourse
-	ID              int64  `json:"id"`
-	SuggestSemester string `json:"suggest_semester"`
+	BaseCourse      BaseCourse `json:"base_course"`
+	ID              int64      `json:"id"`
+	SuggestSemester string     `json:"suggest_semester"`
+	Category        string     `json:"category"`
 }
 
 type TrainingPlanSummary struct {

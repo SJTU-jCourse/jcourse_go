@@ -26,6 +26,7 @@ type TrainingPlanCoursePO struct {
 	TrainingPlanID int64 `gorm:"index;index:uniq_training_plan_course,unique"`
 	// SuggestSemester:year+semester e.g. 2023-2024-2
 	SuggestSemester string `gorm:"index;index:uniq_training_plan_course,unique"`
+	Category        string `gorm:"index;"`
 }
 
 func (po *TrainingPlanCoursePO) TableName() string {

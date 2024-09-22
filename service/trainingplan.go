@@ -89,6 +89,7 @@ func buildTrainingPlanCourseDBOptionFromFilter(query repository.ITrainingPlanCou
 }
 func GetTrainingPlanCount(ctx context.Context, filter model.TrainingPlanFilter) (int64, error) {
 	trainingPlanQuery := repository.NewTrainingPlanQuery(dal.GetDBClient())
+	filter.PageSize, filter.Page = 0, 0
 	opts := buildTrainingPlanDBOptionFromFilter(trainingPlanQuery, filter)
 	return trainingPlanQuery.GetTrainingPlanCount(ctx, opts...)
 }

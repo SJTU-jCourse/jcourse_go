@@ -4,16 +4,19 @@ import (
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
+
 	"jcourse_go/dal"
 	"jcourse_go/model/po"
 	seleniumget "jcourse_go/util/selenium-get"
 )
 
 func main() {
+	_ = godotenv.Load()
 	dal.InitDBClient()
 	db := dal.GetDBClient()
 	extend_teacher_data_path := "./data/teachers.json"
-	log_file, err := os.OpenFile("./log/logfile.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	log_file, err := os.OpenFile("./data/logfile.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		panic(err)
 	}
