@@ -10,8 +10,8 @@ type OptCourseReviewResponse struct {
 	Result     *string `json:"result"`
 }
 
-type VectorizeCourseReviewsRequest struct {
-	CourseID int64 `uri:"courseID" binding:"required"`
+type GetCourseSummaryResponse struct {
+	Summary *string `json:"summary"`
 }
 
 type GetMatchCourseRequest struct {

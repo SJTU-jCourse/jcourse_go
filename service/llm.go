@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"jcourse_go/constant"
 	"jcourse_go/model/converter"
@@ -25,7 +24,6 @@ func OptCourseReview(courseName string, reviewContent string) (dto.OptCourseRevi
 		fmt.Println(err)
 		return dto.OptCourseReviewResponse{}, err
 	}
-	// 构造提示词生成对话
 	inputJson, _ := json.Marshal(map[string]string{
 		"course": courseName,
 		"review": reviewContent,
@@ -51,10 +49,75 @@ func OptCourseReview(courseName string, reviewContent string) (dto.OptCourseRevi
 	return response, err
 }
 
-func VectorizeCourseReviews(ctx context.Context, courseID int64) error {
-	if courseID == 0 {
-		return errors.New("course id is 0")
+func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummaryResponse, error) {
+	courseQuery := repository.NewCourseQuery()
+	coursePO, err := courseQuery.GetCourse(ctx, courseQuery.WithID(courseID))
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
 	}
+
+	offeredCourseQuery := repository.NewOfferedCourseQuery()
+	offeredCoursePOs, err := offeredCourseQuery.GetOfferedCourseTeacherGroup(ctx, []int64{courseID})
+	if err != nil {
+		return nil, err
+	}
+
+	reviewQuery := repository.NewReviewQuery()
+	infos, err := reviewQuery.GetCourseReviewInfo(ctx, []int64{courseID})
+	if err != nil {
+		return nil, err
+	}
+
+	filter := domain.ReviewFilter{
+		CourseID: courseID,
+		Page:     0,
+		PageSize: 100,
+	}
+
+	reviews, err := GetReviewList(ctx, filter)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	llm, err := openai.New()
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	inputJson, _ := json.Marshal(map[string]any{
+		"courseName":    coursePO.Name,
+		"teacherGroup":  offeredCoursePOs[courseID],
+		"ratingAverage": infos[courseID].Average,
+		"ratingCount":   infos[courseID].Count,
+		"recentReviews": reviews,
+	})
+
+	content := []llms.MessageContent{
+		llms.TextParts(llms.ChatMessageTypeSystem, constant.GetCourseSummaryPrompt),
+		llms.TextParts(llms.ChatMessageTypeHuman, string(inputJson)),
+	}
+
+	completion, err := llm.GenerateContent(
+		context.Background(),
+		content,
+	)
+
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	var response dto.GetCourseSummaryResponse
+	err = json.Unmarshal([]byte(completion.Choices[0].Content), &response)
+
+	return &response, err
+
+}
+
+func VectorizeCourseReviews(ctx context.Context, courseID int64) error {
 	courseQuery := repository.NewCourseQuery()
 	coursePO, err := courseQuery.GetCourse(ctx, courseQuery.WithID(courseID))
 	if err != nil {

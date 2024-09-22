@@ -26,9 +26,24 @@ func OptCourseReviewHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
+func GetCourseSummaryHandler(c *gin.Context) {
+	var request dto.CourseDetailRequest
+	if err := c.ShouldBindUri(&request); err != nil {
+		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "参数错误"})
+		return
+	}
 
+	response, err := service.GetCourseSummary(c, request.CourseID)
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		return
+	}
+
+	c.JSON(http.StatusOK, response)
+}
 func VectorizeCourseReviewsHandler(c *gin.Context) {
-	var request dto.VectorizeCourseReviewsRequest
+	var request dto.CourseDetailRequest
 	if err := c.ShouldBindUri(&request); err != nil {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "参数错误"})
 		return
@@ -39,9 +54,9 @@ func VectorizeCourseReviewsHandler(c *gin.Context) {
 		fmt.Println(err)
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 		return
-	} else {
-		c.JSON(http.StatusOK, dto.BaseResponse{Message: "向量化成功"})
 	}
+
+	c.JSON(http.StatusOK, dto.BaseResponse{Message: "向量化成功"})
 }
 
 func GetMatchCoursesHandler(c *gin.Context) {
