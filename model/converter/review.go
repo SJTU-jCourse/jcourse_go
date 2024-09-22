@@ -24,18 +24,19 @@ func ConvertReviewFromPO(po po.ReviewPO) model.Review {
 	}
 }
 
-func RemoveReviewUserInfo(review *model.Review, hideUser bool) {
+func RemoveReviewUserInfo(review *model.Review, userID int64, hideUser bool) {
 	if review == nil {
 		return
 	}
-	if hideUser && review.IsAnonymous {
+	// 本人点评不隐藏
+	if hideUser && review.IsAnonymous && review.User.ID != userID {
 		review.User = model.UserMinimal{}
 	}
 }
 
-func RemoveReviewsUserInfo(reviews []model.Review, hideUser bool) {
+func RemoveReviewsUserInfo(reviews []model.Review, userID int64, hideUser bool) {
 	for i := range reviews {
-		RemoveReviewUserInfo(&reviews[i], hideUser)
+		RemoveReviewUserInfo(&reviews[i], userID, hideUser)
 	}
 }
 

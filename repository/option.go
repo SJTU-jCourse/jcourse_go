@@ -26,6 +26,12 @@ func WithOffset(offset int64) DBOption {
 	}
 }
 
+func WithNotAnonymous() DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("is_anonymous = ?", false)
+	}
+}
+
 func WithEmail(email string) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("email = ?", email)

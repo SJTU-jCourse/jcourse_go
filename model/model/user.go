@@ -24,13 +24,14 @@ type UserDetail struct {
 	UserMinimal
 	Bio        string `json:"bio"`
 	Email      string `json:"email"`
-	Role       string `json:"user_role"`
+	Role       string `json:"role"`
+	Type       string `json:"type"`
 	Department string `json:"department"`
 	Major      string `json:"major"`
 	Grade      string `json:"grade"`
 }
 
-type UserSummary struct {
+type UserActivity struct {
 	ReviewCount          int64 `json:"review_count"`
 	LikeReceive          int64 `json:"like_receive"`
 	TipReceive           int64 `json:"tip_receive"`

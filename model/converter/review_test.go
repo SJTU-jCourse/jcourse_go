@@ -28,7 +28,7 @@ func TestRemoveReviewUserInfo(t *testing.T) {
 	for i := range reviews {
 		r := reviews[i]
 		hide := hides[i]
-		RemoveReviewUserInfo(&r, hide)
+		RemoveReviewUserInfo(&r, 0, hide)
 		assert.Equal(t, expected[i], r.User.ID)
 	}
 }
@@ -38,6 +38,6 @@ func TestRemoveReviewsUserInfo(t *testing.T) {
 		User:        model.UserMinimal{ID: 1},
 		IsAnonymous: true,
 	}}
-	RemoveReviewsUserInfo(reviews, true)
+	RemoveReviewsUserInfo(reviews, 0, true)
 	assert.Equal(t, int64(0), reviews[0].User.ID)
 }

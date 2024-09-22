@@ -3,13 +3,14 @@ package model
 import "time"
 
 type ReviewFilter struct {
-	Page        int64
-	PageSize    int64
-	CourseID    int64
-	Semester    string
-	UserID      int64
-	ReviewID    int64
-	SearchQuery string
+	Page             int64
+	PageSize         int64
+	CourseID         int64
+	Semester         string
+	UserID           int64
+	ReviewID         int64
+	IncludeAnonymous bool
+	SearchQuery      string
 }
 
 type Review struct {

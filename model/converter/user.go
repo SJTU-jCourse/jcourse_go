@@ -11,6 +11,7 @@ func ConvertUserDetailFromPO(po po.UserPO) model.UserDetail {
 		UserMinimal: ConvertUserMinimalFromPO(po),
 		Bio:         po.Bio,
 		Email:       po.Email,
+		Type:        po.Type,
 		Role:        po.UserRole,
 		Department:  po.Department,
 		Major:       po.Major,
@@ -29,7 +30,7 @@ func ConvertUserMinimalFromPO(po po.UserPO) model.UserMinimal {
 func ConvertUserProfileToPO(dto dto.UserProfileDTO) po.UserPO {
 	return po.UserPO{
 		Username:   dto.Username,
-		UserRole:   dto.Role,
+		Type:       dto.Type,
 		Avatar:     dto.Avatar,
 		Department: dto.Department,
 		Major:      dto.Major,
@@ -37,4 +38,11 @@ func ConvertUserProfileToPO(dto dto.UserProfileDTO) po.UserPO {
 		Grade:      dto.Grade,
 		Bio:        dto.Bio,
 	}
+}
+
+func RemoveUserEmail(u *model.UserDetail, userID int64) {
+	if u.ID == userID {
+		return
+	}
+	u.Email = ""
 }

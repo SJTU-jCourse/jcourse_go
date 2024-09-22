@@ -7,6 +7,7 @@ import (
 
 	"jcourse_go/constant"
 	"jcourse_go/middleware"
+	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/service"
@@ -51,7 +52,7 @@ func getUserIDFromRequest(c *gin.Context) (int64, error) {
 }
 
 // 非公开信息？
-func GetUserSummaryHandler(c *gin.Context) {
+func GetUserActivityHandler(c *gin.Context) {
 	userID, err := getUserIDFromRequest(c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "非法用户ID"})
@@ -69,7 +70,7 @@ func GetUserSummaryHandler(c *gin.Context) {
 		return
 	}
 
-	userSummary, err := service.GetUserSummaryByID(c, user.ID)
+	userSummary, err := service.GetUserActivityByID(c, user.ID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "此用户不存在！"})
 		return
@@ -85,12 +86,18 @@ func GetUserDetailHandler(c *gin.Context) {
 		return
 	}
 
+	currentUserID := int64(0)
+	currentUser := middleware.GetCurrentUser(c)
+	if currentUser != nil {
+		currentUserID = currentUser.ID
+	}
+
 	user, err := service.GetUserDetailByID(c, userID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "此用户不存在！"})
 		return
 	}
-
+	converter.RemoveUserEmail(user, currentUserID)
 	c.JSON(http.StatusOK, user)
 }
 

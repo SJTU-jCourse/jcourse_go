@@ -35,6 +35,9 @@ func buildReviewDBOptionFromFilter(query repository.IReviewQuery, filter model.R
 	if filter.SearchQuery != "" {
 		opts = append(opts, repository.WithSearch(filter.SearchQuery))
 	}
+	if !filter.IncludeAnonymous {
+		opts = append(opts, repository.WithNotAnonymous())
+	}
 	return opts
 }
 

@@ -6,7 +6,7 @@ type UserProfileDTO struct {
 	Username   string `json:"username"`
 	Avatar     string `json:"avatar"`
 	Bio        string `json:"bio"`
-	Role       string `json:"user_role"`
+	Type       string `json:"type"`
 	Department string `json:"department"`
 	Major      string `json:"major"`
 	Grade      string `json:"grade"`

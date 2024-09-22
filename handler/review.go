@@ -44,6 +44,17 @@ func GetReviewListHandler(c *gin.Context) {
 	filter := model.ReviewFilter{
 		Page:     request.Page,
 		PageSize: request.PageSize,
+		UserID:   request.UserID,
+	}
+
+	// 非本人不可看匿名点评
+	currentUserID := int64(0)
+	user := middleware.GetCurrentUser(c)
+	if user == nil || user.ID != request.UserID {
+		filter.IncludeAnonymous = false
+	}
+	if user != nil {
+		currentUserID = user.ID
 	}
 
 	reviews, err := service.GetReviewList(c, filter)
@@ -57,7 +68,7 @@ func GetReviewListHandler(c *gin.Context) {
 		return
 	}
 
-	converter.RemoveReviewsUserInfo(reviews, true)
+	converter.RemoveReviewsUserInfo(reviews, currentUserID, true)
 
 	response := dto.ReviewListResponse{
 		Page:     request.Page,
@@ -127,46 +138,4 @@ func DeleteReviewHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, dto.DeleteReviewResponse{ReviewID: request.ReviewID}) // nolint: gosimple
-}
-
-func GetReviewListForCourseHandler(c *gin.Context) {}
-
-func GetUserReviewsHandler(c *gin.Context) {
-	userID, err := getUserIDFromRequest(c)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "非法用户ID"})
-		return
-	}
-
-	var request dto.ReviewListRequest
-	if err := c.ShouldBind(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
-		return
-	}
-
-	filter := model.ReviewFilter{
-		Page:     request.Page,
-		PageSize: request.PageSize,
-		UserID:   userID,
-	}
-
-	reviews, err := service.GetReviewList(c, filter)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
-		return
-	}
-
-	total, err := service.GetReviewCount(c, filter)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
-		return
-	}
-
-	response := dto.ReviewListResponse{
-		Page:     request.Page,
-		PageSize: request.PageSize,
-		Total:    total,
-		Data:     reviews,
-	}
-	c.JSON(http.StatusOK, response)
 }

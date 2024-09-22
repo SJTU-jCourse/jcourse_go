@@ -13,7 +13,7 @@ import (
 	"jcourse_go/repository"
 )
 
-func GetUserSummaryByID(ctx context.Context, userID int64) (*model.UserSummary, error) {
+func GetUserActivityByID(ctx context.Context, userID int64) (*model.UserActivity, error) {
 	// filter := model.ReviewFilter{
 	// 	UserID: userID,
 	// }
@@ -23,7 +23,7 @@ func GetUserSummaryByID(ctx context.Context, userID int64) (*model.UserSummary, 
 
 	// 获取用户收到的赞数、被打赏积分数、关注的课程数
 
-	return nil, nil
+	return &model.UserActivity{}, nil
 }
 
 func GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]model.UserMinimal, error) {
