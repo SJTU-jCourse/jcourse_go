@@ -8,6 +8,7 @@ type SettingPO struct {
 	Type      string
 	Value     string
 	UpdatedBy int64 // user id
+	Client    bool  // should client side fetch
 }
 
 func (po *SettingPO) TableName() string {

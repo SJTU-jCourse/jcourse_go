@@ -30,10 +30,28 @@ func GetSettingFromPO(po po.SettingPO) (s model.Setting, err error) {
 type ISettingQuery interface {
 	GetSetting(ctx context.Context, key string) (model.Setting, error)
 	SetSetting(ctx context.Context, userID int64, setting model.Setting) error
+	GetClientSettings(ctx context.Context) ([]model.Setting, error)
 }
 
 type SettingQuery struct {
 	db *gorm.DB
+}
+
+func (s *SettingQuery) GetClientSettings(ctx context.Context) ([]model.Setting, error) {
+	var settingPOs []po.SettingPO
+	err := s.db.WithContext(ctx).Model(&po.SettingPO{}).Where("client = true").Find(&settingPOs).Error
+	if err != nil {
+		return nil, err
+	}
+	res := make([]model.Setting, 0, len(settingPOs))
+	for _, settingPO := range settingPOs {
+		setting, err := GetSettingFromPO(settingPO)
+		if err != nil {
+			continue
+		}
+		res = append(res, setting)
+	}
+	return res, nil
 }
 
 func (s *SettingQuery) SetSetting(ctx context.Context, userID int64, setting model.Setting) error {

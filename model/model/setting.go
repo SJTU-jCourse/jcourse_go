@@ -15,6 +15,8 @@ const (
 )
 
 type Setting interface {
+	GetKey() string
+	GetValue() any
 	ToPO() po.SettingPO
 	FromPO(po.SettingPO) error
 }
@@ -22,6 +24,14 @@ type Setting interface {
 type StringSetting struct {
 	Key   string
 	Value string
+}
+
+func (s *StringSetting) GetKey() string {
+	return s.Key
+}
+
+func (s *StringSetting) GetValue() any {
+	return s.Value
 }
 
 func (s *StringSetting) ToPO() po.SettingPO {
@@ -43,6 +53,14 @@ type IntSetting struct {
 	Value int64
 }
 
+func (s *IntSetting) GetKey() string {
+	return s.Key
+}
+
+func (s *IntSetting) GetValue() any {
+	return s.Value
+}
+
 func (s *IntSetting) ToPO() po.SettingPO {
 	return po.SettingPO{
 		Key:   s.Key,
@@ -60,6 +78,14 @@ func (s *IntSetting) FromPO(po po.SettingPO) (err error) {
 type BoolSetting struct {
 	Key   string
 	Value bool
+}
+
+func (s *BoolSetting) GetKey() string {
+	return s.Key
+}
+
+func (s *BoolSetting) GetValue() any {
+	return s.Value
 }
 
 func (s *BoolSetting) ToPO() po.SettingPO {
