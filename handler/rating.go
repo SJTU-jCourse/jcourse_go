@@ -16,7 +16,7 @@ func CreateRatingHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	user := middleware.GetUser(c)
+	user := middleware.GetCurrentUser(c)
 	err := service.CreateRating(c, user.ID, request)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})

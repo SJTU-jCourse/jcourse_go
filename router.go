@@ -25,6 +25,8 @@ func registerRouter(r *gin.Engine) {
 		needAuthGroup.Use(middleware.RequireAuth())
 	}
 
+	needAuthGroup.GET("/common", handler.GetCommonInfo)
+
 	teacherGroup := needAuthGroup.Group("/teacher")
 	teacherGroup.GET("", handler.GetTeacherListHandler)
 	teacherGroup.GET("/:teacherID", handler.GetTeacherDetailHandler)

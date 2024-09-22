@@ -96,7 +96,10 @@ func SendVerifyCodeHandler(c *gin.Context) {
 
 func clearAuthSession(c *gin.Context) {
 	session := sessions.Default(c)
+	session.Set(constant.SessionUserAuthKey, nil)
 	session.Clear()
+	session.Options(sessions.Options{Path: "/", MaxAge: -1})
+	_ = session.Save()
 }
 
 func storeAuthSession(c *gin.Context, user *model.UserDetail) error {
@@ -107,17 +110,4 @@ func storeAuthSession(c *gin.Context, user *model.UserDetail) error {
 	session.Set(constant.SessionUserAuthKey, user)
 	err := session.Save()
 	return err
-}
-
-func GetCurrentUser(c *gin.Context) *model.UserDetail {
-	session := sessions.Default(c)
-	sessionValue := session.Get(constant.SessionUserAuthKey)
-	if sessionValue == nil {
-		return nil
-	}
-	user, ok := sessionValue.(*model.UserDetail)
-	if !ok {
-		return nil
-	}
-	return user
 }

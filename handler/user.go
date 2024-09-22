@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"jcourse_go/constant"
+	"jcourse_go/middleware"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/service"
@@ -57,13 +58,11 @@ func GetUserSummaryHandler(c *gin.Context) {
 		return
 	}
 
-	// UserSummary鉴权
-	userInterface, exists := c.Get(constant.CtxKeyUser)
-	if !exists {
-		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "用户未登录！"})
+	user := middleware.GetCurrentUser(c)
+	if user == nil {
+		c.JSON(http.StatusUnauthorized, dto.BaseResponse{Message: "用户未登录！"})
 		return
 	}
-	user, _ := userInterface.(*model.UserDetail)
 
 	if user.ID != userID {
 		c.JSON(http.StatusForbidden, dto.BaseResponse{Message: "无权查看他人信息！"})

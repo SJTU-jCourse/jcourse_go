@@ -75,7 +75,7 @@ func CreateReviewHandler(c *gin.Context) {
 		return
 	}
 
-	user := middleware.GetUser(c)
+	user := middleware.GetCurrentUser(c)
 	reviewID, err := service.CreateReview(c, request, user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
@@ -98,8 +98,13 @@ func UpdateReviewHandler(c *gin.Context) {
 		return
 	}
 
+	user := middleware.GetCurrentUser(c)
+	if user == nil {
+		c.JSON(http.StatusUnauthorized, dto.BaseResponse{Message: "用户未登录！"})
+		return
+	}
 	reviewDTO.ID = request.ReviewID
-	user := middleware.GetUser(c)
+
 	err := service.UpdateReview(c, reviewDTO, user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})

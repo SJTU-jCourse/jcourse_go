@@ -11,7 +11,7 @@ import (
 	"jcourse_go/model/model"
 )
 
-func GetUser(c *gin.Context) *model.UserDetail {
+func GetCurrentUser(c *gin.Context) *model.UserDetail {
 	user, exists := c.Get(constant.CtxKeyUser)
 	if !exists {
 		return nil
