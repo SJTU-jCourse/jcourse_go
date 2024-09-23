@@ -10,6 +10,7 @@ type ReviewPO struct {
 	Rating      int64  `gorm:"index"`
 	Semester    string `gorm:"index"`
 	IsAnonymous bool
+	Grade       string      // 成绩
 	SearchIndex SearchIndex `gorm:"->:false;<-"`
 }
 

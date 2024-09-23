@@ -21,6 +21,7 @@ func ConvertReviewFromPO(po po.ReviewPO) model.Review {
 		IsAnonymous: po.IsAnonymous,
 		CreatedAt:   po.CreatedAt,
 		UpdatedAt:   po.UpdatedAt,
+		Grade:       po.Grade,
 	}
 }
 
@@ -56,5 +57,6 @@ func ConvertReviewDTOToPO(dto dto.UpdateReviewDTO, userID int64) po.ReviewPO {
 		Rating:      dto.Rating,
 		Semester:    dto.Semester,
 		IsAnonymous: dto.IsAnonymous,
+		Grade:       dto.Grade,
 	}
 }

@@ -15,8 +15,8 @@ type RatingInfoDistItemByID struct {
 }
 
 type RatingInfoDistItem struct {
-	Rating int64
-	Count  int64
+	Rating int64 `json:"rating"`
+	Count  int64 `json:"count"`
 }
 
 type RatingInfo struct {

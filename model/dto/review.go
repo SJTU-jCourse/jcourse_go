@@ -9,6 +9,7 @@ type UpdateReviewDTO struct {
 	Comment     string `json:"comment" binding:"required"`
 	Semester    string `json:"semester" binding:"required"`
 	IsAnonymous bool   `json:"is_anonymous"`
+	Grade       string `json:"grade"`
 }
 
 type CreateReviewResponse struct {

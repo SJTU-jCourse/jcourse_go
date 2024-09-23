@@ -21,6 +21,7 @@ type Review struct {
 	Rating      int64         `json:"rating"`
 	Semester    string        `json:"semester"`
 	IsAnonymous bool          `json:"is_anonymous"`
+	Grade       string        `json:"grade"`
 	CreatedAt   time.Time     `json:"created_at"`
 	UpdatedAt   time.Time     `json:"updated_at,omitempty"`
 }
