@@ -2,17 +2,18 @@ package dal
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/go-redis/redismock/v9"
 	"github.com/redis/go-redis/v9"
+
+	"jcourse_go/util"
 )
 
 var rdb *redis.Client
 
 func GetRedisDSN() string {
-	host := os.Getenv("REDIS_HOST")
-	port := os.Getenv("REDIS_PORT")
+	host := util.GetRedisHost()
+	port := util.GetRedisPort()
 	return fmt.Sprintf("%s:%s", host, port)
 }
 

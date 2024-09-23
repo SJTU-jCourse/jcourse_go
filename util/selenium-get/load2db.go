@@ -5,11 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"jcourse_go/model/po"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+
+	"jcourse_go/model/po"
 
 	"gorm.io/gorm"
 )
@@ -40,7 +41,7 @@ func LoadedCourse2PO(course LoadedCourse) (po.BaseCoursePO, po.TrainingPlanCours
 			Credit: float64(course.Credit),
 		}, po.TrainingPlanCoursePO{
 			SuggestSemester: course.SuggestSemester,
-			Department:      course.Department,
+			// Department:      course.Department,
 		}
 }
 func Line2Course(line string) LoadedCourse {
@@ -93,7 +94,7 @@ func TrainingPlan2PO(plan LoadedTrainingPlan) po.TrainingPlanPO {
 		Major:      plan.Name,
 		Department: plan.Department,
 		EntryYear:  strconv.Itoa(plan.EntryYear),
-		TotalYear:  plan.TotalYear,
+		TotalYear:  int64(plan.TotalYear),
 		MinCredits: plan.MinCredits,
 		MajorCode:  plan.Code,
 		MajorClass: plan.MajorClass,
@@ -125,7 +126,7 @@ func SaveTrainingPlanCourses(plan LoadedTrainingPlan, db *gorm.DB, tid int64) {
 	for _, id := range baseCourseIDs {
 		trainingPlanCourses = append(trainingPlanCourses, po.TrainingPlanCoursePO{
 			TrainingPlanID: tid,
-			CourseID:       id,
+			BaseCourseID:   id,
 		})
 	}
 	db.CreateInBatches(&trainingPlanCourses, 100)

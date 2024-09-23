@@ -3,109 +3,114 @@ package service
 import (
 	"context"
 	"errors"
+
+	"jcourse_go/dal"
 	"jcourse_go/model/converter"
-	"jcourse_go/model/domain"
+	"jcourse_go/model/model"
 	"jcourse_go/repository"
+	"jcourse_go/util"
 )
 
-func GetTeacherDetail(ctx context.Context, teacherID int64) (*domain.Teacher, error) {
+func GetTeacherDetail(ctx context.Context, teacherID int64) (*model.TeacherDetail, error) {
 	if teacherID == 0 {
 		return nil, errors.New("training-plan id is 0")
 	}
-	teacherQuery := repository.NewTeacherQuery()
+	teacherQuery := repository.NewTeacherQuery(dal.GetDBClient())
 
-	teacherPO, err := teacherQuery.GetTeacher(ctx, teacherQuery.WithID(teacherID))
+	teacherPOs, err := teacherQuery.GetTeacher(ctx, repository.WithID(teacherID))
+	if err != nil || len(teacherPOs) == 0 {
+		return nil, err
+	}
+	teacherPO := teacherPOs[0]
+	teacher := converter.ConvertTeacherDetailFromPO(teacherPO)
+
+	courses, err := GetCourseList(ctx, model.CourseListFilter{MainTeacherID: teacherID})
 	if err != nil {
 		return nil, err
 	}
-	teacher := converter.ConvertTeacherPOToDomain(teacherPO)
+	converter.PackTeacherWithCourses(&teacher, courses)
 
-	courseQuery := repository.NewOfferedCourseQuery()
-	courses, err := courseQuery.GetOfferedCourseList(ctx, courseQuery.WithMainTeacherID(teacherID))
+	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
+	info, err := ratingQuery.GetRatingInfo(ctx, model.RelatedTypeTeacher, teacherID)
 	if err != nil {
 		return nil, err
 	}
+	converter.PackTeacherWithRatingInfo(&teacher.TeacherSummary, info)
 
-	converter.PackTeacherWithCourses(teacher, courses)
-	return teacher, nil
+	return &teacher, nil
 }
 
-func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter domain.TeacherListFilter) []repository.DBOption {
+func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter model.TeacherListFilter) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if filter.Name != "" {
-		opts = append(opts, query.WithName(filter.Name))
+		opts = append(opts, repository.WithName(filter.Name))
 	}
 	if filter.Code != "" {
-		opts = append(opts, query.WithCode(filter.Code))
+		opts = append(opts, repository.WithCode(filter.Code))
 	}
 	if filter.Department != "" {
-		opts = append(opts, query.WithDepartment(filter.Department))
+		opts = append(opts, repository.WithDepartment(filter.Department))
 	}
 	if filter.Title != "" {
-		opts = append(opts, query.WithTitle(filter.Title))
+		opts = append(opts, repository.WithTitle(filter.Title))
 	}
 	if filter.Pinyin != "" {
-		opts = append(opts, query.WithPinyin(filter.Pinyin))
+		opts = append(opts, repository.WithPinyin(filter.Pinyin))
 	}
 	if filter.PinyinAbbr != "" {
-		opts = append(opts, query.WithPinyinAbbr(filter.PinyinAbbr))
+		opts = append(opts, repository.WithPinyinAbbr(filter.PinyinAbbr))
 	}
 	if filter.SearchQuery != "" {
-		opts = append(opts, query.WithSearch(filter.SearchQuery))
+		opts = append(opts, repository.WithSearch(filter.SearchQuery))
 	}
-
-	opts = append(opts, query.WithPaginate(filter.Page, filter.PageSize))
+	if filter.PageSize > 0 {
+		opts = append(opts, repository.WithLimit(filter.PageSize))
+	}
+	if filter.Page > 0 {
+		opts = append(opts, repository.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
+	}
 	return opts
 }
 
-func SearchTeacherList(ctx context.Context, filter domain.TeacherListFilter) ([]domain.Teacher, error) {
-	teacherQuery := repository.NewTeacherQuery()
+func SearchTeacherList(ctx context.Context, filter model.TeacherListFilter) ([]model.TeacherSummary, error) {
+	teacherQuery := repository.NewTeacherQuery(dal.GetDBClient())
 	t_opts := buildTeacherDBOptionFromFilter(teacherQuery, filter)
 
-	teacherCourseQuery := repository.NewOfferedCourseQuery()
+	teacherCourseQuery := repository.NewOfferedCourseQuery(dal.GetDBClient())
 	validTeacherIDs, err := teacherCourseQuery.GetMainTeacherIDsWithOfferedCourseIDs(ctx, filter.ContainCourseIDs)
 	if err != nil {
 		return nil, err
 	}
-	t_opts = append(t_opts, teacherQuery.WithIDs(validTeacherIDs))
+	t_opts = append(t_opts, repository.WithIDs(validTeacherIDs))
 
-	teachers, err := teacherQuery.GetTeacherList(ctx, t_opts...)
+	teachers, err := teacherQuery.GetTeacher(ctx, t_opts...)
 	if err != nil {
 		return nil, err
 	}
 
-	domainTeachers := make([]domain.Teacher, 0)
+	teacherIDs := make([]int64, 0)
+	for _, teacher := range teachers {
+		teacherIDs = append(teacherIDs, int64(teacher.ID))
+	}
+
+	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
+	infos, err := ratingQuery.GetRatingInfoByIDs(ctx, model.RelatedTypeTeacher, teacherIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	domainTeachers := make([]model.TeacherSummary, 0)
 	for _, t := range teachers {
-		q := repository.NewOfferedCourseQuery()
-		offeredCoursePOs, err := q.GetOfferedCourseList(ctx, q.WithMainTeacherID(int64(t.ID)))
-		if err != nil {
-			return nil, err
-		}
-		teacherDomain := *converter.ConvertTeacherPOToDomain(&t)
-		converter.PackTeacherWithCourses(&teacherDomain, offeredCoursePOs)
+		teacherDomain := converter.ConvertTeacherSummaryFromPO(t)
+		converter.PackTeacherWithRatingInfo(&teacherDomain, infos[teacherDomain.ID])
 		domainTeachers = append(domainTeachers, teacherDomain)
 	}
 	return domainTeachers, nil
 }
 
-func GetTeacherCount(ctx context.Context, filter domain.TeacherListFilter) (int64, error) {
-	query := repository.NewTeacherQuery()
+func GetTeacherCount(ctx context.Context, filter model.TeacherListFilter) (int64, error) {
+	query := repository.NewTeacherQuery(dal.GetDBClient())
 	filter.Page, filter.PageSize = 0, 0
 	opts := buildTeacherDBOptionFromFilter(query, filter)
 	return query.GetTeacherCount(ctx, opts...)
-}
-
-func GetTeacherListByIDs(ctx context.Context, teacherIDs []int64) (map[int64]domain.Teacher, error) {
-
-	teacherQuery := repository.NewTeacherQuery()
-	teachers, err := teacherQuery.GetTeacherList(ctx, teacherQuery.WithIDs(teacherIDs))
-	if err != nil {
-		return nil, err
-	}
-
-	domainTeachers := make(map[int64]domain.Teacher)
-	for _, t := range teachers {
-		domainTeachers[int64(t.ID)] = *converter.ConvertTeacherPOToDomain(&t)
-	}
-	return domainTeachers, nil
 }

@@ -1,35 +1,16 @@
 package dto
 
-type TrainingPlanCourseDTO struct {
-	ID              int64   `json:"id"`
-	Code            string  `json:"code"`
-	Name            string  `json:"name"`
-	Credit          float64 `json:"credit"`
-	SuggestSemester string  `json:"suggest_semester"`
-	Department      string  `json:"department"`
-}
+import "jcourse_go/model/model"
 
-type TrainingPlanListItemDTO struct {
-	ID         int64                   `json:"id"`
-	Code       string                  `json:"code"`
-	MajorName  string                  `json:"name"`
-	MinCredits float64                 `json:"min_credits"`
-	MajorClass string                  `json:"major_class"`
-	EntryYear  int64                   `json:"entry_year"`
-	Department string                  `json:"department"`
-	TotalYear  int64                   `json:"total_year"`
-	Degree     string                  `json:"degree"`
-	Courses    []TrainingPlanCourseDTO `json:"courses"`
-}
+type TrainingPlanListResponse = BasePaginateResponse[model.TrainingPlanSummary]
 
-type TrainingPlanListResponse = BasePaginateResponse[TrainingPlanListItemDTO]
-type TrainingPlanDetailResponse = TrainingPlanListItemDTO
+type TrainingPlanDetailResponse = model.TrainingPlanDetail
 
 type TrainingPlanDetailRequest struct {
 	TrainingPlanID int64 `uri:"trainingPlanID" binding:"required"`
 }
 type TrainingPlanListQueryRequest struct {
-	EntryYear     int64  `json:"entry_year" form:"entry_year"`
+	EntryYear     string `json:"entry_year" form:"entry_year"`
 	Department    string `json:"department" form:"department"`
 	MajorName     string `json:"major_name" form:"major_name"`
 	MajorCode     string `json:"major_code" form:"major_code"`

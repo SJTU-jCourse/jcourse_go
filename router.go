@@ -3,6 +3,7 @@ package main
 import (
 	"jcourse_go/handler"
 	"jcourse_go/middleware"
+	"jcourse_go/util"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,18 +21,29 @@ func registerRouter(r *gin.Engine) {
 	authGroup.POST("/reset-password", handler.ResetPasswordHandler)
 
 	needAuthGroup := api.Group("")
-	needAuthGroup.Use(middleware.RequireAuth())
+	if !util.IsNoLoginMode() {
+		needAuthGroup.Use(middleware.RequireAuth())
+	}
+
+	needAuthGroup.GET("/common", handler.GetCommonInfo)
 
 	teacherGroup := needAuthGroup.Group("/teacher")
 	teacherGroup.GET("", handler.GetTeacherListHandler)
 	teacherGroup.GET("/:teacherID", handler.GetTeacherDetailHandler)
 
+	baseCourseGroup := needAuthGroup.Group("/base_course")
+	baseCourseGroup.GET("/:code", handler.GetBaseCourse)
+
 	courseGroup := needAuthGroup.Group("/course")
 	courseGroup.GET("", handler.GetCourseListHandler)
-	courseGroup.GET("/suggest", handler.GetSuggestedCourseHandler)
+	// courseGroup.GET("/suggest", handler.GetSuggestedCourseHandler)
 	courseGroup.GET("/:courseID", handler.GetCourseDetailHandler)
-	courseGroup.POST("/:courseID/watch", handler.WatchCourseHandler)
-	courseGroup.POST("/:courseID/unwatch", handler.UnWatchCourseHandler)
+	// courseGroup.POST("/:courseID/watch", handler.WatchCourseHandler)
+	// courseGroup.POST("/:courseID/unwatch", handler.UnWatchCourseHandler)
+
+	trainingPlanGroup := needAuthGroup.Group("/training_plan")
+	trainingPlanGroup.GET("", handler.SearchTrainingPlanHandler)
+	trainingPlanGroup.GET("/:trainingPlanID", handler.GetTrainingPlanHandler)
 
 	ratingGroup := needAuthGroup.Group("/rating")
 	ratingGroup.POST("", handler.CreateRatingHandler)
@@ -39,7 +51,7 @@ func registerRouter(r *gin.Engine) {
 	reviewGroup := needAuthGroup.Group("/review")
 	reviewGroup.GET("", handler.GetReviewListHandler)
 	reviewGroup.POST("", handler.CreateReviewHandler)
-	reviewGroup.GET("/suggest", handler.GetSuggestedReviewHandler)
+	// reviewGroup.GET("/suggest", handler.GetSuggestedReviewHandler)
 	reviewGroup.GET("/:reviewID", handler.GetReviewDetailHandler)
 	reviewGroup.PUT("/:reviewID", handler.UpdateReviewHandler)
 	reviewGroup.DELETE("/:reviewID", handler.DeleteReviewHandler)
@@ -50,13 +62,11 @@ func registerRouter(r *gin.Engine) {
 
 	userGroup := needAuthGroup.Group("/user")
 	userGroup.GET("", handler.GetUserListHandler)
-	userGroup.GET("/suggest", handler.GetSuggestedUserHandler)
-	userGroup.GET("/:userID/summary", handler.GetUserSummaryHandler)
-	userGroup.GET("/:userID/detail", handler.GetUserDetailHandler)
-	userGroup.GET("/:userID/reviews", handler.GetUserReviewsHandler)
-	userGroup.POST("/:userID/watch", handler.WatchUserHandler)
-	userGroup.POST("/:userID/unwatch", handler.UnWatchUserHandler)
-	userGroup.GET("/:userID/profile", handler.GetUserProfileHandler)
+	// userGroup.GET("/suggest", handler.GetSuggestedUserHandler)
+	userGroup.GET("/:userID/activity", handler.GetUserActivityHandler)
+	userGroup.GET("/:userID", handler.GetUserDetailHandler)
+	// userGroup.POST("/:userID/watch", handler.WatchUserHandler)
+	// userGroup.POST("/:userID/unwatch", handler.UnWatchUserHandler)
 	userGroup.PUT("/:userID/profile", handler.UpdateUserProfileHandler)
 
 	adminGroup := needAuthGroup.Group("/admin")

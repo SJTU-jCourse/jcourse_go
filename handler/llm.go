@@ -2,7 +2,6 @@ package handler
 
 import (
 	"fmt"
-	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/service"
 	"net/http"
@@ -72,9 +71,10 @@ func GetMatchCoursesHandler(c *gin.Context) {
 		return
 	}
 
+	// TODO: 修改Total, Page
 	resp := dto.CourseListResponse{
 		Total:    0,
-		Data:     converter.ConvertCourseListDomainToDTO(courses),
+		Data:     courses,
 		Page:     0,
 		PageSize: int64(len(courses)),
 	}

@@ -8,7 +8,7 @@ type ReviewPO struct {
 	UserID      int64 `gorm:"index;index:uniq_course_review,unique"`
 	Comment     string
 	Rating      int64  `gorm:"index"`
-	Semester    string `gorm:"index;index:uniq_course_review,unique"`
+	Semester    string `gorm:"index"`
 	IsAnonymous bool
 	SearchIndex SearchIndex `gorm:"->:false;<-"`
 }

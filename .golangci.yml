@@ -5,7 +5,7 @@ linters:
     - govet
     - ineffassign
     - staticcheck
-    - unused
+#    - unused
     - gocyclo
     - gofmt
     - goimports

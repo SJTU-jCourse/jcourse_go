@@ -8,8 +8,9 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"jcourse_go/constant"
-	"jcourse_go/model/domain"
+	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
+	"jcourse_go/model/model"
 	"jcourse_go/service"
 )
 
@@ -20,17 +21,18 @@ func LoginHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	user, err := service.Login(c, request.Email, request.Password)
+	userPO, err := service.Login(c, request.Email, request.Password)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "登录失败，请重试。"})
+		return
+	}
+	user := converter.ConvertUserDetailFromPO(*userPO)
+	err = storeAuthSession(c, &user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "登录失败，请重试。"})
 		return
 	}
-	err = storeAuthSession(c, user)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "登录失败，请重试。"})
-		return
-	}
-	c.JSON(http.StatusOK, dto.BaseResponse{Message: "登录成功"})
+	c.JSON(http.StatusOK, user)
 }
 
 func LogoutHandler(c *gin.Context) {
@@ -61,17 +63,18 @@ func RegisterHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	user, err := service.Register(c, request.Email, request.Password, request.Code)
+	userPO, err := service.Register(c, request.Email, request.Password, request.Code)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "注册失败，请重试。"})
 		return
 	}
-	err = storeAuthSession(c, user)
+	user := converter.ConvertUserDetailFromPO(*userPO)
+	err = storeAuthSession(c, &user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "注册失败，请重试。"})
 		return
 	}
-	c.JSON(http.StatusOK, dto.BaseResponse{Message: "注册成功"})
+	c.JSON(http.StatusOK, user)
 }
 
 func SendVerifyCodeHandler(c *gin.Context) {
@@ -93,10 +96,13 @@ func SendVerifyCodeHandler(c *gin.Context) {
 
 func clearAuthSession(c *gin.Context) {
 	session := sessions.Default(c)
+	session.Set(constant.SessionUserAuthKey, nil)
 	session.Clear()
+	session.Options(sessions.Options{Path: "/", MaxAge: -1})
+	_ = session.Save()
 }
 
-func storeAuthSession(c *gin.Context, user *domain.User) error {
+func storeAuthSession(c *gin.Context, user *model.UserDetail) error {
 	if user == nil {
 		return errors.New("user is nil")
 	}
@@ -104,17 +110,4 @@ func storeAuthSession(c *gin.Context, user *domain.User) error {
 	session.Set(constant.SessionUserAuthKey, user)
 	err := session.Save()
 	return err
-}
-
-func GetCurrentUser(c *gin.Context) *domain.User {
-	session := sessions.Default(c)
-	sessionValue := session.Get(constant.SessionUserAuthKey)
-	if sessionValue == nil {
-		return nil
-	}
-	user, ok := sessionValue.(*domain.User)
-	if !ok {
-		return nil
-	}
-	return user
 }

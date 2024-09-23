@@ -1,54 +1,24 @@
 package dto
 
-import "jcourse_go/model/domain"
-
-type BaseCourseDTO struct {
-	ID     int64   `json:"id"`
-	Code   string  `json:"code"`
-	Name   string  `json:"name"`
-	Credit float64 `json:"credit"`
-}
-
-type OfferedCourseDTO struct {
-	ID           int64        `json:"id"`
-	Semester     string       `json:"semester"`
-	Grade        []string     `json:"grade"`
-	Language     string       `json:"language"`
-	TeacherGroup []TeacherDTO `json:"teacher_group"`
-}
-
-type CourseDetailDTO struct {
-	ID            int64              `json:"id"`
-	Code          string             `json:"code"`
-	Name          string             `json:"name"`
-	Credit        float64            `json:"credit"`
-	MainTeacher   TeacherDTO         `json:"main_teacher"`
-	OfferedCourse []OfferedCourseDTO `json:"offered_courses"`
-	ReviewInfo    domain.RatingInfo  `json:"rating_info"`
-}
+import "jcourse_go/model/model"
 
 type CourseDetailRequest struct {
 	CourseID int64 `uri:"courseID" binding:"required"`
 }
 
-type CourseListItemDTO struct {
-	ID          int64             `json:"id"`
-	Code        string            `json:"code"`
-	Name        string            `json:"name"`
-	Credit      float64           `json:"credit"`
-	MainTeacher TeacherDTO        `json:"main_teacher"`
-	Categories  []string          `json:"categories"`
-	Department  string            `json:"department"`
-	ReviewInfo  domain.RatingInfo `json:"rating_info"`
+type BaseCourseDetailRequest struct {
+	Code string `uri:"code" binding:"required"`
 }
 
 type CourseListRequest struct {
-	Page        int64  `json:"page" form:"page"`
-	PageSize    int64  `json:"page_size" form:"page_size"`
-	Departments string `json:"departments" form:"departments"`
-	Categories  string `json:"categories" form:"categories"`
-	Credits     string `json:"credits" form:"credits"`
-	SearchQuery string `json:"search_query" form:"search_query"`
+	Page          int64  `json:"page" form:"page"`
+	PageSize      int64  `json:"page_size" form:"page_size"`
+	Code          string `json:"code" form:"code"`
+	MainTeacherID int64  `json:"main_teacher_id" form:"main_teacher_id"`
+	Departments   string `json:"departments" form:"departments"`
+	Categories    string `json:"categories" form:"categories"`
+	Credits       string `json:"credits" form:"credits"`
+	SearchQuery   string `json:"search_query" form:"search_query"`
 }
 
-type CourseListResponse = BasePaginateResponse[CourseListItemDTO]
+type CourseListResponse = BasePaginateResponse[model.CourseSummary]

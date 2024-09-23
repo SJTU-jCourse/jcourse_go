@@ -2,161 +2,103 @@ package service
 
 import (
 	"context"
+
+	"jcourse_go/dal"
 	"jcourse_go/model/dto"
-	"jcourse_go/model/po"
 	"jcourse_go/util"
 
+	"jcourse_go/model/model"
+
 	"jcourse_go/model/converter"
-	"jcourse_go/model/domain"
 	"jcourse_go/repository"
 )
 
-func GetUserSummaryByID(ctx context.Context, userID int64) (*dto.UserSummaryDTO, error) {
-	filter := domain.ReviewFilter{
-		UserID: userID,
-	}
+func GetUserActivityByID(ctx context.Context, userID int64) (*model.UserActivity, error) {
+	// filter := model.ReviewFilter{
+	// 	UserID: userID,
+	// }
 
-	total, _ := GetReviewCount(ctx, filter)
+	// total, _ := GetReviewCount(ctx, filter)
 	// 过滤非匿名点评
 
 	// 获取用户收到的赞数、被打赏积分数、关注的课程数
 
-	return converter.ConvertUserDomainToUserSummaryDTO(userID, total, 0, 0, 0), nil
+	return &model.UserActivity{}, nil
 }
 
-func GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]domain.User, error) {
-	result := make(map[int64]domain.User)
+func GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]model.UserMinimal, error) {
+	result := make(map[int64]model.UserMinimal)
 	if len(userIDs) == 0 {
 		return result, nil
 	}
 
-	userQuery := repository.NewUserQuery()
+	userQuery := repository.NewUserQuery(dal.GetDBClient())
 	userMap, err := userQuery.GetUserByIDs(ctx, userIDs)
 	if err != nil {
 		return nil, err
 	}
 
-	userProfileQuery := repository.NewUserProfileQuery()
-	userProfileMap, err := userProfileQuery.GetUserProfileByIDs(ctx, userIDs)
-	if err != nil {
-		return nil, err
-	}
-
 	for _, userPO := range userMap {
-		user := converter.ConvertUserPOToDomain(userPO)
-		profilePO, ok := userProfileMap[user.ID]
-		if ok {
-			converter.PackUserWithProfile(&user, profilePO)
-		}
+		user := converter.ConvertUserMinimalFromPO(userPO)
 		result[user.ID] = user
 	}
 	return result, nil
 }
 
 // 共用函数，用于获取用户基本信息和详细资料并组装成domain.User
-func GetUserDomainByID(ctx context.Context, userID int64) (*domain.User, error) {
-	userQuery := repository.NewUserQuery()
-	userPO, err := userQuery.GetUserByID(ctx, userID)
-	if err != nil {
+func GetUserDetailByID(ctx context.Context, userID int64) (*model.UserDetail, error) {
+	userQuery := repository.NewUserQuery(dal.GetDBClient())
+	userPO, err := userQuery.GetUser(ctx, repository.WithID(userID))
+	if err != nil || len(userPO) == 0 {
 		return nil, err
 	}
-
-	userProfileQuery := repository.NewUserProfileQuery()
-	userProfilePO, err := userProfileQuery.GetUserProfileByID(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	user := converter.ConvertUserPOToDomain(*userPO)
-	converter.PackUserWithProfile(&user, *userProfilePO)
-
+	user := converter.ConvertUserDetailFromPO(userPO[0])
 	return &user, nil
 }
 
-func buildUserDBOptionFromFilter(query repository.IUserQuery, filter domain.UserFilter) []repository.DBOption {
+func buildUserDBOptionFromFilter(query repository.IUserQuery, filter model.UserFilter) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if filter.PageSize > 0 {
-		opts = append(opts, query.WithLimit(filter.PageSize))
+		opts = append(opts, repository.WithLimit(filter.PageSize))
 	}
 	if filter.Page > 0 {
-		opts = append(opts, query.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
+		opts = append(opts, repository.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
 	}
 	if filter.SearchQuery != "" {
-		opts = append(opts, query.WithSearch(filter.SearchQuery))
+		opts = append(opts, repository.WithSearch(filter.SearchQuery))
 	}
 	return opts
 }
 
-func GetUserList(ctx context.Context, filter domain.UserFilter) ([]dto.UserDetailDTO, error) {
-	userQuery := repository.NewUserQuery()
-	userProfileQuery := repository.NewUserProfileQuery()
+func GetUserList(ctx context.Context, filter model.UserFilter) ([]model.UserMinimal, error) {
+	userQuery := repository.NewUserQuery(dal.GetDBClient())
 	opts := buildUserDBOptionFromFilter(userQuery, filter)
-	userPOs, err := userQuery.GetUserList(ctx, opts...)
+	userPOs, err := userQuery.GetUser(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}
-	userProfilePOs, err := userProfileQuery.GetUserProfileList(ctx, opts...)
-	if err != nil {
-		return nil, err
-	}
-	result := make([]dto.UserDetailDTO, 0)
 
-	userProfileMap := make(map[int]*po.UserProfilePO)
-	for _, userProfilePO := range userProfilePOs {
-		userProfileMap[int(userProfilePO.UserID)] = &userProfilePO
-	}
-
-	for _, userPO := range userPOs {
-		userDetailDTO := dto.UserDetailDTO{
-			ID:       int64(userPO.ID),
-			Username: userPO.Username,
-			Avatar:   "",
-			Bio:      "",
-		}
-		if userProfilePO, exists := userProfileMap[int(userPO.ID)]; exists {
-			userDetailDTO.Avatar = userProfilePO.Avatar
-			userDetailDTO.Bio = userProfilePO.Bio
-		}
-		result = append(result, userDetailDTO)
+	result := make([]model.UserMinimal, 0)
+	for _, po := range userPOs {
+		result = append(result, converter.ConvertUserMinimalFromPO(po))
 	}
 	return result, nil
 }
 
-func AdminGetUserList(ctx context.Context, filter domain.UserFilter) ([]dto.UserProfileDTO, error) {
-	// 视前端而定获取用户的哪些信息
-	// E.g. UserProfileDTO
-	return nil, nil
-}
-
-func GetUserCount(ctx context.Context, filter domain.UserFilter) (int64, error) {
-	userQuery := repository.NewUserQuery()
+func GetUserCount(ctx context.Context, filter model.UserFilter) (int64, error) {
+	userQuery := repository.NewUserQuery(dal.GetDBClient())
 	filter.Page, filter.PageSize = 0, 0
 	opts := buildUserDBOptionFromFilter(userQuery, filter)
 	return userQuery.GetUserCount(ctx, opts...)
 }
 
-func UpdateUserProfileByID(ctx context.Context, userProfileDTO *dto.UserProfileDTO) error {
-	userQuery := repository.NewUserQuery()
-	oldUserPO, errQuery := userQuery.GetUserByID(ctx, userProfileDTO.UserID)
-	if errQuery != nil {
-		return errQuery
-	}
-	newUserPO := converter.ConvertUpdateUserProfileDTOToUserPO(userProfileDTO, oldUserPO)
-
-	errUpdate := userQuery.UpdateUserByID(ctx, &newUserPO)
+func UpdateUserProfileByID(ctx context.Context, userProfileDTO dto.UserProfileDTO, userID int64) error {
+	userQuery := repository.NewUserQuery(dal.GetDBClient())
+	newUserPO := converter.ConvertUserProfileToPO(userProfileDTO)
+	newUserPO.ID = uint(userID)
+	errUpdate := userQuery.UpdateUser(ctx, newUserPO)
 	if errUpdate != nil {
 		return errUpdate
-	}
-
-	userProfileQuery := repository.NewUserProfileQuery()
-	oldUserProfilePO, errQuery2 := userProfileQuery.GetUserProfileByID(ctx, userProfileDTO.UserID)
-	if errQuery2 != nil {
-		return errQuery2
-	}
-	newUserProfilePO := converter.ConvertUpdateUserProfileDTOToUsrProfilePO(userProfileDTO, oldUserProfilePO)
-	errUpdate2 := userProfileQuery.UpdateUserProfileByID(ctx, &newUserProfilePO)
-	if errUpdate2 != nil {
-		return errUpdate2
 	}
 	return nil
 }

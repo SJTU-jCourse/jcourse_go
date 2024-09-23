@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"jcourse_go/constant"
+	"jcourse_go/dal"
 	"jcourse_go/model/converter"
-	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
+	"jcourse_go/model/model"
 	"jcourse_go/repository"
 	"jcourse_go/rpc"
 	"strings"
@@ -50,26 +51,26 @@ func OptCourseReview(courseName string, reviewContent string) (dto.OptCourseRevi
 }
 
 func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummaryResponse, error) {
-	courseQuery := repository.NewCourseQuery()
-	coursePO, err := courseQuery.GetCourse(ctx, courseQuery.WithID(courseID))
-	if err != nil {
-		fmt.Println(err)
+	courseQuery := repository.NewCourseQuery(dal.GetDBClient())
+	coursePOs, err := courseQuery.GetCourse(ctx, repository.WithCourseID(courseID))
+	if err != nil || len(coursePOs) == 0 {
 		return nil, err
 	}
+	coursePO := coursePOs[0]
 
-	offeredCourseQuery := repository.NewOfferedCourseQuery()
+	offeredCourseQuery := repository.NewOfferedCourseQuery(dal.GetDBClient())
 	offeredCoursePOs, err := offeredCourseQuery.GetOfferedCourseTeacherGroup(ctx, []int64{courseID})
 	if err != nil {
 		return nil, err
 	}
 
-	reviewQuery := repository.NewReviewQuery()
+	reviewQuery := repository.NewReviewQuery(dal.GetDBClient())
 	infos, err := reviewQuery.GetCourseReviewInfo(ctx, []int64{courseID})
 	if err != nil {
 		return nil, err
 	}
 
-	filter := domain.ReviewFilter{
+	filter := model.ReviewFilter{
 		CourseID: courseID,
 		Page:     0,
 		PageSize: 100,
@@ -118,16 +119,16 @@ func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummar
 }
 
 func VectorizeCourseReviews(ctx context.Context, courseID int64) error {
-	courseQuery := repository.NewCourseQuery()
-	coursePO, err := courseQuery.GetCourse(ctx, courseQuery.WithID(courseID))
-	if err != nil {
-		fmt.Println(err)
+	courseQuery := repository.NewCourseQuery(dal.GetDBClient())
+	coursePOs, err := courseQuery.GetCourse(ctx, repository.WithCourseID(courseID))
+	if err != nil || len(coursePOs) == 0 {
 		return err
 	}
+	coursePO := coursePOs[0]
 
 	courseName := coursePO.Name
 
-	filter := domain.ReviewFilter{
+	filter := model.ReviewFilter{
 		CourseID: courseID,
 		Page:     0,
 		PageSize: 100,
@@ -175,7 +176,7 @@ func VectorizeCourseReviews(ctx context.Context, courseID int64) error {
 	return err
 }
 
-func GetMatchCourses(ctx context.Context, description string) ([]domain.Course, error) {
+func GetMatchCourses(ctx context.Context, description string) ([]model.CourseSummary, error) {
 	vectorStore, err := rpc.OpenVectorStoreConn()
 
 	if err != nil {
@@ -201,9 +202,9 @@ func GetMatchCourses(ctx context.Context, description string) ([]domain.Course, 
 		courseIDs = append(courseIDs, int64(courseID))
 	}
 
-	query := repository.NewCourseQuery()
+	query := repository.NewCourseQuery(dal.GetDBClient())
 
-	coursePOs, err := query.GetCourseByIDs(ctx, courseIDs)
+	coursePOs, err := query.GetCourse(ctx, repository.WithCourseIDs(courseIDs))
 	if err != nil {
 		return nil, err
 	}
@@ -213,17 +214,17 @@ func GetMatchCourses(ctx context.Context, description string) ([]domain.Course, 
 		return nil, err
 	}
 
-	reviewQuery := repository.NewReviewQuery()
-	infos, err := reviewQuery.GetCourseReviewInfo(ctx, courseIDs)
+	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
+	infos, err := ratingQuery.GetRatingInfoByIDs(ctx, model.RelatedTypeCourse, courseIDs)
 	if err != nil {
 		return nil, err
 	}
 
-	courses := make([]domain.Course, 0, len(coursePOs))
+	courses := make([]model.CourseSummary, 0, len(coursePOs))
 	for _, coursePO := range coursePOs {
-		course := converter.ConvertCoursePOToDomain(coursePO)
+		course := converter.ConvertCourseSummaryFromPO(coursePO)
 		converter.PackCourseWithCategories(&course, courseCategories[int64(coursePO.ID)])
-		converter.PackCourseWithReviewInfo(&course, infos[int64(coursePO.ID)])
+		converter.PackCourseWithRatingInfo(&course, infos[int64(coursePO.ID)])
 		courses = append(courses, course)
 	}
 	return courses, nil

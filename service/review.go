@@ -4,43 +4,47 @@ import (
 	"context"
 	"errors"
 
+	"jcourse_go/dal"
 	"jcourse_go/model/converter"
-	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
+	"jcourse_go/model/model"
 	"jcourse_go/repository"
 	"jcourse_go/util"
 )
 
-func buildReviewDBOptionFromFilter(query repository.IReviewQuery, filter domain.ReviewFilter) []repository.DBOption {
+func buildReviewDBOptionFromFilter(query repository.IReviewQuery, filter model.ReviewFilter) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if filter.PageSize > 0 {
-		opts = append(opts, query.WithLimit(filter.PageSize))
+		opts = append(opts, repository.WithLimit(filter.PageSize))
 	}
 	if filter.Page > 0 {
-		opts = append(opts, query.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
+		opts = append(opts, repository.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
 	}
 	if filter.CourseID != 0 {
-		opts = append(opts, query.WithCourseID(filter.CourseID))
+		opts = append(opts, repository.WithCourseID(filter.CourseID))
 	}
 	if len(filter.Semester) > 0 {
-		opts = append(opts, query.WithSemester(filter.Semester))
+		opts = append(opts, repository.WithSemester(filter.Semester))
 	}
 	if filter.UserID != 0 {
-		opts = append(opts, query.WithUserID(filter.UserID))
+		opts = append(opts, repository.WithUserID(filter.UserID))
 	}
 	if filter.ReviewID != 0 {
-		opts = append(opts, query.WithID(filter.ReviewID))
+		opts = append(opts, repository.WithID(filter.ReviewID))
 	}
 	if filter.SearchQuery != "" {
-		opts = append(opts, query.WithSearch(filter.SearchQuery))
+		opts = append(opts, repository.WithSearch(filter.SearchQuery))
+	}
+	if !filter.IncludeAnonymous {
+		opts = append(opts, repository.WithNotAnonymous())
 	}
 	return opts
 }
 
-func GetReviewList(ctx context.Context, filter domain.ReviewFilter) ([]domain.Review, error) {
-	reviewQuery := repository.NewReviewQuery()
+func GetReviewList(ctx context.Context, filter model.ReviewFilter) ([]model.Review, error) {
+	reviewQuery := repository.NewReviewQuery(dal.GetDBClient())
 	opts := buildReviewDBOptionFromFilter(reviewQuery, filter)
-	reviewPOs, err := reviewQuery.GetReviewList(ctx, opts...)
+	reviewPOs, err := reviewQuery.GetReview(ctx, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -62,14 +66,14 @@ func GetReviewList(ctx context.Context, filter domain.ReviewFilter) ([]domain.Re
 		return nil, err
 	}
 
-	result := make([]domain.Review, 0)
+	result := make([]model.Review, 0)
 
 	for _, reviewPO := range reviewPOs {
-		review := converter.ConvertReviewPOToDomain(reviewPO)
+		review := converter.ConvertReviewFromPO(reviewPO)
 
 		course, ok := courseMap[reviewPO.CourseID]
 		if ok {
-			converter.PackReviewWithCourse(&review, course)
+			converter.PackReviewWithCourse(&review, course.CourseMinimal)
 		}
 		user, ok := userMap[reviewPO.UserID]
 		if ok {
@@ -81,19 +85,19 @@ func GetReviewList(ctx context.Context, filter domain.ReviewFilter) ([]domain.Re
 	return result, nil
 }
 
-func GetReviewCount(ctx context.Context, filter domain.ReviewFilter) (int64, error) {
-	query := repository.NewReviewQuery()
+func GetReviewCount(ctx context.Context, filter model.ReviewFilter) (int64, error) {
+	query := repository.NewReviewQuery(dal.GetDBClient())
 	filter.Page, filter.PageSize = 0, 0
 	opts := buildReviewDBOptionFromFilter(query, filter)
 	return query.GetReviewCount(ctx, opts...)
 }
 
-func CreateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.User) (int64, error) {
+func CreateReview(ctx context.Context, review dto.UpdateReviewDTO, user *model.UserDetail) (int64, error) {
 	if !validateReview(ctx, review, user) {
 		return 0, errors.New("validate review error")
 	}
-	query := repository.NewReviewQuery()
-	reviewPO := converter.ConvertUpdateReviewDTOToPO(review, user.ID)
+	query := repository.NewReviewQuery(dal.GetDBClient())
+	reviewPO := converter.ConvertReviewDTOToPO(review, user.ID)
 	reviewID, err := query.CreateReview(ctx, reviewPO)
 	if err != nil {
 		return 0, err
@@ -101,16 +105,16 @@ func CreateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.
 	return reviewID, nil
 }
 
-func UpdateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.User) error {
+func UpdateReview(ctx context.Context, review dto.UpdateReviewDTO, user *model.UserDetail) error {
 	if review.ID == 0 {
 		return errors.New("no review id")
 	}
 	if !validateReview(ctx, review, user) {
 		return errors.New("validate review error")
 	}
-	query := repository.NewReviewQuery()
-	reviewPO := converter.ConvertUpdateReviewDTOToPO(review, user.ID)
-	_, err := query.UpdateReview(ctx, reviewPO)
+	query := repository.NewReviewQuery(dal.GetDBClient())
+	reviewPO := converter.ConvertReviewDTOToPO(review, user.ID)
+	err := query.UpdateReview(ctx, reviewPO)
 	if err != nil {
 		return err
 	}
@@ -118,18 +122,18 @@ func UpdateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.
 }
 
 func DeleteReview(ctx context.Context, reviewID int64) error {
-	query := repository.NewReviewQuery()
-	_, err := query.DeleteReview(ctx, query.WithID(reviewID))
+	query := repository.NewReviewQuery(dal.GetDBClient())
+	err := query.DeleteReview(ctx, repository.WithID(reviewID))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func validateReview(ctx context.Context, review dto.UpdateReviewDTO, user *domain.User) bool {
+func validateReview(ctx context.Context, review dto.UpdateReviewDTO, user *model.UserDetail) bool {
 	// 1. validate course and semester exists
-	offeredCourseQuery := repository.NewOfferedCourseQuery()
-	offeredCourse, err := offeredCourseQuery.GetOfferedCourse(ctx, offeredCourseQuery.WithCourseID(review.CourseID), offeredCourseQuery.WithSemester(review.Semester))
+	offeredCourseQuery := repository.NewOfferedCourseQuery(dal.GetDBClient())
+	offeredCourse, err := offeredCourseQuery.GetOfferedCourse(ctx, repository.WithCourseID(review.CourseID), repository.WithSemester(review.Semester))
 	if err != nil || offeredCourse == nil {
 		return false
 	}

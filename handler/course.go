@@ -8,9 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"jcourse_go/constant"
-	"jcourse_go/model/converter"
-	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
+	"jcourse_go/model/model"
 	"jcourse_go/service"
 )
 
@@ -27,18 +26,18 @@ func GetCourseDetailHandler(c *gin.Context) {
 		return
 	}
 
-	courseDetailDTO := converter.ConvertCourseDomainToDetailDTO(*course)
-
-	c.JSON(http.StatusOK, courseDetailDTO)
+	c.JSON(http.StatusOK, course)
 }
 
-func convertCourseListFilter(request dto.CourseListRequest) domain.CourseListFilter {
-	filter := domain.CourseListFilter{
-		Page:        request.Page,
-		PageSize:    request.PageSize,
-		Categories:  make([]string, 0),
-		Departments: make([]string, 0),
-		Credits:     make([]float64, 0),
+func convertCourseListFilter(request dto.CourseListRequest) model.CourseListFilter {
+	filter := model.CourseListFilter{
+		Page:          request.Page,
+		PageSize:      request.PageSize,
+		Categories:    make([]string, 0),
+		Departments:   make([]string, 0),
+		Credits:       make([]float64, 0),
+		Code:          request.Code,
+		MainTeacherID: request.MainTeacherID,
 	}
 
 	categories := strings.Split(request.Categories, ",")
@@ -93,11 +92,25 @@ func GetCourseListHandler(c *gin.Context) {
 
 	resp := dto.CourseListResponse{
 		Total:    total,
-		Data:     converter.ConvertCourseListDomainToDTO(courses),
+		Data:     courses,
 		Page:     request.Page,
 		PageSize: int64(len(courses)),
 	}
 	c.JSON(http.StatusOK, resp)
+}
+
+func GetBaseCourse(c *gin.Context) {
+	var request dto.BaseCourseDetailRequest
+	if err := c.ShouldBindUri(&request); err != nil {
+		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		return
+	}
+	baseCourse, err := service.GetBaseCourse(c, request.Code)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		return
+	}
+	c.JSON(http.StatusOK, baseCourse)
 }
 
 func GetSuggestedCourseHandler(c *gin.Context) {

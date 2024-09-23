@@ -3,14 +3,15 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/hibiken/asynq"
+
+	"jcourse_go/util"
 )
 
 func main() {
-	host := os.Getenv("REDIS_HOST")
-	port := os.Getenv("REDIS_PORT")
+	host := util.GetRedisHost()
+	port := util.GetRedisPort()
 
 	srv := asynq.NewServer(
 		asynq.RedisClientOpt{Addr: fmt.Sprintf("%s:%s", host, port)},

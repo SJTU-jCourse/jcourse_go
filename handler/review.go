@@ -5,10 +5,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"jcourse_go/constant"
 	"jcourse_go/middleware"
 	"jcourse_go/model/converter"
-	"jcourse_go/model/domain"
 	"jcourse_go/model/dto"
+	"jcourse_go/model/model"
 	"jcourse_go/service"
 )
 
@@ -21,26 +22,39 @@ func GetReviewDetailHandler(c *gin.Context) {
 		return
 	}
 
-	reviews, err := service.GetReviewList(c, domain.ReviewFilter{ReviewID: request.ReviewID})
+	reviews, err := service.GetReviewList(c, model.ReviewFilter{ReviewID: request.ReviewID})
 	if err != nil || len(reviews) == 0 {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 
-	reviewDTO := converter.ConvertReviewDomainToDTO(reviews[0], true)
-	c.JSON(http.StatusOK, reviewDTO)
+	c.JSON(http.StatusOK, reviews[0])
 }
 
 func GetReviewListHandler(c *gin.Context) {
-	var request dto.ReviewListRequest
+	var request = dto.ReviewListRequest{
+		Page:     constant.DefaultPage,
+		PageSize: constant.DefaultPageSize,
+	}
 	if err := c.ShouldBind(&request); err != nil {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
 
-	filter := domain.ReviewFilter{
+	filter := model.ReviewFilter{
 		Page:     request.Page,
 		PageSize: request.PageSize,
+		UserID:   request.UserID,
+	}
+
+	// 非本人不可看匿名点评
+	currentUserID := int64(0)
+	user := middleware.GetCurrentUser(c)
+	if user == nil || user.ID != request.UserID {
+		filter.IncludeAnonymous = false
+	}
+	if user != nil {
+		currentUserID = user.ID
 	}
 
 	reviews, err := service.GetReviewList(c, filter)
@@ -54,11 +68,13 @@ func GetReviewListHandler(c *gin.Context) {
 		return
 	}
 
+	converter.RemoveReviewsUserInfo(reviews, currentUserID, true)
+
 	response := dto.ReviewListResponse{
 		Page:     request.Page,
 		PageSize: request.PageSize,
 		Total:    total,
-		Data:     converter.ConvertReviewDomainToListDTO(reviews, true),
+		Data:     reviews,
 	}
 	c.JSON(http.StatusOK, response)
 }
@@ -70,7 +86,7 @@ func CreateReviewHandler(c *gin.Context) {
 		return
 	}
 
-	user := middleware.GetUser(c)
+	user := middleware.GetCurrentUser(c)
 	reviewID, err := service.CreateReview(c, request, user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
@@ -93,8 +109,13 @@ func UpdateReviewHandler(c *gin.Context) {
 		return
 	}
 
+	user := middleware.GetCurrentUser(c)
+	if user == nil {
+		c.JSON(http.StatusUnauthorized, dto.BaseResponse{Message: "用户未登录！"})
+		return
+	}
 	reviewDTO.ID = request.ReviewID
-	user := middleware.GetUser(c)
+
 	err := service.UpdateReview(c, reviewDTO, user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
@@ -118,5 +139,3 @@ func DeleteReviewHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, dto.DeleteReviewResponse{ReviewID: request.ReviewID}) // nolint: gosimple
 }
-
-func GetReviewListForCourseHandler(c *gin.Context) {}
