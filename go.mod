@@ -19,7 +19,6 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/mozillazg/go-pinyin v0.20.0
 	github.com/redis/go-redis/v9 v9.5.3
-	github.com/sashabaranov/go-openai v1.26.0
 	github.com/stretchr/testify v1.9.0
 	github.com/tmc/langchaingo v0.1.12
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
@@ -46,7 +45,6 @@ require (
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/context v1.1.2 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
@@ -90,4 +88,4 @@ require (
 )
 
 // 本地调试修改
-replace github.com/tmc/langchaingo => /home/creeper/jcourse/langchaingo
+replace github.com/tmc/langchaingo v0.1.12 => github.com/creeper12356/langchaingo v0.0.0-20240924140949-8ffd9dd88de7
