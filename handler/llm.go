@@ -41,14 +41,14 @@ func GetCourseSummaryHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
-func VectorizeCourseReviewsHandler(c *gin.Context) {
+func VectorizeCourseHandler(c *gin.Context) {
 	var request dto.CourseDetailRequest
 	if err := c.ShouldBindUri(&request); err != nil {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
 
-	err := service.VectorizeCourseReviews(c, request.CourseID)
+	err := service.VectorizeCourse(c, request.CourseID)
 	if err != nil {
 		fmt.Println(err)
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})

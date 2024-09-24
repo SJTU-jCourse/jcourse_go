@@ -78,6 +78,6 @@ func registerRouter(r *gin.Engine) {
 	llmGroup := needAuthGroup.Group(("/llm"))
 	llmGroup.GET("/review/opt", handler.OptCourseReviewHandler)
 	llmGroup.GET("/course/summary/:courseID", handler.GetCourseSummaryHandler)
-	llmGroup.GET("/vectorize/:courseID", handler.VectorizeCourseReviewsHandler)
+	llmGroup.GET("/vectorize/:courseID", handler.VectorizeCourseHandler)
 	llmGroup.GET("/match", handler.GetMatchCoursesHandler)
 }
