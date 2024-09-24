@@ -52,7 +52,7 @@ func OptCourseReview(courseName string, reviewContent string) (dto.OptCourseRevi
 
 func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummaryResponse, error) {
 	courseQuery := repository.NewCourseQuery(dal.GetDBClient())
-	coursePOs, err := courseQuery.GetCourse(ctx, repository.WithCourseID(courseID))
+	coursePOs, err := courseQuery.GetCourse(ctx, repository.WithID(courseID))
 	if err != nil || len(coursePOs) == 0 {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummar
 
 func VectorizeCourseReviews(ctx context.Context, courseID int64) error {
 	courseQuery := repository.NewCourseQuery(dal.GetDBClient())
-	coursePOs, err := courseQuery.GetCourse(ctx, repository.WithCourseID(courseID))
+	coursePOs, err := courseQuery.GetCourse(ctx, repository.WithID(courseID))
 	if err != nil || len(coursePOs) == 0 {
 		return err
 	}
@@ -204,7 +204,7 @@ func GetMatchCourses(ctx context.Context, description string) ([]model.CourseSum
 
 	query := repository.NewCourseQuery(dal.GetDBClient())
 
-	coursePOs, err := query.GetCourse(ctx, repository.WithCourseIDs(courseIDs))
+	coursePOs, err := query.GetCourse(ctx, repository.WithIDs(courseIDs))
 	if err != nil {
 		return nil, err
 	}
