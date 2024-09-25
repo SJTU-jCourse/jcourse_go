@@ -43,13 +43,13 @@ func getVectorDBConnUrl() string {
 func OpenVectorStoreConn() (*pgvector.Store, error) {
 	llm, err := openai.New()
 	if err != nil {
-		fmt.Println(err)
+
 		return nil, err
 	}
 
 	embedder, err := embeddings.NewEmbedder(llm)
 	if err != nil {
-		fmt.Println(err)
+
 		return nil, err
 	}
 

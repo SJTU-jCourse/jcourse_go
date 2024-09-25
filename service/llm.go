@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"jcourse_go/constant"
 	"jcourse_go/dal"
 	"jcourse_go/model/converter"
@@ -28,7 +27,7 @@ import (
 func OptCourseReview(courseName string, reviewContent string) (dto.OptCourseReviewResponse, error) {
 	llm, err := openai.New()
 	if err != nil {
-		fmt.Println(err)
+
 		return dto.OptCourseReviewResponse{}, err
 	}
 	inputJson, _ := json.Marshal(map[string]string{
@@ -47,7 +46,7 @@ func OptCourseReview(courseName string, reviewContent string) (dto.OptCourseRevi
 	)
 
 	if err != nil {
-		fmt.Println(err)
+
 		return dto.OptCourseReviewResponse{}, err
 	}
 	var response dto.OptCourseReviewResponse
@@ -89,13 +88,13 @@ func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummar
 
 	reviews, err := GetReviewList(ctx, filter)
 	if err != nil {
-		fmt.Println(err)
+
 		return nil, err
 	}
 
 	llm, err := openai.New()
 	if err != nil {
-		fmt.Println(err)
+
 		return nil, err
 	}
 
@@ -118,7 +117,7 @@ func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummar
 	)
 
 	if err != nil {
-		fmt.Println(err)
+
 		return nil, err
 	}
 
@@ -152,7 +151,7 @@ func VectorizeCourse(ctx context.Context, courseID int64) error {
 
 	reviews, err := GetReviewList(ctx, filter)
 	if err != nil {
-		fmt.Println(err)
+
 		return err
 	}
 
@@ -165,7 +164,7 @@ func VectorizeCourse(ctx context.Context, courseID int64) error {
 	vectorStore, err := rpc.OpenVectorStoreConn()
 
 	if err != nil {
-		fmt.Println(err)
+
 		return err
 	}
 
@@ -184,7 +183,7 @@ func VectorizeCourse(ctx context.Context, courseID int64) error {
 	)
 
 	if err != nil {
-		fmt.Println(err)
+
 		return err
 	}
 
@@ -202,19 +201,19 @@ func GetMatchCourses(ctx context.Context, description string) ([]model.CourseSum
 	vectorStore, err := rpc.OpenVectorStoreConn()
 
 	if err != nil {
-		fmt.Println(err)
+
 		return nil, err
 	}
 
 	docs, err := vectorStore.SimilaritySearch(context.Background(), description, 2)
 	if err != nil {
-		fmt.Println(err)
+
 		return nil, err
 	}
 
 	err = vectorStore.Close()
 	if err != nil {
-		fmt.Println(err)
+
 		return nil, err
 	}
 

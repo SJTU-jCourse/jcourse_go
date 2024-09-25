@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"jcourse_go/model/dto"
 	"jcourse_go/service"
 	"net/http"
@@ -18,7 +17,6 @@ func OptCourseReviewHandler(c *gin.Context) {
 
 	response, err := service.OptCourseReview(request.CourseName, request.ReviewContent)
 	if err != nil {
-		fmt.Println(err)
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 		return
 	}
@@ -34,7 +32,6 @@ func GetCourseSummaryHandler(c *gin.Context) {
 
 	response, err := service.GetCourseSummary(c, request.CourseID)
 	if err != nil {
-		fmt.Println(err)
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 		return
 	}
@@ -50,7 +47,7 @@ func VectorizeCourseHandler(c *gin.Context) {
 
 	err := service.VectorizeCourse(c, request.CourseID)
 	if err != nil {
-		fmt.Println(err)
+
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 		return
 	}
