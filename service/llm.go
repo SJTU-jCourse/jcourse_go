@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"strings"
+
 	"jcourse_go/constant"
 	"jcourse_go/dal"
 	"jcourse_go/model/converter"
@@ -10,7 +12,6 @@ import (
 	"jcourse_go/model/model"
 	"jcourse_go/repository"
 	"jcourse_go/rpc"
-	"strings"
 
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"

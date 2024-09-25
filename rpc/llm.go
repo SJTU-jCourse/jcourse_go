@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"fmt"
+
 	"jcourse_go/util"
 
 	// "github.com/sashabaranov/go-openai"

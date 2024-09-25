@@ -79,5 +79,5 @@ func registerRouter(r *gin.Engine) {
 	llmGroup.GET("/review/opt", handler.OptCourseReviewHandler)
 	llmGroup.GET("/course/summary/:courseID", handler.GetCourseSummaryHandler)
 	llmGroup.GET("/vectorize/:courseID", handler.VectorizeCourseHandler)
-	llmGroup.GET("/match", handler.GetMatchCoursesHandler)
+	llmGroup.GET("/course/match", handler.GetMatchCoursesHandler)
 }

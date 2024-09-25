@@ -1,9 +1,10 @@
 package handler
 
 import (
+	"net/http"
+
 	"jcourse_go/model/dto"
 	"jcourse_go/service"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
