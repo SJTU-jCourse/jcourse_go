@@ -13,20 +13,6 @@ services:
     ports:
       - 5432:5432
 
-  pgAdmin:
-    container_name: pgAdmin
-    # restart: unless-stopped
-    image: dpage/pgadmin4:latest
-    environment:
-        PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
-        PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
-        PGADMIN_LISTEN_PORT: 5050
-    volumes:
-        - pgadmin:/root/.pgadmin
-    ports:
-        - "5050:5050"
-
-
   redis:
     image: redis:latest
     restart: always
