@@ -45,6 +45,7 @@ func GetReviewListHandler(c *gin.Context) {
 		Page:     request.Page,
 		PageSize: request.PageSize,
 		UserID:   request.UserID,
+		CourseID: request.CourseID,
 	}
 
 	// 非本人不可看匿名点评
