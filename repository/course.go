@@ -6,6 +6,7 @@ import (
 
 	"gorm.io/gorm"
 
+	"jcourse_go/model/model"
 	"jcourse_go/model/po"
 )
 
@@ -70,10 +71,49 @@ type ICourseQuery interface {
 	GetCourseCount(ctx context.Context, opts ...DBOption) (int64, error)
 	GetCourseCategories(ctx context.Context, courseIDs []int64) (map[int64][]string, error)
 	GetCourseByIDs(ctx context.Context, courseIDs []int64) (map[int64]po.CoursePO, error)
+	GetCourseFilter(ctx context.Context) (model.CourseFilter, error)
 }
 
 type CourseQuery struct {
 	db *gorm.DB
+}
+
+func (c *CourseQuery) GetCourseFilter(ctx context.Context) (model.CourseFilter, error) {
+	filter := model.CourseFilter{
+		Departments: make([]model.FilterItem, 0),
+		Credits:     make([]model.FilterItem, 0),
+		Semesters:   make([]model.FilterItem, 0),
+		Categories:  make([]model.FilterItem, 0),
+	}
+
+	err := c.db.WithContext(ctx).Model(&po.CoursePO{}).
+		Select("department as value, count(*) as count").
+		Group("department").Find(&filter.Departments).Error
+	if err != nil {
+		return filter, err
+	}
+
+	err = c.db.WithContext(ctx).Model(&po.CoursePO{}).
+		Select("cast(credit as varchar) as value, count(*) as count").
+		Group("credit").Find(&filter.Credits).Error
+	if err != nil {
+		return filter, err
+	}
+
+	err = c.db.WithContext(ctx).Model(&po.CourseCategoryPO{}).
+		Select("category as value, count(course_id) as count").
+		Group("category").Find(&filter.Categories).Error
+	if err != nil {
+		return filter, err
+	}
+
+	err = c.db.WithContext(ctx).Model(&po.OfferedCoursePO{}).
+		Select("semester as value, count(course_id) as count").
+		Group("semester").Find(&filter.Semesters).Error
+	if err != nil {
+		return filter, err
+	}
+	return filter, nil
 }
 
 func (c *CourseQuery) GetCourseByIDs(ctx context.Context, courseIDs []int64) (map[int64]po.CoursePO, error) {

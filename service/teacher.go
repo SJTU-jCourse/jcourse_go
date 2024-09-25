@@ -24,7 +24,7 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*model.TeacherDetai
 	teacherPO := teacherPOs[0]
 	teacher := converter.ConvertTeacherDetailFromPO(teacherPO)
 
-	courses, err := GetCourseList(ctx, model.CourseListFilter{MainTeacherID: teacherID})
+	courses, err := GetCourseList(ctx, model.CourseListFilterForQuery{MainTeacherID: teacherID})
 	if err != nil {
 		return nil, err
 	}

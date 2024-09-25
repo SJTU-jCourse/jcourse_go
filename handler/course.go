@@ -29,8 +29,8 @@ func GetCourseDetailHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, course)
 }
 
-func convertCourseListFilter(request dto.CourseListRequest) model.CourseListFilter {
-	filter := model.CourseListFilter{
+func convertCourseListFilter(request dto.CourseListRequest) model.CourseListFilterForQuery {
+	filter := model.CourseListFilterForQuery{
 		Page:          request.Page,
 		PageSize:      request.PageSize,
 		Categories:    make([]string, 0),
@@ -111,6 +111,15 @@ func GetBaseCourse(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, baseCourse)
+}
+
+func GetCourseFilterHandler(c *gin.Context) {
+	filter, err := service.GetCourseFilter(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		return
+	}
+	c.JSON(http.StatusOK, filter)
 }
 
 func GetSuggestedCourseHandler(c *gin.Context) {

@@ -54,7 +54,7 @@ func GetCourseDetail(ctx context.Context, courseID int64) (*model.CourseDetail, 
 	return &course, nil
 }
 
-func buildCourseDBOptionFromFilter(query repository.ICourseQuery, filter model.CourseListFilter) []repository.DBOption {
+func buildCourseDBOptionFromFilter(query repository.ICourseQuery, filter model.CourseListFilterForQuery) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if filter.PageSize > 0 {
 		opts = append(opts, repository.WithLimit(filter.PageSize))
@@ -83,7 +83,7 @@ func buildCourseDBOptionFromFilter(query repository.ICourseQuery, filter model.C
 	return opts
 }
 
-func GetCourseList(ctx context.Context, filter model.CourseListFilter) ([]model.CourseSummary, error) {
+func GetCourseList(ctx context.Context, filter model.CourseListFilterForQuery) ([]model.CourseSummary, error) {
 	query := repository.NewCourseQuery(dal.GetDBClient())
 	opts := buildCourseDBOptionFromFilter(query, filter)
 
@@ -118,7 +118,7 @@ func GetCourseList(ctx context.Context, filter model.CourseListFilter) ([]model.
 	return courses, nil
 }
 
-func GetCourseCount(ctx context.Context, filter model.CourseListFilter) (int64, error) {
+func GetCourseCount(ctx context.Context, filter model.CourseListFilterForQuery) (int64, error) {
 	query := repository.NewCourseQuery(dal.GetDBClient())
 	filter.Page, filter.PageSize = 0, 0
 	opts := buildCourseDBOptionFromFilter(query, filter)
@@ -152,4 +152,9 @@ func GetBaseCourse(ctx context.Context, code string) (*model.BaseCourse, error) 
 	}
 	baseCourse := converter.ConvertBaseCourseFromPO(baseCourses[0])
 	return &baseCourse, nil
+}
+
+func GetCourseFilter(ctx context.Context) (model.CourseFilter, error) {
+	query := repository.NewCourseQuery(dal.GetDBClient())
+	return query.GetCourseFilter(ctx)
 }

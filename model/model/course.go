@@ -15,7 +15,7 @@ type OfferedCourse struct {
 	TeacherGroup []TeacherDetail `json:"teacher_group"`
 }
 
-type CourseListFilter struct {
+type CourseListFilterForQuery struct {
 	Page          int64
 	PageSize      int64
 	Code          string
@@ -42,4 +42,16 @@ type CourseSummary struct {
 type CourseDetail struct {
 	CourseSummary
 	OfferedCourse []OfferedCourse `json:"offered_courses"`
+}
+
+type FilterItem struct {
+	Value string `json:"value"`
+	Count int64  `json:"count"`
+}
+
+type CourseFilter struct {
+	Departments []FilterItem `json:"departments"`
+	Credits     []FilterItem `json:"credits"`
+	Semesters   []FilterItem `json:"semesters"`
+	Categories  []FilterItem `json:"categories"`
 }

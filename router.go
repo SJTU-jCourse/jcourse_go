@@ -36,6 +36,7 @@ func registerRouter(r *gin.Engine) {
 
 	courseGroup := needAuthGroup.Group("/course")
 	courseGroup.GET("", handler.GetCourseListHandler)
+	courseGroup.GET("/filter", handler.GetCourseFilterHandler)
 	// courseGroup.GET("/suggest", handler.GetSuggestedCourseHandler)
 	courseGroup.GET("/:courseID", handler.GetCourseDetailHandler)
 	// courseGroup.POST("/:courseID/watch", handler.WatchCourseHandler)
