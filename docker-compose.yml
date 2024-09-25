@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:latest
+    image: pgvector/pgvector:pg16
     restart: always
     environment:
       POSTGRES_USER: jcourse
@@ -12,19 +12,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - 5432:5432
-
-  vectordb:
-    image: pgvector/pgvector:pg16
-    restart: always
-    environment:
-      POSTGRES_USER: jcourse
-      POSTGRES_PASSWORD: jcourse
-      POSTGRES_DB: jcourse
-    volumes:
-      - vector_data:/var/lib/postgresql/data
-    ports:
-      - 5433:5432
-
 
   pgAdmin:
     container_name: pgAdmin
@@ -48,4 +35,3 @@ services:
 volumes:
   postgres_data:
   pgadmin:
-  vector_data:

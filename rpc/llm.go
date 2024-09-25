@@ -3,7 +3,7 @@ package rpc
 import (
 	"context"
 	"fmt"
-	"os"
+	"jcourse_go/util"
 
 	// "github.com/sashabaranov/go-openai"
 	"github.com/tmc/langchaingo/embeddings"
@@ -33,11 +33,11 @@ import (
 
 func getVectorDBConnUrl() string {
 	return fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=disable",
-		os.Getenv("VECTORDB_USER"),
-		os.Getenv("VECTORDB_PASSWORD"),
-		os.Getenv("VECTORDB_HOST"),
-		os.Getenv("VECTORDB_PORT"),
-		os.Getenv("VECTORDB_DBNAME"),
+		util.GetPostgresUser(),
+		util.GetPostgresPassword(),
+		util.GetPostgresHost(),
+		util.GetPostgresPort(),
+		util.GetPostgresPassword(),
 	)
 }
 func OpenVectorStoreConn() (*pgvector.Store, error) {
