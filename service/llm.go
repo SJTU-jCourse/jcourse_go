@@ -25,7 +25,7 @@ import (
 // 函数返回值包含两个字段：
 // Suggestion为修改建议，
 // Result为根据修改建议给出的一种修改结果。
-func OptCourseReview(courseName string, reviewContent string) (dto.OptCourseReviewResponse, error) {
+func OptCourseReview(ctx context.Context, courseName string, reviewContent string) (dto.OptCourseReviewResponse, error) {
 	llm, err := openai.New()
 	if err != nil {
 
@@ -42,7 +42,7 @@ func OptCourseReview(courseName string, reviewContent string) (dto.OptCourseRevi
 	}
 
 	completion, err := llm.GenerateContent(
-		context.Background(),
+		ctx,
 		content,
 	)
 
@@ -113,7 +113,7 @@ func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummar
 	}
 
 	completion, err := llm.GenerateContent(
-		context.Background(),
+		ctx,
 		content,
 	)
 
@@ -162,7 +162,7 @@ func VectorizeCourse(ctx context.Context, courseID int64) error {
 		comments = append(comments, review.Comment)
 	}
 
-	vectorStore, err := rpc.OpenVectorStoreConn()
+	vectorStore, err := rpc.OpenVectorStoreConn(ctx)
 
 	if err != nil {
 
@@ -178,7 +178,7 @@ func VectorizeCourse(ctx context.Context, courseID int64) error {
 	}
 
 	_, err = vectorStore.AddDocuments(
-		context.Background(),
+		ctx,
 		[]schema.Document{doc},
 		vectorstores.WithReplacement(true),
 	)
@@ -199,14 +199,14 @@ func VectorizeCourse(ctx context.Context, courseID int64) error {
 // 输出的课程列表数量为2，后续可以修改。
 
 func GetMatchCourses(ctx context.Context, description string) ([]model.CourseSummary, error) {
-	vectorStore, err := rpc.OpenVectorStoreConn()
+	vectorStore, err := rpc.OpenVectorStoreConn(ctx)
 
 	if err != nil {
 
 		return nil, err
 	}
 
-	docs, err := vectorStore.SimilaritySearch(context.Background(), description, 2)
+	docs, err := vectorStore.SimilaritySearch(ctx, description, 2)
 	if err != nil {
 
 		return nil, err

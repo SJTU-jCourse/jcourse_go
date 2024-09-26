@@ -41,7 +41,7 @@ func getVectorDBConnUrl() string {
 		util.GetPostgresPassword(),
 	)
 }
-func OpenVectorStoreConn() (*pgvector.Store, error) {
+func OpenVectorStoreConn(ctx context.Context) (*pgvector.Store, error) {
 	llm, err := openai.New()
 	if err != nil {
 

@@ -16,7 +16,7 @@ func OptCourseReviewHandler(c *gin.Context) {
 		return
 	}
 
-	response, err := service.OptCourseReview(request.CourseName, request.ReviewContent)
+	response, err := service.OptCourseReview(c, request.CourseName, request.ReviewContent)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 		return
