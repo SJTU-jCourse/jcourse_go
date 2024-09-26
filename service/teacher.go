@@ -40,7 +40,7 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*model.TeacherDetai
 	return &teacher, nil
 }
 
-func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter model.TeacherListFilter) []repository.DBOption {
+func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter model.TeacherFilterForQuery) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if filter.Name != "" {
 		opts = append(opts, repository.WithName(filter.Name))
@@ -48,11 +48,11 @@ func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter model
 	if filter.Code != "" {
 		opts = append(opts, repository.WithCode(filter.Code))
 	}
-	if filter.Department != "" {
-		opts = append(opts, repository.WithDepartment(filter.Department))
+	if len(filter.Departments) > 0 {
+		opts = append(opts, repository.WithDepartments(filter.Departments))
 	}
-	if filter.Title != "" {
-		opts = append(opts, repository.WithTitle(filter.Title))
+	if len(filter.Titles) > 0 {
+		opts = append(opts, repository.WithTitles(filter.Titles))
 	}
 	if filter.Pinyin != "" {
 		opts = append(opts, repository.WithPinyin(filter.Pinyin))
@@ -72,7 +72,7 @@ func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter model
 	return opts
 }
 
-func SearchTeacherList(ctx context.Context, filter model.TeacherListFilter) ([]model.TeacherSummary, error) {
+func SearchTeacherList(ctx context.Context, filter model.TeacherFilterForQuery) ([]model.TeacherSummary, error) {
 	teacherQuery := repository.NewTeacherQuery(dal.GetDBClient())
 	t_opts := buildTeacherDBOptionFromFilter(teacherQuery, filter)
 
@@ -108,9 +108,14 @@ func SearchTeacherList(ctx context.Context, filter model.TeacherListFilter) ([]m
 	return domainTeachers, nil
 }
 
-func GetTeacherCount(ctx context.Context, filter model.TeacherListFilter) (int64, error) {
+func GetTeacherCount(ctx context.Context, filter model.TeacherFilterForQuery) (int64, error) {
 	query := repository.NewTeacherQuery(dal.GetDBClient())
 	filter.Page, filter.PageSize = 0, 0
 	opts := buildTeacherDBOptionFromFilter(query, filter)
 	return query.GetTeacherCount(ctx, opts...)
+}
+
+func GetTeacherFilter(ctx context.Context) (model.TeacherFilter, error) {
+	query := repository.NewTeacherQuery(dal.GetDBClient())
+	return query.GetTeacherFilter(ctx)
 }

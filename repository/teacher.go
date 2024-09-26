@@ -6,16 +6,38 @@ import (
 
 	"gorm.io/gorm"
 
+	"jcourse_go/model/model"
 	"jcourse_go/model/po"
 )
 
 type ITeacherQuery interface {
 	GetTeacher(ctx context.Context, opts ...DBOption) ([]po.TeacherPO, error)
 	GetTeacherCount(ctx context.Context, opts ...DBOption) (int64, error)
+	GetTeacherFilter(ctx context.Context) (model.TeacherFilter, error)
 }
 
 type TeacherQuery struct {
 	db *gorm.DB
+}
+
+func (q *TeacherQuery) GetTeacherFilter(ctx context.Context) (model.TeacherFilter, error) {
+	filter := model.TeacherFilter{
+		Departments: make([]model.FilterItem, 0),
+		Titles:      make([]model.FilterItem, 0),
+	}
+	err := q.db.WithContext(ctx).Model(&po.TeacherPO{}).
+		Select("department as value, count(*) as count").
+		Group("department").Find(&filter.Departments).Error
+	if err != nil {
+		return filter, err
+	}
+	err = q.db.WithContext(ctx).Model(&po.TeacherPO{}).
+		Select("title as value, count(*) as count").
+		Group("title").Find(&filter.Titles).Error
+	if err != nil {
+		return filter, err
+	}
+	return filter, nil
 }
 
 func NewTeacherQuery(db *gorm.DB) ITeacherQuery {

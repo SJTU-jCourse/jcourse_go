@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strings"
 
 	"jcourse_go/constant"
 	"jcourse_go/model/dto"
@@ -12,14 +13,31 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func convertTeacherListFilter(request dto.TeacherListRequest) model.TeacherListFilter {
-	filter := model.TeacherListFilter{
-		Page:       request.Page,
-		PageSize:   request.PageSize,
-		Name:       request.Name,
-		Department: request.Department,
-		Pinyin:     request.Pinyin,
-		PinyinAbbr: request.PinyinAbbr,
+func convertTeacherListFilter(request dto.TeacherListRequest) model.TeacherFilterForQuery {
+	filter := model.TeacherFilterForQuery{
+		Page:        request.Page,
+		PageSize:    request.PageSize,
+		Name:        request.Name,
+		Departments: make([]string, 0),
+		Titles:      make([]string, 0),
+		Pinyin:      request.Pinyin,
+		PinyinAbbr:  request.PinyinAbbr,
+	}
+
+	departments := strings.Split(request.Departments, ",")
+	for _, d := range departments {
+		if d == "" {
+			continue
+		}
+		filter.Departments = append(filter.Departments, d)
+	}
+
+	titles := strings.Split(request.Titles, ",")
+	for _, t := range titles {
+		if t == "" {
+			continue
+		}
+		filter.Titles = append(filter.Titles, t)
 	}
 
 	return filter
@@ -78,9 +96,8 @@ func SearchTeacherListHandler(c *gin.Context) {
 		return
 	}
 
-	filter := model.TeacherListFilter{
+	filter := model.TeacherFilterForQuery{
 		Name:       request.Name,
-		Department: request.Department,
 		Pinyin:     request.Pinyin,
 		PinyinAbbr: request.PinyinAbbr,
 		Page:       request.Page,
@@ -106,6 +123,15 @@ func SearchTeacherListHandler(c *gin.Context) {
 		PageSize: int64(len(teachers)),
 	}
 	c.JSON(http.StatusOK, resp)
+}
+
+func GetTeacherFilter(c *gin.Context) {
+	filter, err := service.GetTeacherFilter(c)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		return
+	}
+	c.JSON(http.StatusOK, filter)
 }
 
 func CreateTeacherHandler(c *gin.Context) {}

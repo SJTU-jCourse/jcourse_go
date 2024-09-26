@@ -58,16 +58,19 @@ func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*model.Tr
 	converter.PackTrainingPlanDetailWithCourse(&trainingPlan, domainCourses)
 	return &trainingPlan, nil
 }
-func buildTrainingPlanDBOptionFromFilter(query repository.ITrainingPlanQuery, filter model.TrainingPlanFilter) []repository.DBOption {
+func buildTrainingPlanDBOptionFromFilter(query repository.ITrainingPlanQuery, filter model.TrainingPlanFilterForQuery) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if filter.Major != "" {
 		opts = append(opts, repository.WithMajor(filter.Major))
 	}
-	if filter.EntryYear != "" {
-		opts = append(opts, repository.WithEntryYear(filter.EntryYear))
+	if len(filter.EntryYears) > 0 {
+		opts = append(opts, repository.WithEntryYears(filter.EntryYears))
 	}
-	if filter.Department != "" {
-		opts = append(opts, repository.WithDepartment(filter.Department))
+	if len(filter.Departments) > 0 {
+		opts = append(opts, repository.WithDepartments(filter.Departments))
+	}
+	if len(filter.Degrees) > 0 {
+		opts = append(opts, repository.WithDegrees(filter.Degrees))
 	}
 	if filter.SearchQuery != "" {
 		opts = append(opts, repository.WithSearch(filter.SearchQuery))
@@ -80,21 +83,21 @@ func buildTrainingPlanDBOptionFromFilter(query repository.ITrainingPlanQuery, fi
 	}
 	return opts
 }
-func buildTrainingPlanCourseDBOptionFromFilter(query repository.ITrainingPlanCourseQuery, filter model.TrainingPlanFilter) []repository.DBOption {
+func buildTrainingPlanCourseDBOptionFromFilter(query repository.ITrainingPlanCourseQuery, filter model.TrainingPlanFilterForQuery) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if len(filter.ContainCourseIDs) > 0 {
 		opts = append(opts, repository.WithCourseIDs(filter.ContainCourseIDs))
 	}
 	return opts
 }
-func GetTrainingPlanCount(ctx context.Context, filter model.TrainingPlanFilter) (int64, error) {
+func GetTrainingPlanCount(ctx context.Context, filter model.TrainingPlanFilterForQuery) (int64, error) {
 	trainingPlanQuery := repository.NewTrainingPlanQuery(dal.GetDBClient())
 	filter.PageSize, filter.Page = 0, 0
 	opts := buildTrainingPlanDBOptionFromFilter(trainingPlanQuery, filter)
 	return trainingPlanQuery.GetTrainingPlanCount(ctx, opts...)
 }
 
-func SearchTrainingPlanList(ctx context.Context, filter model.TrainingPlanFilter) ([]model.TrainingPlanSummary, error) {
+func SearchTrainingPlanList(ctx context.Context, filter model.TrainingPlanFilterForQuery) ([]model.TrainingPlanSummary, error) {
 
 	trainingPlanQuery := repository.NewTrainingPlanQuery(dal.GetDBClient())
 	tp_opts := buildTrainingPlanDBOptionFromFilter(trainingPlanQuery, filter)
@@ -133,4 +136,9 @@ func SearchTrainingPlanList(ctx context.Context, filter model.TrainingPlanFilter
 		result = append(result, tp)
 	}
 	return result, nil
+}
+
+func GetTrainingPlanFilter(ctx context.Context) (model.TrainingPlanFilter, error) {
+	query := repository.NewTrainingPlanQuery(dal.GetDBClient())
+	return query.GetTrainingPlanFilter(ctx)
 }

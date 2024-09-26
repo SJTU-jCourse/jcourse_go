@@ -1,11 +1,12 @@
 package model
 
-type TrainingPlanFilter struct {
+type TrainingPlanFilterForQuery struct {
 	Page             int64
 	PageSize         int64
 	Major            string
-	Department       string
-	EntryYear        string
+	Degrees          []string
+	Departments      []string
+	EntryYears       []string
 	ContainCourseIDs []int64
 	SearchQuery      string
 }
@@ -33,4 +34,10 @@ type TrainingPlanDetail struct {
 	MinCredits float64              `json:"min_credits"`
 	TotalYear  int64                `json:"total_year"`
 	Courses    []TrainingPlanCourse `json:"courses"`
+}
+
+type TrainingPlanFilter struct {
+	Departments []FilterItem `json:"departments"`
+	Degrees     []FilterItem `json:"degrees"`
+	EntryYears  []FilterItem `json:"entry_years"`
 }

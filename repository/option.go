@@ -134,6 +134,12 @@ func WithTitle(title string) DBOption {
 	}
 }
 
+func WithTitles(titles []string) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("title in ?", titles)
+	}
+}
+
 func WithOrderBy(orderBy string, ascending bool) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		if ascending {
@@ -187,15 +193,15 @@ func WithMajor(major string) DBOption {
 	}
 }
 
-func WithEntryYear(entryYear string) DBOption {
+func WithEntryYears(entryYears []string) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("entry_year = ?", entryYear)
+		return db.Where("entry_year in ?", entryYears)
 	}
 }
 
-func WithDegree(degree string) DBOption {
+func WithDegrees(degrees []string) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("degree = ?", degree)
+		return db.Where("degree in ?", degrees)
 	}
 }
 

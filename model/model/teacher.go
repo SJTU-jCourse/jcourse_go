@@ -1,12 +1,12 @@
 package model
 
-type TeacherListFilter struct {
+type TeacherFilterForQuery struct {
 	Page             int64
 	PageSize         int64
 	Name             string
 	Code             string
-	Department       string
-	Title            string
+	Departments      []string
+	Titles           []string
 	Pinyin           string
 	PinyinAbbr       string
 	ContainCourseIDs []int64
@@ -29,4 +29,9 @@ type TeacherSummary struct {
 	Department string     `json:"department"`
 	Picture    string     `json:"picture"`
 	RatingInfo RatingInfo `json:"rating_info"`
+}
+
+type TeacherFilter struct {
+	Departments []FilterItem `json:"departments"`
+	Titles      []FilterItem `json:"titles"`
 }
