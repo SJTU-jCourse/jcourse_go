@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: always
+    environment:
+      POSTGRES_USER: jcourse
+      POSTGRES_PASSWORD: jcourse
+      POSTGRES_DB: jcourse
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - 6379:6379
+volumes:
+  postgres_data:
+  pgadmin:

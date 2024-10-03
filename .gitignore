@@ -29,3 +29,4 @@ go.work.sum
 *.sqlite
 
 .idea
+.vscode

@@ -75,4 +75,15 @@ func registerRouter(r *gin.Engine) {
 	adminGroup := needAuthGroup.Group("/admin")
 	adminGroup.Use(middleware.RequireAdmin())
 	adminGroup.GET("/user", handler.AdminGetUserList)
+
+	adminGroup.GET("")
+
+	llmGroup := needAuthGroup.Group(("/llm"))
+	llmGroup.GET("/review/opt", handler.OptCourseReviewHandler)
+	llmGroup.GET("/course/summary/:courseID", handler.GetCourseSummaryHandler)
+	llmGroup.GET("/course/match", handler.GetMatchCoursesHandler)
+
+	if util.IsDebug() {
+		llmGroup.GET("/vectorize/:courseID", handler.VectorizeCourseHandler)
+	}
 }
