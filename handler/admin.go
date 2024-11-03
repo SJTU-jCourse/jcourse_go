@@ -1,6 +1,9 @@
 package handler
 
 import (
+	"jcourse_go/model/po"
+	"jcourse_go/service"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -32,4 +35,18 @@ func AdminGetUserList(c *gin.Context) {
 		}
 		c.JSON(http.StatusOK, response)
 	*/
+}
+func AdminChangeUserPoint(c *gin.Context) {
+	var request dto.ChangeUserPointRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		return
+	}
+	err := service.ChangeUserPoints(c, request.UserID, po.PointEventAdminChange, request.Value, "")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "用户积分更新失败。"})
+		log.Printf("ChangeUserPointHandler: %v", err)
+		return
+	}
+	c.JSON(http.StatusOK, dto.BaseResponse{Message: "用户积分更新成功。"})
 }

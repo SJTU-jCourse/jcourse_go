@@ -57,6 +57,7 @@ func readRawCSV(filename string) [][]string {
 func main() {
 	initDB()
 	data := readRawCSV(fmt.Sprintf("./data/%s.csv", Semester))
+	// 课程号,课程名称,学时,合上教师,任课教师,开课院系,课程安排,教学班名称,选课人数,学分,教室,授课语言,是否通识课,通识课归属模块,年级
 
 	// init
 	queryAllBaseCourse()
@@ -174,6 +175,9 @@ func queryAllBaseCourse() {
 
 func parseMainTeacherFromLine(line []string) po.TeacherPO {
 	teacherInfo := strings.Split(line[4], "|")
+	if len(teacherInfo) <= 1 {
+		return po.TeacherPO{}
+	}
 	teacher := po.TeacherPO{
 		Name:       teacherInfo[1],
 		Code:       teacherInfo[0],

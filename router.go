@@ -10,8 +10,10 @@ import (
 
 func registerRouter(r *gin.Engine) {
 	middleware.InitSession(r)
+	middleware.InitEvent(r)
 
 	api := r.Group("/api")
+	api.POST("test", handler.TestAddCreditHandler)
 
 	authGroup := api.Group("/auth")
 	authGroup.POST("/login", handler.LoginHandler)
@@ -24,7 +26,6 @@ func registerRouter(r *gin.Engine) {
 	if !util.IsNoLoginMode() {
 		needAuthGroup.Use(middleware.RequireAuth())
 	}
-
 	needAuthGroup.GET("/common", handler.GetCommonInfo)
 
 	teacherGroup := needAuthGroup.Group("/teacher")
@@ -72,11 +73,19 @@ func registerRouter(r *gin.Engine) {
 	// userGroup.POST("/:userID/unwatch", handler.UnWatchUserHandler)
 	userGroup.PUT("/:userID/profile", handler.UpdateUserProfileHandler)
 
+	userPointGroup := userGroup.Group("/point")
+	userPointGroup.GET("", handler.GetUserPointDetailListHandler)
+	userPointGroup.GET("/:detailID", handler.GetUserPointDetailHandler)
+	userPointGroup.POST("/transfer", handler.TransferUserPointHandler)
+	userPointGroup.POST("/redeem", handler.RedeemUserPointsHandler)
+	if util.IsDebug() {
+		userPointGroup.POST("/change", handler.AdminChangeUserPoint)
+	}
+
 	adminGroup := needAuthGroup.Group("/admin")
 	adminGroup.Use(middleware.RequireAdmin())
 	adminGroup.GET("/user", handler.AdminGetUserList)
-
-	adminGroup.GET("")
+	adminGroup.POST("/user/change_point", handler.AdminChangeUserPoint)
 
 	llmGroup := needAuthGroup.Group(("/llm"))
 	llmGroup.GET("/review/opt", handler.OptCourseReviewHandler)
@@ -86,4 +95,5 @@ func registerRouter(r *gin.Engine) {
 	if util.IsDebug() {
 		llmGroup.GET("/vectorize/:courseID", handler.VectorizeCourseHandler)
 	}
+
 }

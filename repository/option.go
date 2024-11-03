@@ -1,12 +1,31 @@
 package repository
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 type DBOption func(*gorm.DB) *gorm.DB
 
 func WithUserIDs(userIDs []int64) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("user_id in ?", userIDs)
+	}
+}
+
+func WithTimeBetween(start, end time.Time) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("created_at between ? and ?", start, end)
+	}
+}
+func WithTimeAfter(start time.Time) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("created_at >= ?", start)
+	}
+}
+func WithTimeBefore(end time.Time) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("created_at <= ?", end)
 	}
 }
 

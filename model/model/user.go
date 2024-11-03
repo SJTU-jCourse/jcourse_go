@@ -29,6 +29,7 @@ type UserDetail struct {
 	Department string `json:"department"`
 	Major      string `json:"major"`
 	Grade      string `json:"grade"`
+	Points     int64  `json:"points"`
 }
 
 type UserActivity struct {
@@ -42,4 +43,19 @@ type UserMinimal struct {
 	ID       int64  `json:"id"`
 	Username string `json:"username"`
 	Avatar   string `json:"avatar"`
+}
+
+// 用户积分明细
+type UserPointDetailItem struct {
+	Time        string `json:"time"`
+	Value       int64  `json:"value"` // 积分变化值: +1, -3
+	Description string `json:"description"`
+}
+type UserPointDetailFilter struct {
+	Page              int64
+	PageSize          int64
+	UserPointDetailID int64
+	UserID            int64
+	StartTime         string
+	EndTime           string
 }

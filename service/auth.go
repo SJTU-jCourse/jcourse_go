@@ -111,12 +111,33 @@ func SendRegisterCodeEmail(ctx context.Context, email string) error {
 	body := fmt.Sprintf(constant.EmailBodyVerifyCode, code) // nolint: gosimple
 	err = repository.StoreVerifyCode(ctx, email, code)
 	if err != nil {
+		fmt.Printf("StoreVerifyCode error: %v\n", err)
 		return err
 	}
 	err = rpc.SendMail(ctx, email, constant.EmailTitleVerifyCode, body)
 	if err != nil {
+		fmt.Printf("SendMail error: %v\n", err)
 		return err
 	}
+	err = repository.StoreSendVerifyCodeHistory(ctx, email)
+	return err
+}
+func SendRegisterCodeEmailMock(ctx context.Context, email string) error {
+	recentSent := repository.GetSendVerifyCodeHistory(ctx, email)
+	if recentSent {
+		return errors.New("recently sent code")
+	}
+	code, err := generateVerifyCode()
+	if err != nil {
+		return err
+	}
+	body := fmt.Sprintf(constant.EmailBodyVerifyCode, code) // nolint: gosimple
+	err = repository.StoreVerifyCode(ctx, email, code)
+	if err != nil {
+		fmt.Printf("StoreVerifyCode error: %v\n", err)
+		return err
+	}
+	fmt.Printf("[HINT] Send email to %s, title: %s, body: %s\n", email, constant.EmailTitleVerifyCode, body)
 	err = repository.StoreSendVerifyCodeHistory(ctx, email)
 	return err
 }

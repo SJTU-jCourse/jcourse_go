@@ -16,11 +16,13 @@ func GetRedisDSN() string {
 	port := util.GetRedisPort()
 	return fmt.Sprintf("%s:%s", host, port)
 }
-
+func GetRedisPassWord() string {
+	return util.GetRedisPassword()
+}
 func InitRedisClient() {
 	rdb = redis.NewClient(&redis.Options{
 		Addr:     GetRedisDSN(),
-		Password: "",
+		Password: GetRedisPassWord(),
 		DB:       0,
 	})
 }

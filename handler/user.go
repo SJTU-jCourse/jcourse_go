@@ -2,15 +2,15 @@ package handler
 
 import (
 	"errors"
-	"net/http"
-	"strconv"
-
 	"jcourse_go/constant"
 	"jcourse_go/middleware"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/service"
+	"log"
+	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -98,6 +98,7 @@ func GetUserDetailHandler(c *gin.Context) {
 		return
 	}
 	converter.RemoveUserEmail(user, currentUserID)
+	log.Printf("user: %v", user)
 	c.JSON(http.StatusOK, user)
 }
 
@@ -125,4 +126,107 @@ func UpdateUserProfileHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, dto.BaseResponse{Message: "用户信息更新成功。"})
+}
+
+func TransferUserPointHandler(c *gin.Context) {
+	var request dto.TransferUserPointRequest
+	if err := c.ShouldBind(&request); err != nil {
+		log.Printf("TransferUserPointHandler: %v, %v", request, c.Request.URL.Query())
+		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		return
+	}
+	if request.Sender == request.Receiver {
+		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "不能给自己转账。"})
+		return
+	}
+	err := service.TransferUserPoints(c, request.Sender, request.Receiver, request.Value)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "用户积分转账失败。"})
+		log.Printf("TransferUserPointHandler: %v", err)
+		return
+	}
+	c.JSON(http.StatusOK, dto.BaseResponse{Message: "用户积分转账成功。"})
+}
+
+func GetUserPointDetailHandler(c *gin.Context) {
+	var requestUri dto.UserPointDetailRequestURI
+	if err := c.ShouldBindUri(&requestUri); err != nil {
+		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "参数错误"})
+		return
+	}
+	var requestJson dto.UserPointDetailRequestJSON
+	if err := c.ShouldBind(&requestJson); err != nil {
+		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		return
+	}
+	var request = dto.UserPointDetailRequest{
+		UserID:   requestJson.UserID,
+		DetailID: requestUri.DetailID,
+	}
+	log.Printf("userID: %v", request.UserID)
+	if !middleware.IsMineOrAdmin(c, request.UserID) {
+		c.JSON(http.StatusForbidden, dto.BaseResponse{Message: "无权查看他人积分。"})
+		return
+	}
+	userPointDetails, err := service.GetUserPointDetailList(c, model.UserPointDetailFilter{UserPointDetailID: request.DetailID})
+	if err != nil || len(userPointDetails) == 0 {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		return
+	}
+	c.JSON(http.StatusOK, userPointDetails[0])
+}
+
+func GetUserPointDetailListHandler(c *gin.Context) {
+	var request = dto.UserPointDetailListRequest{
+		Page:     constant.DefaultPage,
+		PageSize: constant.DefaultPageSize,
+	}
+	if err := c.ShouldBind(&request); err != nil {
+		log.Printf("GetUserPointDetailListHandler: %v, %v", request, c.Request.URL.Query())
+		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		return
+	}
+	if !middleware.IsMineOrAdmin(c, request.UserID) {
+		c.JSON(http.StatusForbidden, dto.BaseResponse{Message: "无权查看他人积分。"})
+		return
+	}
+	filter := model.UserPointDetailFilter{
+		UserID:    request.UserID,
+		StartTime: request.StartTime,
+		EndTime:   request.EndTime,
+	}
+	userPointDetails, err := service.GetUserPointDetailList(c, filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+	}
+
+	total, _ := service.GetUserPointDetailCount(c, filter)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+	}
+	response := dto.UserPointDetailListResponse{
+		Page:     request.Page,
+		PageSize: request.PageSize,
+		Total:    total,
+		Data:     userPointDetails,
+	}
+	c.JSON(http.StatusOK, response)
+}
+func RedeemUserPointsHandler(c *gin.Context) {
+	var request dto.RedeemUserPointRequest
+	if err := c.ShouldBind(&request); err != nil {
+		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		return
+	}
+	if !middleware.IsMineOrAdmin(c, request.UserID) {
+		c.JSON(http.StatusForbidden, dto.BaseResponse{Message: "无权操作他人积分。"})
+		return
+	}
+	err := service.RedeemUserPoints(c, request.UserID, request.Value)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "用户积分兑换失败。"})
+		log.Printf("RedeemUserPointsHandler: %v", err)
+		return
+	}
+	c.JSON(http.StatusOK, dto.BaseResponse{Message: "用户积分兑换成功。"})
 }

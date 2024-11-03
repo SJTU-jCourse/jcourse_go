@@ -14,7 +14,7 @@ import (
 
 func InitSession(r *gin.Engine) {
 	secret := util.GetSessionSecret()
-	store, err := sessions.NewRedisStore(10, "tcp", dal.GetRedisDSN(), "", []byte(secret))
+	store, err := sessions.NewRedisStore(10, "tcp", dal.GetRedisDSN(), dal.GetRedisPassWord(), []byte(secret))
 	if err != nil {
 		panic(err)
 	}

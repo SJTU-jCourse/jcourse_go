@@ -16,6 +16,7 @@ func ConvertUserDetailFromPO(po po.UserPO) model.UserDetail {
 		Department:  po.Department,
 		Major:       po.Major,
 		Grade:       po.Grade,
+		Points:      po.Points,
 	}
 }
 
@@ -45,4 +46,12 @@ func RemoveUserEmail(u *model.UserDetail, userID int64) {
 		return
 	}
 	u.Email = ""
+}
+
+func ConvertUserPointDetailItemFromPO(po po.UserPointDetailPO) model.UserPointDetailItem {
+	return model.UserPointDetailItem{
+		Time:        po.CreatedAt.Format("2006-01-02 15:04:05"),
+		Value:       po.Value,
+		Description: po.Description,
+	}
 }

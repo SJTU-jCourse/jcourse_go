@@ -20,3 +20,44 @@ type UserListRequest struct {
 }
 
 type UserListResponse = BasePaginateResponse[model.UserMinimal]
+
+type UserPointDetailRequestURI struct {
+	DetailID int64 `uri:"detailID" binding:"required"`
+}
+type UserPointDetailRequestJSON struct {
+	UserID int64 `json:"user_id" form:"user_id" binding:"required"` // use for auth
+}
+type UserPointDetailRequest struct {
+	UserID   int64
+	DetailID int64
+}
+
+type UserPointDetailResponse = BaseResponse
+type UserPointDetailListRequest struct {
+	Page      int64  `json:"page" form:"page" binding:"required"`
+	PageSize  int64  `json:"page_size" form:"page_size" binding:"required"`
+	UserID    int64  `json:"user_id" form:"user_id" binding:"required"`
+	StartTime string `json:"start_time" form:"start_time"` // "" 表示不限制
+	EndTime   string `json:"end_time" form:"end_time"`
+}
+
+type UserPointDetailListResponse = BasePaginateResponse[model.UserPointDetailItem]
+
+type ChangeUserPointRequest struct {
+	UserID int64 `json:"user_id" form:"user_id" binding:"required"`
+	Value  int64 `json:"value" form:"value" binding:"required"`
+}
+type ChangeUserPointResponse = BaseResponse
+
+type TransferUserPointRequest struct {
+	Sender   int64 `json:"sender" form:"sender" binding:"required"`
+	Receiver int64 `json:"receiver" form:"receiver" binding:"required"`
+	Value    int64 `json:"value" form:"value" binding:"required"`
+}
+type TransferUserPointResponse = BaseResponse
+
+type RedeemUserPointRequest struct {
+	UserID int64 `json:"user_id" form:"user_id" binding:"required"`
+	Value  int64 `json:"value" form:"value" binding:"required"`
+}
+type RedeemUserPointResponse = BaseResponse
