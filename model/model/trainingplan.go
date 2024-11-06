@@ -1,14 +1,12 @@
 package model
 
 type TrainingPlanFilterForQuery struct {
-	Page             int64
-	PageSize         int64
+	PaginationFilterForQuery
 	Major            string
 	Degrees          []string
 	Departments      []string
 	EntryYears       []string
 	ContainCourseIDs []int64
-	SearchQuery      string
 }
 
 type TrainingPlanCourse struct {

@@ -14,9 +14,7 @@ type UserProfileDTO struct {
 }
 
 type UserListRequest struct {
-	Page        int64  `json:"page" form:"page"`
-	PageSize    int64  `json:"page_size" form:"page_size"`
-	SearchQuery string `json:"search_query" form:"search_query"`
+	model.PaginationFilterForQuery
 }
 
 type UserListResponse = BasePaginateResponse[model.UserMinimal]

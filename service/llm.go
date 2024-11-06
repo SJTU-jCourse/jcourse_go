@@ -81,10 +81,12 @@ func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummar
 		return nil, err
 	}
 
-	filter := model.ReviewFilter{
+	filter := model.ReviewFilterForQuery{
 		CourseID: courseID,
-		Page:     0,
-		PageSize: 100,
+		PaginationFilterForQuery: model.PaginationFilterForQuery{
+			Page:     0,
+			PageSize: 100,
+		},
 	}
 
 	reviews, err := GetReviewList(ctx, filter)
@@ -144,10 +146,12 @@ func VectorizeCourse(ctx context.Context, courseID int64) error {
 
 	courseName := coursePO.Name
 
-	filter := model.ReviewFilter{
+	filter := model.ReviewFilterForQuery{
 		CourseID: courseID,
-		Page:     0,
-		PageSize: 100,
+		PaginationFilterForQuery: model.PaginationFilterForQuery{
+			Page:     0,
+			PageSize: 100,
+		},
 	}
 
 	reviews, err := GetReviewList(ctx, filter)

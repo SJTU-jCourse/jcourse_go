@@ -1,8 +1,7 @@
 package model
 
 type TeacherFilterForQuery struct {
-	Page             int64
-	PageSize         int64
+	PaginationFilterForQuery
 	Name             string
 	Code             string
 	Departments      []string
@@ -10,7 +9,6 @@ type TeacherFilterForQuery struct {
 	Pinyin           string
 	PinyinAbbr       string
 	ContainCourseIDs []int64
-	SearchQuery      string
 }
 
 type TeacherDetail struct {

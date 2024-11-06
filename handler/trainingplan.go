@@ -60,12 +60,11 @@ func GetTrainingPlanFilter(c *gin.Context) {
 
 func convTrainingPlanFilter(request dto.TrainingPlanListQueryRequest) model.TrainingPlanFilterForQuery {
 	filter := model.TrainingPlanFilterForQuery{
-		Major:       request.MajorName,
-		EntryYears:  make([]string, 0),
-		Departments: make([]string, 0),
-		Degrees:     make([]string, 0),
-		Page:        int64(request.Page),
-		PageSize:    int64(request.PageSize),
+		Major:                    request.MajorName,
+		EntryYears:               make([]string, 0),
+		Departments:              make([]string, 0),
+		Degrees:                  make([]string, 0),
+		PaginationFilterForQuery: request.PaginationFilterForQuery,
 	}
 
 	degrees := strings.Split(request.Degrees, ",")

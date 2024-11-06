@@ -15,13 +15,12 @@ import (
 
 func convertTeacherListFilter(request dto.TeacherListRequest) model.TeacherFilterForQuery {
 	filter := model.TeacherFilterForQuery{
-		Page:        request.Page,
-		PageSize:    request.PageSize,
-		Name:        request.Name,
-		Departments: make([]string, 0),
-		Titles:      make([]string, 0),
-		Pinyin:      request.Pinyin,
-		PinyinAbbr:  request.PinyinAbbr,
+		PaginationFilterForQuery: request.PaginationFilterForQuery,
+		Name:                     request.Name,
+		Departments:              make([]string, 0),
+		Titles:                   make([]string, 0),
+		Pinyin:                   request.Pinyin,
+		PinyinAbbr:               request.PinyinAbbr,
 	}
 
 	departments := strings.Split(request.Departments, ",")
@@ -45,8 +44,10 @@ func convertTeacherListFilter(request dto.TeacherListRequest) model.TeacherFilte
 
 func GetTeacherListHandler(c *gin.Context) {
 	request := dto.TeacherListRequest{
-		Page:     constant.DefaultPage,
-		PageSize: constant.DefaultPageSize,
+		PaginationFilterForQuery: model.PaginationFilterForQuery{
+			Page:     constant.DefaultPage,
+			PageSize: constant.DefaultPageSize,
+		},
 	}
 	if err := c.ShouldBindQuery(&request); err != nil {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
@@ -97,11 +98,10 @@ func SearchTeacherListHandler(c *gin.Context) {
 	}
 
 	filter := model.TeacherFilterForQuery{
-		Name:       request.Name,
-		Pinyin:     request.Pinyin,
-		PinyinAbbr: request.PinyinAbbr,
-		Page:       request.Page,
-		PageSize:   request.PageSize,
+		Name:                     request.Name,
+		Pinyin:                   request.Pinyin,
+		PinyinAbbr:               request.PinyinAbbr,
+		PaginationFilterForQuery: request.PaginationFilterForQuery,
 	}
 
 	teachers, err := service.SearchTeacherList(c, filter)

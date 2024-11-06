@@ -8,7 +8,6 @@ import (
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
 	"jcourse_go/repository"
-	"jcourse_go/util"
 )
 
 func GetTeacherDetail(ctx context.Context, teacherID int64) (*model.TeacherDetail, error) {
@@ -41,7 +40,7 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*model.TeacherDetai
 }
 
 func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter model.TeacherFilterForQuery) []repository.DBOption {
-	opts := make([]repository.DBOption, 0)
+	opts := buildPaginationDBOptions(filter.PaginationFilterForQuery)
 	if filter.Name != "" {
 		opts = append(opts, repository.WithName(filter.Name))
 	}
@@ -59,15 +58,6 @@ func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter model
 	}
 	if filter.PinyinAbbr != "" {
 		opts = append(opts, repository.WithPinyinAbbr(filter.PinyinAbbr))
-	}
-	if filter.SearchQuery != "" {
-		opts = append(opts, repository.WithSearch(filter.SearchQuery))
-	}
-	if filter.PageSize > 0 {
-		opts = append(opts, repository.WithLimit(filter.PageSize))
-	}
-	if filter.Page > 0 {
-		opts = append(opts, repository.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
 	}
 	return opts
 }

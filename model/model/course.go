@@ -16,14 +16,12 @@ type OfferedCourse struct {
 }
 
 type CourseListFilterForQuery struct {
-	Page          int64
-	PageSize      int64
+	PaginationFilterForQuery
 	Code          string
 	MainTeacherID int64
 	Departments   []string
 	Categories    []string
 	Credits       []float64
-	SearchQuery   string
 }
 
 type CourseMinimal struct {
@@ -54,4 +52,12 @@ type CourseFilter struct {
 	Credits     []FilterItem `json:"credits"`
 	Semesters   []FilterItem `json:"semesters"`
 	Categories  []FilterItem `json:"categories"`
+}
+
+type PaginationFilterForQuery struct {
+	Page      int64  `json:"page" form:"page"`
+	PageSize  int64  `json:"page_size" form:"page_size"`
+	Search    string `json:"search" form:"search"`
+	Order     string `json:"order" form:"order"`
+	Ascending bool   `json:"ascending" form:"ascending"`
 }

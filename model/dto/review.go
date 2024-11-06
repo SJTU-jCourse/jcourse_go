@@ -17,11 +17,9 @@ type CreateReviewResponse struct {
 }
 
 type ReviewListRequest struct {
-	Page        int64  `json:"page" form:"page"`
-	PageSize    int64  `json:"page_size" form:"page_size"`
-	UserID      int64  `json:"user_id" form:"user_id"`
-	CourseID    int64  `json:"course_id" form:"course_id"`
-	SearchQuery string `json:"search_query" form:"search_query"`
+	model.PaginationFilterForQuery
+	UserID   int64 `json:"user_id" form:"user_id"`
+	CourseID int64 `json:"course_id" form:"course_id"`
 }
 
 type ReviewListResponse = BasePaginateResponse[model.Review]

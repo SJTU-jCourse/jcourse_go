@@ -14,10 +14,8 @@ const (
 	UserTypeFaculty UserType = "faculty"
 )
 
-type UserFilter struct {
-	Page        int64
-	PageSize    int64
-	SearchQuery string
+type UserFilterForQuery struct {
+	PaginationFilterForQuery
 }
 
 type UserDetail struct {

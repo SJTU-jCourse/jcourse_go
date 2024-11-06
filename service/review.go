@@ -9,17 +9,10 @@ import (
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/repository"
-	"jcourse_go/util"
 )
 
-func buildReviewDBOptionFromFilter(query repository.IReviewQuery, filter model.ReviewFilter) []repository.DBOption {
-	opts := make([]repository.DBOption, 0)
-	if filter.PageSize > 0 {
-		opts = append(opts, repository.WithLimit(filter.PageSize))
-	}
-	if filter.Page > 0 {
-		opts = append(opts, repository.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
-	}
+func buildReviewDBOptionFromFilter(query repository.IReviewQuery, filter model.ReviewFilterForQuery) []repository.DBOption {
+	opts := buildPaginationDBOptions(filter.PaginationFilterForQuery)
 	if filter.CourseID != 0 {
 		opts = append(opts, repository.WithCourseID(filter.CourseID))
 	}
@@ -32,16 +25,13 @@ func buildReviewDBOptionFromFilter(query repository.IReviewQuery, filter model.R
 	if filter.ReviewID != 0 {
 		opts = append(opts, repository.WithID(filter.ReviewID))
 	}
-	if filter.SearchQuery != "" {
-		opts = append(opts, repository.WithSearch(filter.SearchQuery))
-	}
 	if !filter.IncludeAnonymous {
 		opts = append(opts, repository.WithNotAnonymous())
 	}
 	return opts
 }
 
-func GetReviewList(ctx context.Context, filter model.ReviewFilter) ([]model.Review, error) {
+func GetReviewList(ctx context.Context, filter model.ReviewFilterForQuery) ([]model.Review, error) {
 	reviewQuery := repository.NewReviewQuery(dal.GetDBClient())
 	opts := buildReviewDBOptionFromFilter(reviewQuery, filter)
 	reviewPOs, err := reviewQuery.GetReview(ctx, opts...)
@@ -85,7 +75,7 @@ func GetReviewList(ctx context.Context, filter model.ReviewFilter) ([]model.Revi
 	return result, nil
 }
 
-func GetReviewCount(ctx context.Context, filter model.ReviewFilter) (int64, error) {
+func GetReviewCount(ctx context.Context, filter model.ReviewFilterForQuery) (int64, error) {
 	query := repository.NewReviewQuery(dal.GetDBClient())
 	filter.Page, filter.PageSize = 0, 0
 	opts := buildReviewDBOptionFromFilter(query, filter)

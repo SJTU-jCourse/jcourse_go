@@ -55,13 +55,7 @@ func GetCourseDetail(ctx context.Context, courseID int64) (*model.CourseDetail, 
 }
 
 func buildCourseDBOptionFromFilter(query repository.ICourseQuery, filter model.CourseListFilterForQuery) []repository.DBOption {
-	opts := make([]repository.DBOption, 0)
-	if filter.PageSize > 0 {
-		opts = append(opts, repository.WithLimit(filter.PageSize))
-	}
-	if filter.Page > 0 {
-		opts = append(opts, repository.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
-	}
+	opts := buildPaginationDBOptions(filter.PaginationFilterForQuery)
 	if len(filter.Categories) > 0 {
 		opts = append(opts, repository.WithCategories(filter.Categories))
 	}
@@ -76,9 +70,6 @@ func buildCourseDBOptionFromFilter(query repository.ICourseQuery, filter model.C
 	}
 	if filter.MainTeacherID > 0 {
 		opts = append(opts, repository.WithMainTeacherID(filter.MainTeacherID))
-	}
-	if filter.SearchQuery != "" {
-		opts = append(opts, repository.WithSearch(filter.SearchQuery))
 	}
 	return opts
 }
@@ -157,4 +148,18 @@ func GetBaseCourse(ctx context.Context, code string) (*model.BaseCourse, error) 
 func GetCourseFilter(ctx context.Context) (model.CourseFilter, error) {
 	query := repository.NewCourseQuery(dal.GetDBClient())
 	return query.GetCourseFilter(ctx)
+}
+
+func buildPaginationDBOptions(filter model.PaginationFilterForQuery) []repository.DBOption {
+	opts := make([]repository.DBOption, 0)
+	if filter.PageSize > 0 {
+		opts = append(opts, repository.WithLimit(filter.PageSize))
+	}
+	if filter.Page > 0 {
+		opts = append(opts, repository.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
+	}
+	if filter.Search != "" {
+		opts = append(opts, repository.WithSearch(filter.Search))
+	}
+	return opts
 }
