@@ -31,13 +31,12 @@ func GetCourseDetailHandler(c *gin.Context) {
 
 func convertCourseListFilter(request dto.CourseListRequest) model.CourseListFilterForQuery {
 	filter := model.CourseListFilterForQuery{
-		Page:          request.Page,
-		PageSize:      request.PageSize,
-		Categories:    make([]string, 0),
-		Departments:   make([]string, 0),
-		Credits:       make([]float64, 0),
-		Code:          request.Code,
-		MainTeacherID: request.MainTeacherID,
+		PaginationFilterForQuery: request.PaginationFilterForQuery,
+		Categories:               make([]string, 0),
+		Departments:              make([]string, 0),
+		Credits:                  make([]float64, 0),
+		Code:                     request.Code,
+		MainTeacherID:            request.MainTeacherID,
 	}
 
 	categories := strings.Split(request.Categories, ",")
@@ -70,8 +69,10 @@ func convertCourseListFilter(request dto.CourseListRequest) model.CourseListFilt
 
 func GetCourseListHandler(c *gin.Context) {
 	request := dto.CourseListRequest{
-		Page:     constant.DefaultPage,
-		PageSize: constant.DefaultPageSize,
+		PaginationFilterForQuery: model.PaginationFilterForQuery{
+			Page:     constant.DefaultPage,
+			PageSize: constant.DefaultPageSize,
+		},
 	}
 	if err := c.ShouldBindQuery(&request); err != nil {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})

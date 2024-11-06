@@ -5,8 +5,6 @@ import (
 
 	"jcourse_go/dal"
 	"jcourse_go/model/dto"
-	"jcourse_go/util"
-
 	"jcourse_go/model/model"
 
 	"jcourse_go/model/converter"
@@ -14,7 +12,7 @@ import (
 )
 
 func GetUserActivityByID(ctx context.Context, userID int64) (*model.UserActivity, error) {
-	// filter := model.ReviewFilter{
+	// filter := model.ReviewFilterForQuery{
 	// 	UserID: userID,
 	// }
 
@@ -56,21 +54,12 @@ func GetUserDetailByID(ctx context.Context, userID int64) (*model.UserDetail, er
 	return &user, nil
 }
 
-func buildUserDBOptionFromFilter(query repository.IUserQuery, filter model.UserFilter) []repository.DBOption {
-	opts := make([]repository.DBOption, 0)
-	if filter.PageSize > 0 {
-		opts = append(opts, repository.WithLimit(filter.PageSize))
-	}
-	if filter.Page > 0 {
-		opts = append(opts, repository.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
-	}
-	if filter.SearchQuery != "" {
-		opts = append(opts, repository.WithSearch(filter.SearchQuery))
-	}
+func buildUserDBOptionFromFilter(query repository.IUserQuery, filter model.UserFilterForQuery) []repository.DBOption {
+	opts := buildPaginationDBOptions(filter.PaginationFilterForQuery)
 	return opts
 }
 
-func GetUserList(ctx context.Context, filter model.UserFilter) ([]model.UserMinimal, error) {
+func GetUserList(ctx context.Context, filter model.UserFilterForQuery) ([]model.UserMinimal, error) {
 	userQuery := repository.NewUserQuery(dal.GetDBClient())
 	opts := buildUserDBOptionFromFilter(userQuery, filter)
 	userPOs, err := userQuery.GetUser(ctx, opts...)
@@ -85,7 +74,7 @@ func GetUserList(ctx context.Context, filter model.UserFilter) ([]model.UserMini
 	return result, nil
 }
 
-func GetUserCount(ctx context.Context, filter model.UserFilter) (int64, error) {
+func GetUserCount(ctx context.Context, filter model.UserFilterForQuery) (int64, error) {
 	userQuery := repository.NewUserQuery(dal.GetDBClient())
 	filter.Page, filter.PageSize = 0, 0
 	opts := buildUserDBOptionFromFilter(userQuery, filter)

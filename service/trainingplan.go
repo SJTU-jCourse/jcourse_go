@@ -8,7 +8,6 @@ import (
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
 	"jcourse_go/repository"
-	"jcourse_go/util"
 )
 
 func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*model.TrainingPlanDetail, error) {
@@ -59,7 +58,7 @@ func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*model.Tr
 	return &trainingPlan, nil
 }
 func buildTrainingPlanDBOptionFromFilter(query repository.ITrainingPlanQuery, filter model.TrainingPlanFilterForQuery) []repository.DBOption {
-	opts := make([]repository.DBOption, 0)
+	opts := buildPaginationDBOptions(filter.PaginationFilterForQuery)
 	if filter.Major != "" {
 		opts = append(opts, repository.WithMajor(filter.Major))
 	}
@@ -71,15 +70,6 @@ func buildTrainingPlanDBOptionFromFilter(query repository.ITrainingPlanQuery, fi
 	}
 	if len(filter.Degrees) > 0 {
 		opts = append(opts, repository.WithDegrees(filter.Degrees))
-	}
-	if filter.SearchQuery != "" {
-		opts = append(opts, repository.WithSearch(filter.SearchQuery))
-	}
-	if filter.PageSize > 0 {
-		opts = append(opts, repository.WithLimit(filter.PageSize))
-	}
-	if filter.Page > 0 {
-		opts = append(opts, repository.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
 	}
 	return opts
 }

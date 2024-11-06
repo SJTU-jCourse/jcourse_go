@@ -24,9 +24,8 @@ func GetUserListHandler(c *gin.Context) {
 		return
 	}
 
-	filter := model.UserFilter{
-		Page:     request.Page,
-		PageSize: request.PageSize,
+	filter := model.UserFilterForQuery{
+		PaginationFilterForQuery: request.PaginationFilterForQuery,
 	}
 	users, err := service.GetUserList(c, filter)
 	if err != nil {

@@ -7,15 +7,13 @@ type TeacherDetailRequest struct {
 }
 
 type TeacherListRequest struct {
-	Page        int64  `json:"page" form:"page"`
-	PageSize    int64  `json:"page_size" form:"page_size"`
+	model.PaginationFilterForQuery
 	Name        string `json:"name" form:"name"`
 	Code        string `json:"code" form:"code"`
 	Departments string `json:"departments" form:"departments"`
 	Titles      string `json:"titles" form:"titles"`
 	Pinyin      string `json:"pinyin" form:"pinyin"`
 	PinyinAbbr  string `json:"pinyin_abbr" form:"pinyin_abbr"`
-	SearchQuery string `json:"search_query" form:"search_query"`
 }
 
 type TeacherListResponse = BasePaginateResponse[model.TeacherSummary]

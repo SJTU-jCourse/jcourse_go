@@ -22,7 +22,7 @@ func GetReviewDetailHandler(c *gin.Context) {
 		return
 	}
 
-	reviews, err := service.GetReviewList(c, model.ReviewFilter{ReviewID: request.ReviewID})
+	reviews, err := service.GetReviewList(c, model.ReviewFilterForQuery{ReviewID: request.ReviewID})
 	if err != nil || len(reviews) == 0 {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 		return
@@ -33,19 +33,20 @@ func GetReviewDetailHandler(c *gin.Context) {
 
 func GetReviewListHandler(c *gin.Context) {
 	var request = dto.ReviewListRequest{
-		Page:     constant.DefaultPage,
-		PageSize: constant.DefaultPageSize,
+		PaginationFilterForQuery: model.PaginationFilterForQuery{
+			Page:     constant.DefaultPage,
+			PageSize: constant.DefaultPageSize,
+		},
 	}
 	if err := c.ShouldBind(&request); err != nil {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
 
-	filter := model.ReviewFilter{
-		Page:     request.Page,
-		PageSize: request.PageSize,
-		UserID:   request.UserID,
-		CourseID: request.CourseID,
+	filter := model.ReviewFilterForQuery{
+		PaginationFilterForQuery: request.PaginationFilterForQuery,
+		UserID:                   request.UserID,
+		CourseID:                 request.CourseID,
 	}
 
 	// 非本人不可看匿名点评
