@@ -60,7 +60,7 @@ go run cmd/import_from_jwc/import_from_jwc.go
 
 ### 启动后端
 ```sh
-./jcourse
+./jcourse_go
 ```
 后端成功启动后在**8080**端口运行。
 
