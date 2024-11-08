@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"fmt"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 	"time"
 )
 
@@ -10,6 +12,22 @@ type DBOption func(*gorm.DB) *gorm.DB
 func WithUserIDs(userIDs []int64) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("user_id in ?", userIDs)
+	}
+}
+func WithForUpdateLock() DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Clauses(clause.Locking{Strength: "UPDATE"}) // for update lock
+	}
+}
+func WithOptimisticLock(column string, version interface{}) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		query := fmt.Sprintf("%s = ?", column)
+		return db.Where(query, version)
+	}
+}
+func WithRawOptimisticLock(query interface{}, args ...interface{}) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where(query, args)
 	}
 }
 

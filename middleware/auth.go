@@ -55,7 +55,7 @@ func RequireAdmin() gin.HandlerFunc {
 	}
 }
 
-func IsMineOrAdmin(c *gin.Context, userID int64) bool {
+func IsMine(c *gin.Context, userID int64) bool {
 	if util.IsNoLoginMode() {
 		return true
 	}
@@ -63,5 +63,19 @@ func IsMineOrAdmin(c *gin.Context, userID int64) bool {
 	if user == nil {
 		return false
 	}
-	return user.ID == userID || user.Role == model.UserRoleAdmin
+	return user.ID == userID
+}
+func IsAdmin(c *gin.Context) bool {
+	if util.IsNoLoginMode() {
+		return true
+	}
+	user := GetCurrentUser(c)
+	if user == nil {
+		return false
+	}
+	return user.Role == model.UserRoleAdmin
+}
+
+func IsMineOrAdmin(c *gin.Context, userID int64) bool {
+	return IsMine(c, userID) || IsAdmin(c)
 }

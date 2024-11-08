@@ -10,10 +10,8 @@ import (
 
 func registerRouter(r *gin.Engine) {
 	middleware.InitSession(r)
-	middleware.InitEvent(r)
 
 	api := r.Group("/api")
-	api.POST("test", handler.TestAddCreditHandler)
 
 	authGroup := api.Group("/auth")
 	authGroup.POST("/login", handler.LoginHandler)
@@ -78,9 +76,6 @@ func registerRouter(r *gin.Engine) {
 	userPointGroup.GET("/:detailID", handler.GetUserPointDetailHandler)
 	userPointGroup.POST("/transfer", handler.TransferUserPointHandler)
 	userPointGroup.POST("/redeem", handler.RedeemUserPointsHandler)
-	if util.IsDebug() {
-		userPointGroup.POST("/change", handler.AdminChangeUserPoint)
-	}
 
 	adminGroup := needAuthGroup.Group("/admin")
 	adminGroup.Use(middleware.RequireAdmin())

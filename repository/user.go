@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"github.com/pkg/errors"
 	"time"
 
 	"gorm.io/gorm"
@@ -14,7 +15,7 @@ type IUserQuery interface {
 	GetUser(ctx context.Context, opts ...DBOption) ([]po.UserPO, error)
 	GetUserCount(ctx context.Context, opts ...DBOption) (int64, error)
 	GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]po.UserPO, error)
-	UpdateUser(ctx context.Context, user po.UserPO) error
+	UpdateUser(ctx context.Context, user po.UserPO, opts ...DBOption) error
 	CreateUser(ctx context.Context, email string, password string) (*po.UserPO, error)
 	ResetUserPassword(ctx context.Context, userID int64, password string) error
 }
@@ -71,9 +72,13 @@ func (q *UserQuery) GetUserCount(ctx context.Context, opts ...DBOption) (int64, 
 	return count, nil
 }
 
-func (q *UserQuery) UpdateUser(ctx context.Context, user po.UserPO) error {
-	result := q.optionDB(ctx, WithID(int64(user.ID))).Updates(&user).Error
-	return result
+func (q *UserQuery) UpdateUser(ctx context.Context, user po.UserPO, opts ...DBOption) error {
+	opts = append(opts, WithID(int64(user.ID)))
+	result := q.optionDB(ctx, opts...).Updates(&user)
+	if result.RowsAffected == 0 {
+		return errors.New("No rows affected")
+	}
+	return result.Error
 }
 
 func (q *UserQuery) CreateUser(ctx context.Context, email string, passwordStore string) (*po.UserPO, error) {
@@ -99,15 +104,15 @@ func (q *UserQuery) ResetUserPassword(ctx context.Context, userID int64, passwor
 type IUserPointDetailQuery interface {
 	GetUserPointDetail(ctx context.Context, opts ...DBOption) ([]po.UserPointDetailPO, error)
 	GetUserPointDetailCount(ctx context.Context, opts ...DBOption) (int64, error)
-	CreateUserPointDetail(ctx context.Context, userID int64, eventType po.PointEventType, value int64, description string) error
+	CreateUserPointDetail(ctx context.Context, userID int64, eventType string, value int64, description string) error
 }
 
 type UserPointDetailQuery struct {
 	db *gorm.DB
 }
 
-func (q *UserPointDetailQuery) optionDB(opts ...DBOption) *gorm.DB {
-	db := q.db.Model(po.UserPointDetailPO{})
+func (q *UserPointDetailQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
+	db := q.db.WithContext(ctx).Model(po.UserPointDetailPO{})
 	for _, opt := range opts {
 		db = opt(db)
 	}
@@ -115,7 +120,7 @@ func (q *UserPointDetailQuery) optionDB(opts ...DBOption) *gorm.DB {
 }
 
 func (q *UserPointDetailQuery) GetUserPointDetail(ctx context.Context, opts ...DBOption) ([]po.UserPointDetailPO, error) {
-	db := q.optionDB(opts...)
+	db := q.optionDB(ctx, opts...)
 	userPointDetailPOs := make([]po.UserPointDetailPO, 0)
 
 	result := db.Find(&userPointDetailPOs)
@@ -126,7 +131,7 @@ func (q *UserPointDetailQuery) GetUserPointDetail(ctx context.Context, opts ...D
 }
 
 func (q *UserPointDetailQuery) GetUserPointDetailCount(ctx context.Context, opts ...DBOption) (int64, error) {
-	db := q.optionDB(opts...)
+	db := q.optionDB(ctx, opts...)
 	var count int64
 	result := db.Count(&count)
 	if result.Error != nil {
@@ -135,7 +140,7 @@ func (q *UserPointDetailQuery) GetUserPointDetailCount(ctx context.Context, opts
 	return count, nil
 }
 
-func (q *UserPointDetailQuery) CreateUserPointDetail(ctx context.Context, userID int64, eventType po.PointEventType, value int64, description string) error {
+func (q *UserPointDetailQuery) CreateUserPointDetail(ctx context.Context, userID int64, eventType string, value int64, description string) error {
 	userPointDetail := po.UserPointDetailPO{
 		UserID: userID,
 		PointEvent: po.PointEvent{
@@ -144,7 +149,7 @@ func (q *UserPointDetailQuery) CreateUserPointDetail(ctx context.Context, userID
 			Description: description,
 		},
 	}
-	result := q.optionDB().Create(&userPointDetail)
+	result := q.optionDB(ctx).Create(&userPointDetail)
 	return result.Error
 }
 

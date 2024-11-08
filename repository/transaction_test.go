@@ -3,56 +3,84 @@ package repository
 import (
 	"context"
 	"fmt"
+	"github.com/glebarez/sqlite"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
-	"jcourse_go/dal"
+	"jcourse_go/model/model"
 	"jcourse_go/model/po"
-	"log"
 	"testing"
 )
 
-//	func NewTestDB() *gorm.DB {
-//		db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
-//		if err != nil {
-//			panic("failed to connect database")
-//		}
-//		return db
-//	}
-func InitTestUser(db *gorm.DB, n int) []po.UserPO {
-	ctx := context.Background()
-	userdb := db.WithContext(ctx).Find(&po.UserPO{})
-	for i := 0; i < n; i++ {
-		userdb.Create(&po.UserPO{
-			Username: fmt.Sprintf("test:transaction:%d", i),
-			Password: fmt.Sprintf("test:transaction:%d", i),
-			Email:    fmt.Sprintf("test:transaction:%d@example.com", i),
-			UserRole: "student",
-			Points:   1000,
-		})
+func InitTestDB(t *testing.T) (IRepository, *gorm.DB) {
+	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("failed to connect database: %v", err)
 	}
-	userQuery := NewUserQuery(db)
+	repo := NewRepository(db)
+	err = Migrate(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return repo, db
+}
+func ClearTestDB(db *gorm.DB) error {
+	var tables []string
+	// Retrieve the list of tables
+	if err := db.Raw("SELECT name FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence'").Scan(&tables).Error; err != nil {
+		return err
+	}
+	// Drop each table
+	for _, table := range tables {
+		if err := db.Exec("DROP TABLE IF EXISTS " + table).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+func InitTestUser(t *testing.T, repo IRepository, n int) ([]po.UserPO, error) {
+	ctx := context.Background()
+	userQuery := repo.NewUserQuery()
 	userPOs := make([]po.UserPO, 0)
 	for i := 0; i < n; i++ {
-		userPO, err := userQuery.GetUser(ctx, WithEmail(fmt.Sprintf("test:transaction:%d@example.com", i)))
-		if err != nil {
-			fmt.Printf("error: %v\n", err)
-			panic(err)
-		}
+		email := fmt.Sprintf("test:transaction:%d@example.com", i)
+		password := fmt.Sprintf("test:transaction:%d", i)
+		users, err := userQuery.GetUser(ctx, WithEmail(email))
+		var user *po.UserPO
+		if err == nil && len(users) != 0 {
+			user = &users[0]
+			user.Points = 1000
+			err = userQuery.UpdateUser(ctx, *user)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			user, err = userQuery.CreateUser(ctx, email, password)
+			if user == nil || err != nil {
+				return nil, err
+			}
+			user.Points = 1000
+			userQuery.UpdateUser(ctx, *user)
 
-		if len(userPO) == 0 {
-			_ = fmt.Errorf("user not found")
-			panic("user not found")
 		}
-		userPOs = append(userPOs, userPO[0])
+		userPOs = append(userPOs, *user)
 	}
-	return userPOs
+	for _, user := range userPOs {
+		assert.Equal(t, int64(1000), user.Points)
+	}
+	return userPOs, nil
 }
-func QueryUser(db *gorm.DB, idx int) (po.UserPO, []po.UserPointDetailPO, error) {
-	userQuery := NewUserQuery(db)
-	userPointDetailQuery := NewUserPointDetailQuery(db)
+func ResetUserPoints(users []po.UserPO) {
+	for _, users := range users {
+		users.Points = 1000
+	}
+}
+func QueryUser(repo IRepository, idx int) (po.UserPO, []po.UserPointDetailPO, error) {
+	userQuery := repo.NewUserQuery()
+	userPointDetailQuery := repo.NewUserPointQuery()
 	ctx := context.Background()
-	userPOs, err := userQuery.GetUser(ctx, WithEmail(fmt.Sprintf("test:transaction:%d@example.com", idx)))
+	email := fmt.Sprintf("test:transaction:%d@example.com", idx)
+	userPOs, err := userQuery.GetUser(ctx, WithEmail(email))
 	if err != nil {
 		return po.UserPO{}, nil, err
 	}
@@ -67,73 +95,53 @@ func QueryUser(db *gorm.DB, idx int) (po.UserPO, []po.UserPointDetailPO, error) 
 	return userPO, userPointDetails, nil
 }
 
-func CleanupTestUser(db *gorm.DB, n int) {
-	// 开启事务
-	tx := db.Begin()
-	if tx.Error != nil {
-		tx.Rollback()
-		log.Fatalf("Failed to start transaction: %v", tx.Error)
-	}
-
-	for i := 0; i < n; i++ {
-		if err := tx.Where("email = ?", fmt.Sprintf("test:transaction:%d@example.com", i)).Delete(&po.UserPO{}).Error; err != nil {
-			tx.Rollback()
-			log.Fatalf("Failed to delete user: %v", err)
-		}
-		if err := tx.Where("description = ?", "test").Delete(&po.UserPointDetailPO{}).Error; err != nil {
-			tx.Rollback()
-			log.Fatalf("Failed to delete user point detail: %v", err)
-		}
-	}
-
-	// 提交事务
-	if err := tx.Commit().Error; err != nil {
-		log.Fatalf("Failed to commit transaction: %v", err)
-	}
-}
 func TestInTransAction(t *testing.T) {
-	db := dal.GetDBClient()
-	handler := NewTransactionHandler(db)
 	ctx := context.Background()
-	err := Migrate(db)
-	if err != nil {
-		t.Fatal(err)
-	}
-	users := InitTestUser(db, 2)
-	user1 := users[0]
-	assert.Equal(t, user1.Points, int64(1000))
-	user2 := users[1]
-	assert.Equal(t, user2.Points, int64(1000))
-	defer CleanupTestUser(db, 2)
-	TransferOpsSucceed := func(db *gorm.DB) error {
-		userQuery := NewUserQuery(db)
-		userPointDetailQuery := NewUserPointDetailQuery(db)
+
+	TransferOpsSucceed := func(repo IRepository) error {
+		userPOs, err := InitTestUser(t, repo, 2)
+		assert.Nil(t, err)
+		assert.Len(t, userPOs, 2)
+		user1 := userPOs[0]
+		user2 := userPOs[1]
+		userQuery := repo.NewUserQuery()
+		userPointDetailQuery := repo.NewUserPointQuery()
 		user1.Points -= 100
 		t.Logf("user1 points: %d\n", user1.Points)
 		user2.Points += 99
 		t.Logf("user2 points: %d\n", user2.Points)
 		userQuery.UpdateUser(ctx, user1)
 		userQuery.UpdateUser(ctx, user2)
-		userPointDetailQuery.CreateUserPointDetail(ctx, int64(user1.ID), po.PointEventTransfer, -100, "test")
-		userPointDetailQuery.CreateUserPointDetail(ctx, int64(user2.ID), po.PointEventTransfer, 99, "test")
+		userPointDetailQuery.CreateUserPointDetail(ctx, int64(user1.ID), model.PointEventTransfer, -100, "test")
+		userPointDetailQuery.CreateUserPointDetail(ctx, int64(user2.ID), model.PointEventTransfer, 99, "test")
 		return nil
 	}
-	TransferOpsRollback1 := func(db *gorm.DB) error {
-		userQuery := NewUserQuery(db)
-		userPointDetailQuery := NewUserPointDetailQuery(db)
+	TransferOpsRollback1 := func(repo IRepository) error {
+		userPOs, err := InitTestUser(t, repo, 2)
+		assert.Nil(t, err)
+		assert.Len(t, userPOs, 2)
+		user1 := userPOs[0]
+		user2 := userPOs[1]
+		userQuery := repo.NewUserQuery()
+		userPointDetailQuery := repo.NewUserPointQuery()
 		user1.Points -= 100
 		t.Logf("user1 points: %d\n", user1.Points)
 		user2.Points += 99
 		t.Logf("user2 points: %d\n", user2.Points)
 		userQuery.UpdateUser(ctx, user1)
 		userQuery.UpdateUser(ctx, user2)
-		userPointDetailQuery.CreateUserPointDetail(ctx, int64(user1.ID), po.PointEventTransfer, -100, "test")
-		userPointDetailQuery.CreateUserPointDetail(ctx, int64(user2.ID), po.PointEventTransfer, 99, "test")
+		userPointDetailQuery.CreateUserPointDetail(ctx, int64(user1.ID), model.PointEventTransfer, -100, "test")
+		userPointDetailQuery.CreateUserPointDetail(ctx, int64(user2.ID), model.PointEventTransfer, 99, "test")
 		return errors.Errorf("test rollback at end")
 	}
-	TransferOpsRollback2 := func(db *gorm.DB) error {
-		userQuery := NewUserQuery(db)
-		userPointDetailQuery := NewUserPointDetailQuery(db)
+	TransferOpsRollback2 := func(repo IRepository) error {
+		userPOs, err := InitTestUser(t, repo, 2)
+		assert.Nil(t, err)
+		assert.Len(t, userPOs, 2)
+		user1 := userPOs[0]
+		user2 := userPOs[1]
+		userQuery := repo.NewUserQuery()
+		userPointDetailQuery := repo.NewUserPointQuery()
 		user1.Points -= 100
 		t.Logf("user1 points: %d\n", user1.Points)
 		user2.Points += 99
@@ -141,8 +149,8 @@ func TestInTransAction(t *testing.T) {
 		userQuery.UpdateUser(ctx, user1)
 		userQuery.UpdateUser(ctx, user2)
 		err = errors.Errorf("test rollback in mid")
-		userPointDetailQuery.CreateUserPointDetail(ctx, int64(user1.ID), po.PointEventTransfer, -100, "test")
-		userPointDetailQuery.CreateUserPointDetail(ctx, int64(user2.ID), po.PointEventTransfer, 99, "test")
+		userPointDetailQuery.CreateUserPointDetail(ctx, int64(user1.ID), model.PointEventTransfer, -100, "test")
+		userPointDetailQuery.CreateUserPointDetail(ctx, int64(user2.ID), model.PointEventTransfer, 99, "test")
 		return err
 	}
 	tests := []struct {
@@ -157,12 +165,20 @@ func TestInTransAction(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			terr := InTransAction(ctx, handler, tt.ops)
+			repo, db := InitTestDB(t)
+			defer func() {
+				err := ClearTestDB(db)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}()
+
+			terr := repo.InTransaction(ctx, tt.ops)
 			tt.wantErr(t, terr, fmt.Sprintf("InTransAction(%v)", tt.ops))
 
 			if terr == nil {
 				// succeed
-				user1PO, userPointDetails, err := QueryUser(db, 0)
+				user1PO, userPointDetails, err := QueryUser(repo, 0)
 				if err != nil {
 					t.Fatal(err)
 					return
@@ -174,9 +190,9 @@ func TestInTransAction(t *testing.T) {
 				assert.Equal(t, int64(900), user1PO.Points)
 				assert.Len(t, userPointDetails, 1)
 				assert.Equal(t, int64(user1PO.ID), userPointDetails[0].UserID)
-				assert.Equal(t, po.PointEventTransfer, userPointDetails[0].EventType)
+				assert.Equal(t, model.PointEventTransfer, userPointDetails[0].EventType)
 				assert.Equal(t, int64(-100), userPointDetails[0].Value)
-				user2PO, userPointDetails, err := QueryUser(db, 1)
+				user2PO, userPointDetails, err := QueryUser(repo, 1)
 				if err != nil {
 					t.Fatal(err)
 					return
@@ -188,24 +204,16 @@ func TestInTransAction(t *testing.T) {
 				assert.Equal(t, int64(1099), user2PO.Points)
 				assert.Len(t, userPointDetails, 1)
 				assert.Equal(t, int64(user2PO.ID), userPointDetails[0].UserID)
-				assert.Equal(t, po.PointEventTransfer, userPointDetails[0].EventType)
+				assert.Equal(t, model.PointEventTransfer, userPointDetails[0].EventType)
 				assert.Equal(t, int64(99), userPointDetails[0].Value)
 			} else {
 				// rollback
-				user1PO, userPointDetails, err := QueryUser(db, 0)
-				if err != nil {
-					t.Fatal(err)
-				}
-				assert.Equal(t, int64(1000), user1PO.Points)
-				assert.Len(t, userPointDetails, 0)
-				user2PO, userPointDetails, err := QueryUser(db, 1)
-				if err != nil {
-					t.Fatal(err)
-				}
-				assert.Equal(t, int64(1000), user2PO.Points)
-				assert.Len(t, userPointDetails, 0)
+				// rollback create user
+				_, _, err := QueryUser(repo, 0)
+				assert.Error(t, err)
+				_, _, err = QueryUser(repo, 1)
+				assert.Error(t, err)
 			}
-
 		})
 	}
 }

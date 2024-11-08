@@ -39,26 +39,10 @@ type UserActivityPO struct {
 
 func (userActivity *UserActivityPO) TableName() string { return "user_activities" }
 
-type PointEventType = string
-
-const (
-	PointEventReview      PointEventType = "review"
-	PointEventLike        PointEventType = "like"
-	PointEventBeLiked     PointEventType = "be_liked"
-	PointEventAdminChange PointEventType = "admin_change"
-	PointEventInit        PointEventType = "init"
-	PointEventTransfer    PointEventType = "transfer"
-	PointEventReward      PointEventType = "reward"
-	PointEventPunish      PointEventType = "punish"
-	PointEventWithdraw    PointEventType = "withdraw"
-	PointEventConsume     PointEventType = "consume"
-	PointEventRedeem      PointEventType = "redeem" // 兑换积分
-)
-
 type PointEvent struct {
-	EventType   PointEventType `gorm:"index"`
-	Description string         `gorm:"index"`
-	Value       int64          // 积分变动值
+	EventType   string `gorm:"index"`
+	Description string `gorm:"index"`
+	Value       int64  // 积分变动值
 }
 type UserPointDetailPO struct {
 	gorm.Model

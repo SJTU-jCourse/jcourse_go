@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 	"jcourse_go/dal"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/po"
@@ -73,8 +72,8 @@ func GetUserList(ctx context.Context, filter model.UserFilterForQuery) ([]model.
 	}
 
 	result := make([]model.UserMinimal, 0)
-	for _, po := range userPOs {
-		result = append(result, converter.ConvertUserMinimalFromPO(po))
+	for _, userPO := range userPOs {
+		result = append(result, converter.ConvertUserMinimalFromPO(userPO))
 	}
 	return result, nil
 }
@@ -157,8 +156,10 @@ func GetUserPointDetailCount(ctx context.Context, filter model.UserPointDetailFi
 	return userPointDetailQuery.GetUserPointDetailCount(ctx, opts...)
 }
 
-func ChangeUserPoints(ctx context.Context, userID int64, eventType po.PointEventType, value int64, description string) error {
-	userQuery := repository.NewUserQuery(dal.GetDBClient())
+// HINT: 以下的几个UserPoint相关函数都是并发安全的, 但不保证成功，事务失败时需要上层自行重试
+func ChangeUserPoints(ctx context.Context, userID int64, eventType model.PointEventType, value int64, description string) error {
+	repo := repository.NewRepository(dal.GetDBClient())
+	userQuery := repo.NewUserQuery()
 	userPOs, err := userQuery.GetUser(ctx, repository.WithID(userID))
 	if err != nil {
 		return err
@@ -170,16 +171,15 @@ func ChangeUserPoints(ctx context.Context, userID int64, eventType po.PointEvent
 	if user.Points+value < 0 {
 		return errors.Errorf("user %d has not enough points", userID)
 	}
+	originalPoints := user.Points
 	user.Points += value
-	userPointDetailQuery := repository.NewUserPointDetailQuery(dal.GetDBClient())
-	operation := func(db *gorm.DB) error {
-		userQuery.UpdateUser(ctx, user)
+	userPointDetailQuery := repo.NewUserPointQuery()
+	operation := func(repo repository.IRepository) error {
+		userQuery.UpdateUser(ctx, user, repository.WithOptimisticLock("points", originalPoints))
 		userPointDetailQuery.CreateUserPointDetail(ctx, userID, eventType, value, description)
 		return nil
 	}
-	handler := repository.NewTransactionHandler(dal.GetDBClient())
-	repository.InTransAction(ctx, handler, operation)
-	return nil
+	return repo.InTransaction(ctx, operation)
 }
 
 const (
@@ -192,7 +192,9 @@ func calcHandlingFee(value int64) int64 {
 
 func RedeemUserPoints(ctx context.Context, userID int64, value int64) error {
 	// 给传承等开放的兑换积分接口
-	userQuery := repository.NewUserQuery(dal.GetDBClient())
+	// TODO: 和传承通信
+	repo := repository.NewRepository(dal.GetDBClient())
+	userQuery := repo.NewUserQuery()
 	userPOs, err := userQuery.GetUser(ctx, repository.WithID(userID))
 	if err != nil {
 		return err
@@ -205,15 +207,15 @@ func RedeemUserPoints(ctx context.Context, userID int64, value int64) error {
 		msg := fmt.Sprintf("user has not enough points, you have %d, require %d", user.Points, value)
 		return errors.New(msg)
 	}
+	originalPoints := user.Points
 	user.Points -= value
-	userPointDetailQuery := repository.NewUserPointDetailQuery(dal.GetDBClient())
-	operation := func(db *gorm.DB) error {
-		userQuery.UpdateUser(ctx, user)
-		userPointDetailQuery.CreateUserPointDetail(ctx, userID, po.PointEventRedeem, -value, fmt.Sprintf("用户%d兑换积分%d", userID, value))
+	userPointDetailQuery := repo.NewUserPointQuery()
+	operation := func(repo repository.IRepository) error {
+		userQuery.UpdateUser(ctx, user, repository.WithOptimisticLock("points", originalPoints))
+		userPointDetailQuery.CreateUserPointDetail(ctx, userID, model.PointEventRedeem, -value, fmt.Sprintf("用户%d兑换积分%d", userID, value))
 		return nil
 	}
-	handler := repository.NewTransactionHandler(dal.GetDBClient())
-	err = repository.InTransAction(ctx, handler, operation)
+	err = repo.InTransaction(ctx, operation)
 	return err
 }
 
@@ -246,18 +248,22 @@ func TransferUserPoints(ctx context.Context, senderID int64, receiverID int64, v
 		return errors.New("sender has not enough points")
 	}
 	receivedValue := value - calcHandlingFee(value)
+	senderOriginalPoints := senderPO.Points
+	receiverOriginalPoints := receiverPO.Points
 	senderPO.Points -= value
 	receiverPO.Points += receivedValue
-	userPointDetailQuery := repository.NewUserPointDetailQuery(dal.GetDBClient())
-	handler := repository.NewTransactionHandler(dal.GetDBClient())
+	repo := repository.NewRepository(dal.GetDBClient())
 	description := fmt.Sprintf("用户%d转账给用户%d %d分", senderID, receiverID, value)
-	operation := func(db *gorm.DB) error {
-		userQuery.UpdateUser(ctx, *senderPO)
-		userQuery.UpdateUser(ctx, *receiverPO)
-		userPointDetailQuery.CreateUserPointDetail(ctx, senderID, po.PointEventTransfer, -value, description)
-		userPointDetailQuery.CreateUserPointDetail(ctx, receiverID, po.PointEventTransfer, receivedValue, description)
+	var operations repository.DBOperation
+	operations = func(repo repository.IRepository) error {
+		userQuery := repo.NewUserQuery()
+		userPointDetailQuery := repo.NewUserPointQuery()
+		userQuery.UpdateUser(ctx, *senderPO, repository.WithOptimisticLock("points", senderOriginalPoints))
+		userQuery.UpdateUser(ctx, *receiverPO, repository.WithOptimisticLock("points", receiverOriginalPoints))
+		userPointDetailQuery.CreateUserPointDetail(ctx, senderID, model.PointEventTransfer, -value, description)
+		userPointDetailQuery.CreateUserPointDetail(ctx, receiverID, model.PointEventTransfer, receivedValue, description)
 		return nil
 	}
-	err = repository.InTransAction(ctx, handler, operation)
+	err = repo.InTransaction(ctx, operations)
 	return err
 }
