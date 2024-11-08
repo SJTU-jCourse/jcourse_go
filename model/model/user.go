@@ -67,8 +67,7 @@ type UserPointDetailItem struct {
 	Description string `json:"description"`
 }
 type UserPointDetailFilter struct {
-	Page              int64
-	PageSize          int64
+	PaginationFilterForQuery
 	UserPointDetailID int64
 	UserID            int64
 	StartTime         time.Time

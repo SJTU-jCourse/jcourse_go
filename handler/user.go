@@ -8,7 +8,6 @@ import (
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/service"
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -98,7 +97,6 @@ func GetUserDetailHandler(c *gin.Context) {
 		return
 	}
 	converter.RemoveUserEmail(user, currentUserID)
-	log.Printf("user: %v", user)
 	c.JSON(http.StatusOK, user)
 }
 
@@ -131,7 +129,6 @@ func UpdateUserProfileHandler(c *gin.Context) {
 func TransferUserPointHandler(c *gin.Context) {
 	var request dto.TransferUserPointRequest
 	if err := c.ShouldBind(&request); err != nil {
-		log.Printf("TransferUserPointHandler: %v, %v", request, c.Request.URL.Query())
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
@@ -142,7 +139,6 @@ func TransferUserPointHandler(c *gin.Context) {
 	err := service.TransferUserPoints(c, request.Sender, request.Receiver, request.Value)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "用户积分转账失败。"})
-		log.Printf("TransferUserPointHandler: %v", err)
 		return
 	}
 	c.JSON(http.StatusOK, dto.BaseResponse{Message: "用户积分转账成功。"})
@@ -163,7 +159,6 @@ func GetUserPointDetailHandler(c *gin.Context) {
 		UserID:   requestJson.UserID,
 		DetailID: requestUri.DetailID,
 	}
-	log.Printf("userID: %v", request.UserID)
 	if !middleware.IsMineOrAdmin(c, request.UserID) {
 		c.JSON(http.StatusForbidden, dto.BaseResponse{Message: "无权查看他人积分。"})
 		return
@@ -177,12 +172,8 @@ func GetUserPointDetailHandler(c *gin.Context) {
 }
 
 func GetUserPointDetailListHandler(c *gin.Context) {
-	var request = dto.UserPointDetailListRequest{
-		Page:     constant.DefaultPage,
-		PageSize: constant.DefaultPageSize,
-	}
+	var request dto.UserPointDetailListRequest
 	if err := c.ShouldBind(&request); err != nil {
-		log.Printf("GetUserPointDetailListHandler: %v, %v", request, c.Request.URL.Query())
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}

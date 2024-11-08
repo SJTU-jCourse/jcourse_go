@@ -13,7 +13,6 @@ import (
 	"jcourse_go/model/model"
 	"jcourse_go/model/po"
 	"jcourse_go/repository"
-	"jcourse_go/util"
 )
 
 func GetUserActivityByID(ctx context.Context, userID int64) (*model.UserActivity, error) {
@@ -105,12 +104,7 @@ func buildUserPointDetailDBOptionFromFilter(query repository.IUserPointDetailQue
 	if filter.UserID > 0 {
 		opts = append(opts, repository.WithUserID(filter.UserID))
 	}
-	if filter.PageSize > 0 {
-		opts = append(opts, repository.WithLimit(filter.PageSize))
-	}
-	if filter.Page > 0 {
-		opts = append(opts, repository.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
-	}
+	opts = append(opts, repository.WithPaginate(filter.Page, filter.PageSize))
 	if !filter.StartTime.IsZero() && !filter.EndTime.IsZero() {
 		opts = append(opts, repository.WithTimeBetween(filter.StartTime, filter.EndTime))
 	} else if !filter.StartTime.IsZero() {

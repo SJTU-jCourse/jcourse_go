@@ -32,11 +32,10 @@ type UserPointDetailRequest struct {
 
 type UserPointDetailResponse = BaseResponse
 type UserPointDetailListRequest struct {
-	Page      int64 `json:"page" form:"page" binding:"required"`
-	PageSize  int64 `json:"page_size" form:"page_size" binding:"required"`
 	UserID    int64 `json:"user_id" form:"user_id" binding:"required"`
 	StartTime int64 `json:"start_time" form:"start_time"` // unix timestamp, 单位秒
 	EndTime   int64 `json:"end_time" form:"end_time"`
+	model.PaginationFilterForQuery
 }
 
 type UserPointDetailListResponse = BasePaginateResponse[model.UserPointDetailItem]
