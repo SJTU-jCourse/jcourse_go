@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/pkg/errors"
+	"jcourse_go/constant"
 	"jcourse_go/dal"
 	"jcourse_go/model/dto"
+	"jcourse_go/model/model"
 	"jcourse_go/model/po"
 	"jcourse_go/util"
-
-	"jcourse_go/model/model"
 
 	"jcourse_go/model/converter"
 	"jcourse_go/repository"
@@ -110,28 +110,12 @@ func buildUserPointDetailDBOptionFromFilter(query repository.IUserPointDetailQue
 	if filter.Page > 0 {
 		opts = append(opts, repository.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
 	}
-	if filter.StartTime != "" && filter.EndTime != "" {
-		startTime, err := util.ParseTime(filter.StartTime)
-		if err != nil {
-			return opts
-		}
-		endTime, err := util.ParseTime(filter.EndTime)
-		if err != nil {
-			return opts
-		}
-		opts = append(opts, repository.WithTimeBetween(startTime, endTime))
-	} else if filter.StartTime != "" {
-		startTime, err := util.ParseTime(filter.StartTime)
-		if err != nil {
-			return opts
-		}
-		opts = append(opts, repository.WithTimeAfter(startTime))
-	} else if filter.EndTime != "" {
-		endTime, err := util.ParseTime(filter.EndTime)
-		if err != nil {
-			return opts
-		}
-		opts = append(opts, repository.WithTimeBefore(endTime))
+	if !filter.StartTime.IsZero() && !filter.EndTime.IsZero() {
+		opts = append(opts, repository.WithTimeBetween(filter.StartTime, filter.EndTime))
+	} else if !filter.StartTime.IsZero() {
+		opts = append(opts, repository.WithTimeAfter(filter.StartTime))
+	} else if !filter.EndTime.IsZero() {
+		opts = append(opts, repository.WithTimeBefore(filter.EndTime))
 	}
 	return opts
 }
@@ -156,7 +140,7 @@ func GetUserPointDetailCount(ctx context.Context, filter model.UserPointDetailFi
 	return userPointDetailQuery.GetUserPointDetailCount(ctx, opts...)
 }
 
-// HINT: 以下的几个UserPoint相关函数都是并发安全的, 但不保证成功，事务失败时需要上层自行重试
+// HINT: 以下的几个UserPoint相关函数都是并发安全的, 但不保证成功，事务失败时需要上层自行处理
 func ChangeUserPoints(ctx context.Context, userID int64, eventType model.PointEventType, value int64, description string) error {
 	repo := repository.NewRepository(dal.GetDBClient())
 	userQuery := repo.NewUserQuery()
@@ -182,42 +166,19 @@ func ChangeUserPoints(ctx context.Context, userID int64, eventType model.PointEv
 	return repo.InTransaction(ctx, operation)
 }
 
-const (
-	handlerFeeRate = 0.01
-)
-
-func calcHandlingFee(value int64) int64 {
+func calcHandlingFee(ctx context.Context, value int64) int64 {
+	siteQuery := repository.NewSettingQuery(dal.GetDBClient())
+	siteSetting, err := siteQuery.GetSetting(ctx, constant.HandleFeeRateKey)
+	if err != nil || siteSetting == nil {
+		return int64(float64(value) * (1 - constant.DefaultHandleFeeRate))
+	}
+	handlerFeeRate := siteSetting.GetValue().(float64)
 	return int64(float64(value) * (1 - handlerFeeRate))
 }
 
-func RedeemUserPoints(ctx context.Context, userID int64, value int64) error {
-	// 给传承等开放的兑换积分接口
-	// TODO: 和传承通信
-	repo := repository.NewRepository(dal.GetDBClient())
-	userQuery := repo.NewUserQuery()
-	userPOs, err := userQuery.GetUser(ctx, repository.WithID(userID))
-	if err != nil {
-		return err
-	}
-	if len(userPOs) == 0 {
-		return errors.New("user not found")
-	}
-	user := userPOs[0]
-	if user.Points < value {
-		msg := fmt.Sprintf("user has not enough points, you have %d, require %d", user.Points, value)
-		return errors.New(msg)
-	}
-	originalPoints := user.Points
-	user.Points -= value
-	userPointDetailQuery := repo.NewUserPointQuery()
-	operation := func(repo repository.IRepository) error {
-		userQuery.UpdateUser(ctx, user, repository.WithOptimisticLock("points", originalPoints))
-		userPointDetailQuery.CreateUserPointDetail(ctx, userID, model.PointEventRedeem, -value, fmt.Sprintf("用户%d兑换积分%d", userID, value))
-		return nil
-	}
-	err = repo.InTransaction(ctx, operation)
-	return err
-}
+const (
+	TransferDescriptionFormat = "用户%d转账给用户%d %d分"
+)
 
 func TransferUserPoints(ctx context.Context, senderID int64, receiverID int64, value int64) error {
 	userQuery := repository.NewUserQuery(dal.GetDBClient())
@@ -247,13 +208,13 @@ func TransferUserPoints(ctx context.Context, senderID int64, receiverID int64, v
 	if senderPO.Points < value {
 		return errors.New("sender has not enough points")
 	}
-	receivedValue := value - calcHandlingFee(value)
+	receivedValue := value - calcHandlingFee(ctx, value)
 	senderOriginalPoints := senderPO.Points
 	receiverOriginalPoints := receiverPO.Points
 	senderPO.Points -= value
 	receiverPO.Points += receivedValue
 	repo := repository.NewRepository(dal.GetDBClient())
-	description := fmt.Sprintf("用户%d转账给用户%d %d分", senderID, receiverID, value)
+	description := fmt.Sprintf(TransferDescriptionFormat, senderID, receiverID, value)
 	var operations repository.DBOperation
 	operations = func(repo repository.IRepository) error {
 		userQuery := repo.NewUserQuery()

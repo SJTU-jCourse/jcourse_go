@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"jcourse_go/model/po"
+	"jcourse_go/model/model"
 	"jcourse_go/service"
 	"log"
 	"net/http"
@@ -42,7 +42,7 @@ func AdminChangeUserPoint(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	err := service.ChangeUserPoints(c, request.UserID, po.PointEventAdminChange, request.Value, "")
+	err := service.ChangeUserPoints(c, request.UserID, model.PointEventAdminChange, request.Value, "")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "用户积分更新失败。"})
 		log.Printf("ChangeUserPointHandler: %v", err)

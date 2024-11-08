@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type UserRole = string
 
 const (
@@ -69,6 +71,6 @@ type UserPointDetailFilter struct {
 	PageSize          int64
 	UserPointDetailID int64
 	UserID            int64
-	StartTime         string
-	EndTime           string
+	StartTime         time.Time
+	EndTime           time.Time
 }

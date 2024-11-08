@@ -1,11 +1,10 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
 	"jcourse_go/handler"
 	"jcourse_go/middleware"
 	"jcourse_go/util"
-
-	"github.com/gin-gonic/gin"
 )
 
 func registerRouter(r *gin.Engine) {
@@ -75,7 +74,6 @@ func registerRouter(r *gin.Engine) {
 	userPointGroup.GET("", handler.GetUserPointDetailListHandler)
 	userPointGroup.GET("/:detailID", handler.GetUserPointDetailHandler)
 	userPointGroup.POST("/transfer", handler.TransferUserPointHandler)
-	userPointGroup.POST("/redeem", handler.RedeemUserPointsHandler)
 
 	adminGroup := needAuthGroup.Group("/admin")
 	adminGroup.Use(middleware.RequireAdmin())

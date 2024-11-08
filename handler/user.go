@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -191,8 +192,8 @@ func GetUserPointDetailListHandler(c *gin.Context) {
 	}
 	filter := model.UserPointDetailFilter{
 		UserID:    request.UserID,
-		StartTime: request.StartTime,
-		EndTime:   request.EndTime,
+		StartTime: time.Unix(request.StartTime, 0),
+		EndTime:   time.Unix(request.EndTime, 0),
 	}
 	userPointDetails, err := service.GetUserPointDetailList(c, filter)
 	if err != nil {
@@ -210,22 +211,4 @@ func GetUserPointDetailListHandler(c *gin.Context) {
 		Data:     userPointDetails,
 	}
 	c.JSON(http.StatusOK, response)
-}
-func RedeemUserPointsHandler(c *gin.Context) {
-	var request dto.RedeemUserPointRequest
-	if err := c.ShouldBind(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
-		return
-	}
-	if !middleware.IsMineOrAdmin(c, request.UserID) {
-		c.JSON(http.StatusForbidden, dto.BaseResponse{Message: "无权操作他人积分。"})
-		return
-	}
-	err := service.RedeemUserPoints(c, request.UserID, request.Value)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "用户积分兑换失败。"})
-		log.Printf("RedeemUserPointsHandler: %v", err)
-		return
-	}
-	c.JSON(http.StatusOK, dto.BaseResponse{Message: "用户积分兑换成功。"})
 }
