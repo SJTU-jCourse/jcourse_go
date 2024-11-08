@@ -2,18 +2,24 @@ package repository
 
 import (
 	"context"
-	"github.com/stretchr/testify/assert"
+
 	"jcourse_go/dal"
 	"jcourse_go/model/po"
 	"log"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUserQuery_UpdateUser(t *testing.T) {
 	ctx := context.Background()
 	db := dal.GetDBClient()
+	err := Migrate(db)
+	if err != nil {
+		return
+	}
 	query := NewUserQuery(db)
 	t.Run("none", func(t *testing.T) {
 		err := query.UpdateUser(ctx, po.UserPO{}, WithID(-1))
@@ -24,7 +30,7 @@ func TestUserQuery_UpdateUser(t *testing.T) {
 	t.Run("concurrently_opt_lock", func(t *testing.T) {
 		var wg sync.WaitGroup
 		const numRoutines = 100
-		testUserEmail := "update_concurrent_test@example.com"
+		testUserEmail := "update_concurrent_test_concurrently_opt_lock@example.com"
 		users, err := query.GetUser(ctx, WithEmail(testUserEmail))
 		assert.Nil(t, err)
 		var user po.UserPO
@@ -32,6 +38,10 @@ func TestUserQuery_UpdateUser(t *testing.T) {
 			user = users[0]
 		} else {
 			pUser, err := query.CreateUser(ctx, testUserEmail, "password")
+			if err != nil || pUser == nil {
+				log.Printf("err: %v", err)
+				return
+			}
 			user = *pUser
 			assert.Nil(t, err)
 		}
@@ -74,7 +84,7 @@ func TestUserQuery_UpdateUser(t *testing.T) {
 	t.Run("concurrently_no_lock", func(t *testing.T) {
 		var wg sync.WaitGroup
 		const numRoutines = 100
-		testUserEmail := "update_concurrent_test@example.com"
+		testUserEmail := "update_concurrent_test_concurrently_no_lock@example.com"
 		users, err := query.GetUser(ctx, WithEmail(testUserEmail))
 		assert.Nil(t, err)
 		var user po.UserPO
@@ -82,6 +92,10 @@ func TestUserQuery_UpdateUser(t *testing.T) {
 			user = users[0]
 		} else {
 			pUser, err := query.CreateUser(ctx, testUserEmail, "password")
+			if err != nil || pUser == nil {
+				log.Printf("err: %v", err)
+				return
+			}
 			user = *pUser
 			assert.Nil(t, err)
 		}

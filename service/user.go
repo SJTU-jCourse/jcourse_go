@@ -3,16 +3,17 @@ package service
 import (
 	"context"
 	"fmt"
+
 	"github.com/pkg/errors"
+
 	"jcourse_go/constant"
 	"jcourse_go/dal"
+	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/model/po"
-	"jcourse_go/util"
-
-	"jcourse_go/model/converter"
 	"jcourse_go/repository"
+	"jcourse_go/util"
 )
 
 func GetUserActivityByID(ctx context.Context, userID int64) (*model.UserActivity, error) {
@@ -159,8 +160,14 @@ func ChangeUserPoints(ctx context.Context, userID int64, eventType model.PointEv
 	user.Points += value
 	userPointDetailQuery := repo.NewUserPointQuery()
 	operation := func(repo repository.IRepository) error {
-		userQuery.UpdateUser(ctx, user, repository.WithOptimisticLock("points", originalPoints))
-		userPointDetailQuery.CreateUserPointDetail(ctx, userID, eventType, value, description)
+		err := userQuery.UpdateUser(ctx, user, repository.WithOptimisticLock("points", originalPoints))
+		if err != nil {
+			return err
+		}
+		err = userPointDetailQuery.CreateUserPointDetail(ctx, userID, eventType, value, description)
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 	return repo.InTransaction(ctx, operation)
@@ -215,14 +222,25 @@ func TransferUserPoints(ctx context.Context, senderID int64, receiverID int64, v
 	receiverPO.Points += receivedValue
 	repo := repository.NewRepository(dal.GetDBClient())
 	description := fmt.Sprintf(TransferDescriptionFormat, senderID, receiverID, value)
-	var operations repository.DBOperation
-	operations = func(repo repository.IRepository) error {
+	operations := func(repo repository.IRepository) error {
 		userQuery := repo.NewUserQuery()
 		userPointDetailQuery := repo.NewUserPointQuery()
-		userQuery.UpdateUser(ctx, *senderPO, repository.WithOptimisticLock("points", senderOriginalPoints))
-		userQuery.UpdateUser(ctx, *receiverPO, repository.WithOptimisticLock("points", receiverOriginalPoints))
-		userPointDetailQuery.CreateUserPointDetail(ctx, senderID, model.PointEventTransfer, -value, description)
-		userPointDetailQuery.CreateUserPointDetail(ctx, receiverID, model.PointEventTransfer, receivedValue, description)
+		err := userQuery.UpdateUser(ctx, *senderPO, repository.WithOptimisticLock("points", senderOriginalPoints))
+		if err != nil {
+			return err
+		}
+		err = userQuery.UpdateUser(ctx, *receiverPO, repository.WithOptimisticLock("points", receiverOriginalPoints))
+		if err != nil {
+			return err
+		}
+		err = userPointDetailQuery.CreateUserPointDetail(ctx, senderID, model.PointEventTransfer, -value, description)
+		if err != nil {
+			return err
+		}
+		err = userPointDetailQuery.CreateUserPointDetail(ctx, receiverID, model.PointEventTransfer, receivedValue, description)
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 	err = repo.InTransaction(ctx, operations)

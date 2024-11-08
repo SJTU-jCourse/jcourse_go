@@ -2,9 +2,10 @@ package repository
 
 import (
 	"fmt"
+	"time"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"time"
 )
 
 type DBOption func(*gorm.DB) *gorm.DB

@@ -3,13 +3,16 @@ package repository
 import (
 	"context"
 	"fmt"
+
+	"jcourse_go/model/model"
+	"jcourse_go/model/po"
+	"log"
+	"testing"
+
 	"github.com/glebarez/sqlite"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
-	"jcourse_go/model/model"
-	"jcourse_go/model/po"
-	"testing"
 )
 
 func InitTestDB(t *testing.T) (IRepository, *gorm.DB) {
@@ -60,7 +63,10 @@ func InitTestUser(t *testing.T, repo IRepository, n int) ([]po.UserPO, error) {
 				return nil, err
 			}
 			user.Points = 1000
-			userQuery.UpdateUser(ctx, *user)
+			err := userQuery.UpdateUser(ctx, *user)
+			if err != nil {
+				return nil, err
+			}
 
 		}
 		userPOs = append(userPOs, *user)
@@ -110,10 +116,22 @@ func TestInTransAction(t *testing.T) {
 		t.Logf("user1 points: %d\n", user1.Points)
 		user2.Points += 99
 		t.Logf("user2 points: %d\n", user2.Points)
-		userQuery.UpdateUser(ctx, user1)
-		userQuery.UpdateUser(ctx, user2)
-		userPointDetailQuery.CreateUserPointDetail(ctx, int64(user1.ID), model.PointEventTransfer, -100, "test")
-		userPointDetailQuery.CreateUserPointDetail(ctx, int64(user2.ID), model.PointEventTransfer, 99, "test")
+		err = userQuery.UpdateUser(ctx, user1)
+		if err != nil {
+			return err
+		}
+		err = userQuery.UpdateUser(ctx, user2)
+		if err != nil {
+			return err
+		}
+		err = userPointDetailQuery.CreateUserPointDetail(ctx, int64(user1.ID), model.PointEventTransfer, -100, "test")
+		if err != nil {
+			return err
+		}
+		err = userPointDetailQuery.CreateUserPointDetail(ctx, int64(user2.ID), model.PointEventTransfer, 99, "test")
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 	TransferOpsRollback1 := func(repo IRepository) error {
@@ -128,14 +146,29 @@ func TestInTransAction(t *testing.T) {
 		t.Logf("user1 points: %d\n", user1.Points)
 		user2.Points += 99
 		t.Logf("user2 points: %d\n", user2.Points)
-		userQuery.UpdateUser(ctx, user1)
-		userQuery.UpdateUser(ctx, user2)
-		userPointDetailQuery.CreateUserPointDetail(ctx, int64(user1.ID), model.PointEventTransfer, -100, "test")
-		userPointDetailQuery.CreateUserPointDetail(ctx, int64(user2.ID), model.PointEventTransfer, 99, "test")
-		return errors.Errorf("test rollback at end")
+		err = userQuery.UpdateUser(ctx, user1)
+		if err != nil {
+			return err
+		}
+		err = userQuery.UpdateUser(ctx, user2)
+		if err != nil {
+			return err
+		}
+		err = userPointDetailQuery.CreateUserPointDetail(ctx, int64(user1.ID), model.PointEventTransfer, -100, "test")
+		if err != nil {
+			return err
+		}
+		err = userPointDetailQuery.CreateUserPointDetail(ctx, int64(user2.ID), model.PointEventTransfer, 99, "test")
+		if err != nil {
+			return err
+		}
+		return errors.New("test rollback at end")
 	}
 	TransferOpsRollback2 := func(repo IRepository) error {
 		userPOs, err := InitTestUser(t, repo, 2)
+		if err != nil {
+			log.Printf("InitTestUser error: %v", err)
+		}
 		assert.Nil(t, err)
 		assert.Len(t, userPOs, 2)
 		user1 := userPOs[0]
@@ -146,11 +179,23 @@ func TestInTransAction(t *testing.T) {
 		t.Logf("user1 points: %d\n", user1.Points)
 		user2.Points += 99
 		t.Logf("user2 points: %d\n", user2.Points)
-		userQuery.UpdateUser(ctx, user1)
-		userQuery.UpdateUser(ctx, user2)
-		err = errors.Errorf("test rollback in mid")
-		userPointDetailQuery.CreateUserPointDetail(ctx, int64(user1.ID), model.PointEventTransfer, -100, "test")
-		userPointDetailQuery.CreateUserPointDetail(ctx, int64(user2.ID), model.PointEventTransfer, 99, "test")
+		err = userQuery.UpdateUser(ctx, user1)
+		if err != nil {
+			return err
+		}
+		err = userQuery.UpdateUser(ctx, user2)
+		if err != nil {
+			return err
+		}
+		err = errors.New("test rollback in mid")
+		ign := userPointDetailQuery.CreateUserPointDetail(ctx, int64(user1.ID), model.PointEventTransfer, -100, "test")
+		if ign != nil {
+			return err
+		}
+		ign = userPointDetailQuery.CreateUserPointDetail(ctx, int64(user2.ID), model.PointEventTransfer, 99, "test")
+		if ign != nil {
+			return err
+		}
 		return err
 	}
 	tests := []struct {

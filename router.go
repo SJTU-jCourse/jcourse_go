@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"jcourse_go/handler"
 	"jcourse_go/middleware"
 	"jcourse_go/util"
+
+	"github.com/gin-gonic/gin"
 )
 
 func registerRouter(r *gin.Engine) {

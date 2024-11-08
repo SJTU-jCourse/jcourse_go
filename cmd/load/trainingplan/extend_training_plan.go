@@ -2,10 +2,11 @@ package main
 
 import (
 	"errors"
-	"gorm.io/gorm/clause"
 	"log"
 	"os"
 	"strconv"
+
+	"gorm.io/gorm/clause"
 
 	"github.com/joho/godotenv"
 
