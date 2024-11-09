@@ -19,6 +19,7 @@ import (
 	"github.com/RoaringBitmap/roaring"
 )
 
+type userKeyType = struct{ key string } // make ci happy
 func TestUVStatistic(t *testing.T) {
 	t.Run("TestRBMAddDup", func(t *testing.T) {
 		testRbm := roaring.New()
@@ -201,7 +202,8 @@ func TestCtxPass(t *testing.T) {
 		mockLogin := func(c *gin.Context) {
 			// 从gin.Context中获取请求的上下文
 			reqCtx := c.Request.Context()
-			user, ok := reqCtx.Value(constant.CtxKeyUser).(*model.UserDetail)
+			userKey := userKeyType{key: constant.CtxKeyUser}
+			user, ok := reqCtx.Value(userKey).(*model.UserDetail)
 			assert.True(t, ok)
 
 			// 将用户信息设置回gin.Context的上下文中
@@ -215,7 +217,8 @@ func TestCtxPass(t *testing.T) {
 			c.Status(http.StatusOK)
 		})
 		req := httptest.NewRequest(http.MethodGet, "/some-path", nil)
-		req = req.WithContext(context.WithValue(context.Background(), constant.CtxKeyUser, &model.UserDetail{}))
+		var userKey = userKeyType{key: constant.CtxKeyUser}
+		req = req.WithContext(context.WithValue(context.Background(), userKey, &model.UserDetail{}))
 
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, req)
@@ -238,14 +241,13 @@ func SimulateHighConcurrency(qps int, seconds int, initUserNum int, totalUserNum
 		// 因为ServeHTTP只传入Request, 所以将登录的context放在Request中, 需要取出放回context
 		mockLogin := func(c *gin.Context) {
 			reqCtx := c.Request.Context()
-			user, ok := reqCtx.Value(constant.CtxKeyUser).(*model.UserDetail)
+			userKey := userKeyType{key: constant.CtxKeyUser}
+			user, ok := reqCtx.Value(userKey).(*model.UserDetail)
 			assert.True(b, ok)
 			c.Set(constant.CtxKeyUser, user)
 			c.Next()
 		}
-		endMiddleWare := func(c *gin.Context) {
-			return
-		}
+		endMiddleWare := func(c *gin.Context) { c.Status(http.StatusOK) }
 		middlewares = append(middlewares, mockLogin)
 		middlewares = append(middlewares, PVStatistic())
 		middlewares = append(middlewares, UVStatistic())
@@ -281,6 +283,7 @@ func SimulateHighConcurrency(qps int, seconds int, initUserNum int, totalUserNum
 				r.Handle(method, path, mockHandler)
 			}
 		}
+
 		for i := 0; i < totalUserNum; i++ {
 			c := &gin.Context{}
 			user := &model.UserDetail{
@@ -288,7 +291,8 @@ func SimulateHighConcurrency(qps int, seconds int, initUserNum int, totalUserNum
 					ID: int64(i),
 				},
 			}
-			reqCtx := context.WithValue(context.Background(), constant.CtxKeyUser, user)
+			userKey := userKeyType{key: constant.CtxKeyUser}
+			reqCtx := context.WithValue(context.Background(), userKey, user)
 			c.Request = testReqs[i].WithContext(reqCtx)
 			testCtxs[i] = c
 		}
@@ -334,7 +338,7 @@ func SimulateHighConcurrency(qps int, seconds int, initUserNum int, totalUserNum
 }
 
 func BenchmarkGetPVCount(b *testing.B) {
-	// 23 us / op
+	// <23 us / op
 	b.Run("TestHighConcurrency", func(b *testing.B) {
 		countLog := map[int64]bool{}
 		mu := sync.Mutex{}
@@ -357,7 +361,7 @@ func BenchmarkGetPVCount(b *testing.B) {
 	})
 }
 func BenchmarkGetUVCount(b *testing.B) {
-	// 23 us / op
+	// <23 us / op
 	b.Run("TestHighConcurrency", func(b *testing.B) {
 		countLog := map[int64]bool{}
 		mu := sync.Mutex{}

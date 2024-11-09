@@ -25,10 +25,8 @@ func InitStatistic(r *gin.Engine) {
 	timer := time.NewTicker(DurationRefreshDupJudge)
 	go func() {
 		for {
-			select {
-			case <-timer.C:
-				UpdateDuplicateJudgeDuration(context.Background())
-			}
+			<-timer.C
+			UpdateDuplicateJudgeDuration(context.Background())
 		}
 	}()
 }
@@ -57,7 +55,7 @@ func (u *UserRequestCache) IsDuplicate(req string) bool {
 	if !ok {
 		return false
 	}
-	return time.Now().Sub(lastReq) < GetDuplicateJudgeDuration()
+	return time.Since(lastReq) < GetDuplicateJudgeDuration()
 }
 
 func IsRobot(c *gin.Context) bool {
