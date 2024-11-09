@@ -20,6 +20,7 @@ type UserPO struct {
 	Degree     string // 学位
 	Grade      string // 年级
 	Bio        string // 个人介绍
+	Points     int64  // 积分
 
 	LastSeenAt time.Time
 }
@@ -37,3 +38,16 @@ type UserActivityPO struct {
 }
 
 func (userActivity *UserActivityPO) TableName() string { return "user_activities" }
+
+type PointEvent struct {
+	EventType   string `gorm:"index"`
+	Description string `gorm:"index"`
+	Value       int64  // 积分变动值
+}
+type UserPointDetailPO struct {
+	gorm.Model
+	PointEvent       // 积分事件
+	UserID     int64 `gorm:"index"` // 用户ID
+}
+
+func (po *UserPointDetailPO) TableName() string { return "user_point_details" }

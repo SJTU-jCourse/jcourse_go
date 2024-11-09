@@ -4,6 +4,7 @@ import (
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/model/po"
+	"jcourse_go/util"
 )
 
 func ConvertUserDetailFromPO(po po.UserPO) model.UserDetail {
@@ -16,6 +17,7 @@ func ConvertUserDetailFromPO(po po.UserPO) model.UserDetail {
 		Department:  po.Department,
 		Major:       po.Major,
 		Grade:       po.Grade,
+		Points:      po.Points,
 	}
 }
 
@@ -45,4 +47,12 @@ func RemoveUserEmail(u *model.UserDetail, userID int64) {
 		return
 	}
 	u.Email = ""
+}
+
+func ConvertUserPointDetailItemFromPO(po po.UserPointDetailPO) model.UserPointDetailItem {
+	return model.UserPointDetailItem{
+		Time:        po.CreatedAt.Format(util.GoTimeLayout),
+		Value:       po.Value,
+		Description: po.Description,
+	}
 }

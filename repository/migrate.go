@@ -12,7 +12,7 @@ func Migrate(db *gorm.DB) error {
 		&po.OfferedCoursePO{}, &po.OfferedCourseTeacherPO{},
 		&po.TrainingPlanPO{}, &po.TrainingPlanCoursePO{},
 		&po.ReviewPO{}, &po.RatingPO{},
-		&po.SettingPO{})
+		&po.SettingPO{}, &po.UserPointDetailPO{})
 	if err != nil {
 		return err
 	}

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"jcourse_go/util"
 	"net/http"
 
 	"github.com/gin-gonic/contrib/sessions"
@@ -85,7 +86,12 @@ func SendVerifyCodeHandler(c *gin.Context) {
 		return
 	}
 
-	err = service.SendRegisterCodeEmail(c, request.Email)
+	if util.IsDebug() {
+		err = service.SendRegisterCodeEmailMock(c, request.Email)
+	} else {
+		err = service.SendRegisterCodeEmail(c, request.Email)
+	}
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "验证码发送失败，请稍后重试。"})
 		return

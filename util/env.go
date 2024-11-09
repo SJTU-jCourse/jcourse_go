@@ -51,6 +51,9 @@ func GetRedisHost() string {
 func GetRedisPort() string {
 	return GetEnvDefault("REDIS_PORT", "6379")
 }
+func GetRedisPassword() string {
+	return GetEnvDefault("REDIS_PASSWORD", "")
+}
 
 // === SMTP ===
 

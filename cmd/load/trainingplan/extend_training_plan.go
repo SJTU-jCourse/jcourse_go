@@ -6,6 +6,8 @@ import (
 	"os"
 	"strconv"
 
+	"gorm.io/gorm/clause"
+
 	"github.com/joho/godotenv"
 
 	"jcourse_go/dal"
@@ -44,7 +46,9 @@ func main() {
 			MajorCode:  tp.Code,
 			MajorClass: tp.MajorClass,
 		}
-		result := db.Model(po.TrainingPlanPO{}).Create(&tp_po)
+		result := db.Model(po.TrainingPlanPO{}).
+			Clauses(clause.OnConflict{DoNothing: true}).
+			Create(&tp_po)
 		if result.Error != nil {
 			log.Fatalf("In create training plan %#v:%#v", tp, result.Error)
 		}
@@ -65,7 +69,10 @@ func main() {
 				SuggestSemester: c.SuggestSemester,
 				// Department:      c.Department,
 			}
-			cresult = db.Model(po.TrainingPlanCoursePO{}).Create(&tpc_po)
+			// 已有记录则跳过
+			cresult = db.Model(po.TrainingPlanCoursePO{}).
+				Clauses(clause.OnConflict{DoNothing: true}).
+				Create(&tpc_po)
 			if cresult.Error != nil {
 				if !errors.Is(cresult.Error, gorm.ErrRecordNotFound) {
 					log.Fatalf("In bind course %#v totraining plan %#v:%#v", c, tp, cresult.Error)
