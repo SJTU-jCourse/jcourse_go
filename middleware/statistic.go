@@ -90,10 +90,10 @@ func UVStatisticWithLogin() gin.HandlerFunc {
 		// 这样避免了在每次请求的时候都去拿锁
 		// 但需要处理用户一直保持登录状态的情况, 目前还没想好怎么处理
 		user := GetCurrentUser(c)
-		defer c.Next()
-		if user == nil {
 
+		if user == nil {
 			// 对应登录的情况
+			c.Next()
 			user = GetCurrentUser(c)
 			if user == nil {
 				return
@@ -101,6 +101,8 @@ func UVStatisticWithLogin() gin.HandlerFunc {
 			rbmMutex.Lock()
 			defer rbmMutex.Unlock()
 			rbm.Add(uint32(GetCurrentUser(c).ID)) // 如果id需要用64位int,则修改rbm;add 自带去重
+		} else {
+			c.Next()
 		}
 	}
 }
