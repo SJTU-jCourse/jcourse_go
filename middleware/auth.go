@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"jcourse_go/util"
 	"net/http"
 
 	"github.com/gin-gonic/contrib/sessions"
@@ -53,29 +52,4 @@ func RequireAdmin() gin.HandlerFunc {
 		c.Set(constant.CtxKeyUser, user)
 		c.Next()
 	}
-}
-
-func IsMine(c *gin.Context, userID int64) bool {
-	if util.IsNoLoginMode() {
-		return true
-	}
-	user := GetCurrentUser(c)
-	if user == nil {
-		return false
-	}
-	return user.ID == userID
-}
-func IsAdmin(c *gin.Context) bool {
-	if util.IsNoLoginMode() {
-		return true
-	}
-	user := GetCurrentUser(c)
-	if user == nil {
-		return false
-	}
-	return user.Role == model.UserRoleAdmin
-}
-
-func IsMineOrAdmin(c *gin.Context, userID int64) bool {
-	return IsMine(c, userID) || IsAdmin(c)
 }

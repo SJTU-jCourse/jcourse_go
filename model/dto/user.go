@@ -19,23 +19,18 @@ type UserListRequest struct {
 
 type UserListResponse = BasePaginateResponse[model.UserMinimal]
 
-type UserPointDetailRequestURI struct {
+type UserPointDetailRequest struct {
 	DetailID int64 `uri:"detailID" binding:"required"`
 }
-type UserPointDetailRequestJSON struct {
-	UserID int64 `json:"user_id" form:"user_id" binding:"required"` // use for auth
-}
-type UserPointDetailRequest struct {
-	UserID   int64
-	DetailID int64
-}
-
 type UserPointDetailResponse = BaseResponse
 type UserPointDetailListRequest struct {
-	UserID    int64 `json:"user_id" form:"user_id" binding:"required"`
 	StartTime int64 `json:"start_time" form:"start_time"` // unix timestamp, 单位秒
 	EndTime   int64 `json:"end_time" form:"end_time"`
 	model.PaginationFilterForQuery
+}
+type UserPointDetailListAdminRequest struct {
+	UserID int64 `json:"user_id" form:"user_id"`
+	UserPointDetailListRequest
 }
 
 type UserPointDetailListResponse = BasePaginateResponse[model.UserPointDetailItem]
@@ -47,10 +42,16 @@ type ChangeUserPointRequest struct {
 type ChangeUserPointResponse = BaseResponse
 
 type TransferUserPointRequest struct {
-	Sender   int64 `json:"sender" form:"sender" binding:"required"`
+	// sender is the current user
 	Receiver int64 `json:"receiver" form:"receiver" binding:"required"`
 	Value    int64 `json:"value" form:"value" binding:"required"`
 }
+
+type TransferUserPointAdminRequest struct {
+	Sender int64 `json:"sender" form:"sender" binding:"required"`
+	TransferUserPointRequest
+}
+
 type TransferUserPointResponse = BaseResponse
 
 type RedeemUserPointRequest struct {

@@ -79,7 +79,10 @@ func registerRouter(r *gin.Engine) {
 	adminGroup := needAuthGroup.Group("/admin")
 	adminGroup.Use(middleware.RequireAdmin())
 	adminGroup.GET("/user", handler.AdminGetUserList)
-	adminGroup.POST("/user/change_point", handler.AdminChangeUserPoint)
+	adminGroup.POST("/user/point/change", handler.AdminChangeUserPoint)
+	adminGroup.GET("/user/point/detail", handler.AdminGetUserPointDetailList)
+	adminGroup.GET("/user/point/detail/:detailID", handler.AdminGetUserPointDetail)
+	adminGroup.GET("/user/point/transfer", handler.AdminTransferUserPoint)
 
 	llmGroup := needAuthGroup.Group(("/llm"))
 	llmGroup.GET("/review/opt", handler.OptCourseReviewHandler)
