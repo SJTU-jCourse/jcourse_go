@@ -219,7 +219,11 @@ func SaveStatistic() {
 	// 4. save dau item
 	log.Printf("today: %s", today)
 	log.Printf("pv: %d, uv: %d", curPVCount, curUVCount)
-	log.Printf("uv data(first 10): %v", curUVData.ToArray()[:10])
+	if curUVCount >= 10 {
+		log.Printf("uv data(first 10): %v", curUVData.ToArray()[:10])
+	} else {
+		log.Printf("uv data: %v", curUVData.ToArray())
+	}
 
 	// TODO: save uv, pv, dau to db
 
