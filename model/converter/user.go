@@ -16,6 +16,7 @@ func ConvertUserDetailFromPO(po po.UserPO) model.UserDetail {
 		Department:  po.Department,
 		Major:       po.Major,
 		Grade:       po.Grade,
+		Points:      po.Points,
 	}
 }
 

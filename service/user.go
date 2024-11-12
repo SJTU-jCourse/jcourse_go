@@ -4,10 +4,9 @@ import (
 	"context"
 
 	"jcourse_go/dal"
+	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
-
-	"jcourse_go/model/converter"
 	"jcourse_go/repository"
 )
 
@@ -68,8 +67,8 @@ func GetUserList(ctx context.Context, filter model.UserFilterForQuery) ([]model.
 	}
 
 	result := make([]model.UserMinimal, 0)
-	for _, po := range userPOs {
-		result = append(result, converter.ConvertUserMinimalFromPO(po))
+	for _, userPO := range userPOs {
+		result = append(result, converter.ConvertUserMinimalFromPO(userPO))
 	}
 	return result, nil
 }
@@ -90,4 +89,23 @@ func UpdateUserProfileByID(ctx context.Context, userProfileDTO dto.UserProfileDT
 		return errUpdate
 	}
 	return nil
+}
+
+func buildUserPointDetailDBOptionFromFilter(query repository.IUserPointDetailQuery, filter model.UserPointDetailFilter) []repository.DBOption {
+	opts := make([]repository.DBOption, 0)
+	if filter.UserPointDetailID > 0 {
+		opts = append(opts, repository.WithID(filter.UserPointDetailID))
+	}
+	if filter.UserID > 0 {
+		opts = append(opts, repository.WithUserID(filter.UserID))
+	}
+	opts = append(opts, repository.WithPaginate(filter.Page, filter.PageSize))
+	if !filter.StartTime.IsZero() && !filter.EndTime.IsZero() {
+		opts = append(opts, repository.WithTimeBetween(filter.StartTime, filter.EndTime))
+	} else if !filter.StartTime.IsZero() {
+		opts = append(opts, repository.WithTimeAfter(filter.StartTime))
+	} else if !filter.EndTime.IsZero() {
+		opts = append(opts, repository.WithTimeBefore(filter.EndTime))
+	}
+	return opts
 }

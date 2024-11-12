@@ -27,6 +27,7 @@ type UserDetail struct {
 	Department string `json:"department"`
 	Major      string `json:"major"`
 	Grade      string `json:"grade"`
+	Points     int64  `json:"points"`
 }
 
 type UserActivity struct {

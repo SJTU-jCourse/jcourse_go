@@ -4,17 +4,23 @@ import (
 	"context"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"gorm.io/gorm"
 
 	"jcourse_go/constant"
 	"jcourse_go/model/po"
 )
 
+const (
+	UpdateNotFoundErr = "No rows affected"
+)
+
 type IUserQuery interface {
 	GetUser(ctx context.Context, opts ...DBOption) ([]po.UserPO, error)
 	GetUserCount(ctx context.Context, opts ...DBOption) (int64, error)
 	GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]po.UserPO, error)
-	UpdateUser(ctx context.Context, user po.UserPO) error
+	UpdateUser(ctx context.Context, user po.UserPO, opts ...DBOption) error
 	CreateUser(ctx context.Context, email string, password string) (*po.UserPO, error)
 	ResetUserPassword(ctx context.Context, userID int64, password string) error
 }
@@ -71,9 +77,13 @@ func (q *UserQuery) GetUserCount(ctx context.Context, opts ...DBOption) (int64, 
 	return count, nil
 }
 
-func (q *UserQuery) UpdateUser(ctx context.Context, user po.UserPO) error {
-	result := q.optionDB(ctx, WithID(int64(user.ID))).Updates(&user).Error
-	return result
+func (q *UserQuery) UpdateUser(ctx context.Context, user po.UserPO, opts ...DBOption) error {
+	opts = append(opts, WithID(int64(user.ID)))
+	result := q.optionDB(ctx, opts...).Updates(&user)
+	if result.RowsAffected == 0 {
+		return errors.New(UpdateNotFoundErr)
+	}
+	return result.Error
 }
 
 func (q *UserQuery) CreateUser(ctx context.Context, email string, passwordStore string) (*po.UserPO, error) {

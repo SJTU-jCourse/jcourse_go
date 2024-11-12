@@ -20,6 +20,7 @@ type UserPO struct {
 	Degree     string // 学位
 	Grade      string // 年级
 	Bio        string // 个人介绍
+	Points     int64  // 积分
 
 	LastSeenAt time.Time
 }

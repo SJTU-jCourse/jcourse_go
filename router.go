@@ -24,7 +24,6 @@ func registerRouter(r *gin.Engine) {
 	if !util.IsNoLoginMode() {
 		needAuthGroup.Use(middleware.RequireAuth())
 	}
-
 	needAuthGroup.GET("/common", handler.GetCommonInfo)
 
 	teacherGroup := needAuthGroup.Group("/teacher")
@@ -72,11 +71,16 @@ func registerRouter(r *gin.Engine) {
 	// userGroup.POST("/:userID/unwatch", handler.UnWatchUserHandler)
 	userGroup.PUT("/:userID/profile", handler.UpdateUserProfileHandler)
 
+	userPointGroup := userGroup.Group("/point")
+	userPointGroup.GET("", handler.GetUserPointDetailListHandler)
+	userPointGroup.POST("/transfer", handler.TransferUserPointHandler)
+
 	adminGroup := needAuthGroup.Group("/admin")
 	adminGroup.Use(middleware.RequireAdmin())
 	adminGroup.GET("/user", handler.AdminGetUserList)
-
-	adminGroup.GET("")
+	adminGroup.POST("/user/point/change", handler.AdminChangeUserPoint)
+	adminGroup.GET("/user/point/detail", handler.AdminGetUserPointDetailList)
+	adminGroup.GET("/user/point/transfer", handler.AdminTransferUserPoint)
 
 	llmGroup := needAuthGroup.Group(("/llm"))
 	llmGroup.GET("/review/opt", handler.OptCourseReviewHandler)
@@ -86,4 +90,5 @@ func registerRouter(r *gin.Engine) {
 	if util.IsDebug() {
 		llmGroup.GET("/vectorize/:courseID", handler.VectorizeCourseHandler)
 	}
+
 }
