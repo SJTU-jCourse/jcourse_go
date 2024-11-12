@@ -12,6 +12,10 @@ import (
 	"jcourse_go/model/po"
 )
 
+const (
+	UpdateNotFoundErr = "No rows affected"
+)
+
 type IUserQuery interface {
 	GetUser(ctx context.Context, opts ...DBOption) ([]po.UserPO, error)
 	GetUserCount(ctx context.Context, opts ...DBOption) (int64, error)
@@ -77,7 +81,7 @@ func (q *UserQuery) UpdateUser(ctx context.Context, user po.UserPO, opts ...DBOp
 	opts = append(opts, WithID(int64(user.ID)))
 	result := q.optionDB(ctx, opts...).Updates(&user)
 	if result.RowsAffected == 0 {
-		return errors.New("No rows affected")
+		return errors.New(UpdateNotFoundErr)
 	}
 	return result.Error
 }
@@ -100,62 +104,4 @@ func (q *UserQuery) CreateUser(ctx context.Context, email string, passwordStore 
 func (q *UserQuery) ResetUserPassword(ctx context.Context, userID int64, passwordStore string) error {
 	result := q.optionDB(ctx, WithID(userID)).Update("password", passwordStore)
 	return result.Error
-}
-
-type IUserPointDetailQuery interface {
-	GetUserPointDetail(ctx context.Context, opts ...DBOption) ([]po.UserPointDetailPO, error)
-	GetUserPointDetailCount(ctx context.Context, opts ...DBOption) (int64, error)
-	CreateUserPointDetail(ctx context.Context, userID int64, eventType string, value int64, description string) error
-}
-
-type UserPointDetailQuery struct {
-	db *gorm.DB
-}
-
-func (q *UserPointDetailQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
-	db := q.db.WithContext(ctx).Model(po.UserPointDetailPO{})
-	for _, opt := range opts {
-		db = opt(db)
-	}
-	return db
-}
-
-func (q *UserPointDetailQuery) GetUserPointDetail(ctx context.Context, opts ...DBOption) ([]po.UserPointDetailPO, error) {
-	db := q.optionDB(ctx, opts...)
-	userPointDetailPOs := make([]po.UserPointDetailPO, 0)
-
-	result := db.Find(&userPointDetailPOs)
-	if result.Error != nil {
-		return userPointDetailPOs, result.Error
-	}
-	return userPointDetailPOs, nil
-}
-
-func (q *UserPointDetailQuery) GetUserPointDetailCount(ctx context.Context, opts ...DBOption) (int64, error) {
-	db := q.optionDB(ctx, opts...)
-	var count int64
-	result := db.Count(&count)
-	if result.Error != nil {
-		return 0, result.Error
-	}
-	return count, nil
-}
-
-func (q *UserPointDetailQuery) CreateUserPointDetail(ctx context.Context, userID int64, eventType string, value int64, description string) error {
-	userPointDetail := po.UserPointDetailPO{
-		UserID: userID,
-		PointEvent: po.PointEvent{
-			EventType:   eventType,
-			Value:       value,
-			Description: description,
-		},
-	}
-	result := q.optionDB(ctx).Create(&userPointDetail)
-	return result.Error
-}
-
-func NewUserPointDetailQuery(db *gorm.DB) IUserPointDetailQuery {
-	return &UserPointDetailQuery{
-		db: db,
-	}
 }
