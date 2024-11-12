@@ -3,10 +3,10 @@ package middleware
 import (
 	"context"
 	"jcourse_go/dal"
+	"jcourse_go/model/model"
 	"jcourse_go/repository"
 	"jcourse_go/util"
 	"log"
-	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -66,13 +66,8 @@ func IsInternalRequest(c *gin.Context) bool {
 	return false
 }
 
-type AbstractPaginateRequest struct {
-	Page     int64 `json:"page" form:"page"`
-	PageSize int64 `json:"page_size" form:"page_size"`
-}
-
 func IsPaginateRequest(c *gin.Context) int64 {
-	var req AbstractPaginateRequest
+	var req model.PaginationFilterForQuery
 	if c.ShouldBind(&req) != nil {
 		return -1
 	}
@@ -208,10 +203,6 @@ func SetIfNoDuplicate(c *gin.Context) bool {
 		}
 	}
 	req := c.Request.RequestURI
-	pageNo := IsPaginateRequest(c)
-	if pageNo > 0 {
-		req = c.Request.RequestURI + strconv.FormatInt(pageNo, 10)
-	}
 	if userCache.IsDuplicate(req) {
 		return false
 	}
