@@ -47,44 +47,6 @@ func AdminTransferUserPoint(c *gin.Context) {
 	c.JSON(http.StatusOK, dto.BaseResponse{Message: "用户积分转账成功。"})
 }
 
-func GetUserPointDetailHandler(c *gin.Context) {
-	var request dto.UserPointDetailRequest
-	if err := c.ShouldBindUri(&request); err != nil {
-		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "参数错误"})
-		return
-	}
-	user := middleware.GetCurrentUser(c)
-	filter := model.UserPointDetailFilter{UserPointDetailID: request.DetailID, UserID: user.ID}
-	userPointDetails, err := service.GetUserPointDetailList(c, filter)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
-		return
-	}
-	if len(userPointDetails) == 0 {
-		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "该积分明细不存在。"})
-		return
-	}
-	c.JSON(http.StatusOK, userPointDetails[0])
-}
-func AdminGetUserPointDetail(c *gin.Context) {
-	var request dto.UserPointDetailRequest
-	if err := c.ShouldBindUri(&request); err != nil {
-		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "参数错误"})
-		return
-	}
-	filter := model.UserPointDetailFilter{UserPointDetailID: request.DetailID}
-	userPointDetails, err := service.GetUserPointDetailList(c, filter)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
-		return
-	}
-	if len(userPointDetails) == 0 {
-		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "该积分明细不存在。"})
-		return
-	}
-	c.JSON(http.StatusOK, userPointDetails[0])
-}
-
 func GetUserPointDetailListHandler(c *gin.Context) {
 	var request dto.UserPointDetailListRequest
 	if err := c.ShouldBind(&request); err != nil {

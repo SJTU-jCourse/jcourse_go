@@ -2,12 +2,6 @@ package dto
 
 import "jcourse_go/model/model"
 
-type UserListResponse = BasePaginateResponse[model.UserMinimal]
-
-type UserPointDetailRequest struct {
-	DetailID int64 `uri:"detailID" binding:"required"`
-}
-type UserPointDetailResponse = BaseResponse
 type UserPointDetailListRequest struct {
 	StartTime int64 `json:"start_time" form:"start_time"` // unix timestamp, 单位秒
 	EndTime   int64 `json:"end_time" form:"end_time"`

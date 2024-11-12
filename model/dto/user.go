@@ -16,3 +16,5 @@ type UserProfileDTO struct {
 type UserListRequest struct {
 	model.PaginationFilterForQuery
 }
+
+type UserListResponse = BasePaginateResponse[model.UserMinimal]

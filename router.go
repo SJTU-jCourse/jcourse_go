@@ -73,7 +73,6 @@ func registerRouter(r *gin.Engine) {
 
 	userPointGroup := userGroup.Group("/point")
 	userPointGroup.GET("", handler.GetUserPointDetailListHandler)
-	userPointGroup.GET("/:detailID", handler.GetUserPointDetailHandler)
 	userPointGroup.POST("/transfer", handler.TransferUserPointHandler)
 
 	adminGroup := needAuthGroup.Group("/admin")
@@ -81,7 +80,6 @@ func registerRouter(r *gin.Engine) {
 	adminGroup.GET("/user", handler.AdminGetUserList)
 	adminGroup.POST("/user/point/change", handler.AdminChangeUserPoint)
 	adminGroup.GET("/user/point/detail", handler.AdminGetUserPointDetailList)
-	adminGroup.GET("/user/point/detail/:detailID", handler.AdminGetUserPointDetail)
 	adminGroup.GET("/user/point/transfer", handler.AdminTransferUserPoint)
 
 	llmGroup := needAuthGroup.Group(("/llm"))
