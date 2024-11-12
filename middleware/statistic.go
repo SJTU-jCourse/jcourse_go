@@ -106,6 +106,20 @@ func UVStatisticWithLogin() gin.HandlerFunc {
 		}
 	}
 }
+func UVStatisticMock() gin.HandlerFunc {
+	// 用于测试, 仅是删去了底部的c.Next(), 便于构造测试
+	return func(c *gin.Context) {
+		// 简单加放锁的方式，性能约为10000次请求7ms
+		user := GetCurrentUser(c)
+		if user == nil {
+			log.Printf("user is nil")
+			return
+		}
+		rbmMutex.Lock()
+		defer rbmMutex.Unlock()
+		rbm.Add(uint32(user.ID)) // 如果id需要用64位int,则修改rbm;add 自带去重
+	}
+}
 func UVStatistic() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 简单加放锁的方式，性能约为10000次请求7ms
@@ -116,7 +130,7 @@ func UVStatistic() gin.HandlerFunc {
 		}
 		rbmMutex.Lock()
 		defer rbmMutex.Unlock()
-		rbm.Add(uint32(GetCurrentUser(c).ID)) // 如果id需要用64位int,则修改rbm;add 自带去重
+		rbm.Add(uint32(user.ID)) // 如果id需要用64位int,则修改rbm;add 自带去重
 		c.Next()
 	}
 }
@@ -151,6 +165,11 @@ func ShouldBeCountInPV(c *gin.Context) bool {
 var requestUserCache = make(map[int64]*UserRequestCache)
 var requestUserCacheMutex sync.RWMutex
 
+func ClearPVCache() {
+	requestUserCacheMutex.Lock()
+	defer requestUserCacheMutex.Unlock()
+	requestUserCache = make(map[int64]*UserRequestCache)
+}
 func PVStatistic() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer c.Next()
@@ -160,6 +179,15 @@ func PVStatistic() gin.HandlerFunc {
 		pvCount.Add(1)
 	}
 }
+func PVStatisticMock() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if !ShouldBeCountInPV(c) {
+			return
+		}
+		pvCount.Add(1)
+	}
+}
+
 func SetIfNoDuplicate(c *gin.Context) bool {
 	// 目前简单将不同URI的请求和同一个paginate URI下不同page的请求视为不同请求
 	user := GetCurrentUser(c)

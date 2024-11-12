@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -45,7 +46,7 @@ func TestUVStatistic(t *testing.T) {
 		}
 
 		// Test UV
-		handler := UVStatistic()
+		handler := UVStatisticMock()
 		var wg sync.WaitGroup
 		for i := 0; i < testNum; i++ {
 			wg.Add(1)
@@ -61,6 +62,111 @@ func TestUVStatistic(t *testing.T) {
 		}
 		for i := testNum; i < testNum*2; i++ {
 			assert.False(t, rbm.Contains(uint32(i)))
+		}
+	})
+}
+
+func BenchmarkRbm(b *testing.B) {
+	// 10000 users: 1.9 ns/op
+	b.Run("CountSeq", func(b *testing.B) {
+		userNum := 10000
+		for j := 0; j < userNum; j++ {
+			rbm.Add(uint32(j))
+		}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			rbm.GetCardinality()
+		}
+	})
+	// 10000 users: 40 us/op
+	b.Run("CountRandom", func(b *testing.B) {
+		userNum := 10000
+		for j := 0; j < userNum; j++ {
+			rbm.Add(rand.Uint32())
+		}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			rbm.GetCardinality()
+		}
+	})
+	// 10000 users: 4.2 us/op
+	b.Run("CloneSeq", func(b *testing.B) {
+		userNum := 10000
+		for j := 0; j < userNum; j++ {
+			rbm.Add(uint32(j))
+		}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			rbm.Clone()
+		}
+	})
+	// 10000 users: 2.3 ms/op
+	b.Run("CloneRandom", func(b *testing.B) {
+		userNum := 10000
+		for j := 0; j < userNum; j++ {
+			rbm.Add(rand.Uint32())
+		}
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			rbm.Clone()
+		}
+	})
+	b.Run("SerializeSeq", func(b *testing.B) {
+		// 10000 users: 11 us/op
+		userNum := 10000
+		for j := 0; j < userNum; j++ {
+			rbm.Add(uint32(j))
+		}
+		tmpFile, _ := os.Create("tmp")
+		defer func() {
+			err := tmpFile.Close()
+			if err != nil {
+				b.Errorf("Close tmp file failed")
+			}
+			err = os.Remove("tmp")
+			if err != nil {
+				b.Errorf("Remove tmp file failed")
+			}
+		}()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			bytes, err := rbm.ToBytes()
+			if err != nil {
+				b.Errorf("Serialize failed")
+			}
+			_, err = tmpFile.Write(bytes)
+			if err != nil {
+				b.Errorf("Write failed")
+			}
+		}
+	})
+	b.Run("SerializeRandom", func(b *testing.B) {
+		// 10000 users: 1.3 ms/op
+		userNum := 10000
+		for j := 0; j < userNum; j++ {
+			rbm.Add(rand.Uint32())
+		}
+		tmpFile, _ := os.Create("tmp")
+		defer func() {
+			err := tmpFile.Close()
+			if err != nil {
+				b.Errorf("Close tmp file failed")
+			}
+			err = os.Remove("tmp")
+			if err != nil {
+				b.Errorf("Remove tmp file failed")
+			}
+		}()
+		b.ResetTimer()
+		for i := 0; i < b.N; i++ {
+			bytes, err := rbm.ToBytes()
+			if err != nil {
+				b.Errorf("Serialize failed")
+			}
+			_, err = tmpFile.Write(bytes)
+			if err != nil {
+				b.Errorf("Write failed")
+			}
 		}
 	})
 }
@@ -84,7 +190,7 @@ func BenchmarkUVStatistic(b *testing.B) {
 		rbm.Clear()
 		var wg sync.WaitGroup
 		for _, c := range testCtxs {
-			fn := UVStatistic()
+			fn := UVStatisticMock()
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
@@ -179,7 +285,7 @@ func TestPVStatistic(t *testing.T) {
 	}
 
 	// Test PV
-	handler := PVStatistic()
+	handler := PVStatisticMock()
 	var wg sync.WaitGroup
 	for i := 0; i < testNum; i++ {
 		wg.Add(1)
@@ -192,7 +298,54 @@ func TestPVStatistic(t *testing.T) {
 	t.Logf("PVStatistic: %d", GetPVCount())
 	t.Logf("It should be approximately to %d", testNum/4) // 4 is the number of different methods
 }
+func BenchmarkPVStatistic(b *testing.B) {
+	testPaths := []string{
+		"/api/user/login",
+		"/api/user/logout",
+		"/api/user/register",
+		"/api/user/common",
+		"/api/teacher",
+		"/api/teacher/filter",
+		"/api/teacher/1",
+		"/api/base_course/1",
+		"/api/course",
+		"/api/course/filter",
+		"/api/course/1",
+		"/api/training_plan",
+		"/api/training_plan/filter",
+	}
+	testNum := 10000 * 4
+	var testParams []*gin.Context
+	testReqs := GenerateRandomRequest(testNum, testPaths)
+	for i := 0; i < testNum; i++ {
+		c := &gin.Context{}
+		user := &model.UserDetail{
+			UserMinimal: model.UserMinimal{
+				ID: int64(i),
+			},
+		}
+		c.Set(constant.CtxKeyUser, user)
+		c.Request = testReqs[i]
+		testParams = append(testParams, c)
+	}
 
+	// Test PV
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		ClearPVCache()
+		handler := PVStatisticMock()
+		var wg sync.WaitGroup
+		for j := 0; j < testNum; j++ {
+			wg.Add(1)
+			go func() {
+				handler(testParams[j])
+				wg.Done()
+			}()
+		}
+		wg.Wait()
+	}
+
+}
 func TestCtxPass(t *testing.T) {
 	t.Run("TestCtxPass", func(t *testing.T) {
 		gin.SetMode(gin.TestMode)
@@ -359,6 +512,7 @@ func BenchmarkGetPVCount(b *testing.B) {
 		}
 		b.Logf("Average time: %v", avgTime)
 	})
+
 }
 func BenchmarkGetUVCount(b *testing.B) {
 	// <23 us / op
@@ -382,4 +536,18 @@ func BenchmarkGetUVCount(b *testing.B) {
 		}
 		b.Logf("Average time: %v", avgTime)
 	})
+}
+
+func BenchmarkSaveStatistic(b *testing.B) {
+	// 10000 user
+	userNum := 10000
+	for i := 0; i < userNum; i++ {
+		rbm.Add(uint32(i))
+	}
+	// TODO: prepare pv
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		SaveStatistic()
+	}
+
 }
