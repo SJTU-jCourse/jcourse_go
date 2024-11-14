@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"jcourse_go/util"
 	"time"
 
 	"gorm.io/gorm"
@@ -32,19 +33,66 @@ func WithRawOptimisticLock(query interface{}, args ...interface{}) DBOption {
 	}
 }
 
-func WithTimeBetween(start, end time.Time) DBOption {
+func WithCreatedAtBetween(start, end time.Time) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("created_at between ? and ?", start, end)
 	}
 }
-func WithTimeAfter(start time.Time) DBOption {
+func WithCreatedAtAfter(start time.Time) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("created_at >= ?", start)
 	}
 }
-func WithTimeBefore(end time.Time) DBOption {
+func WithCreatedAtBefore(end time.Time) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("created_at <= ?", end)
+	}
+}
+
+func WithCreatedOrder(ascending bool) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		orderBy := "created_at"
+		if ascending {
+			orderBy += " asc"
+		} else {
+			orderBy += " desc"
+		}
+		return db.Order(orderBy)
+	}
+}
+
+// WithDate 当日的数据
+func WithDate(datetime time.Time) DBOption {
+	date := util.GetMidTime(datetime)
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("date = ?", date)
+	}
+}
+
+func WithDateBetween(start, end time.Time) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("date between ? and ?", start, end)
+	}
+}
+func WithDateAfter(start time.Time) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("date >= ?", start)
+	}
+}
+func WithDateBefore(end time.Time) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("date <= ?", end)
+	}
+}
+func WithDateOrder(ascending bool) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		orderBy := "date"
+		if ascending {
+			orderBy += " asc"
+		} else {
+			orderBy += " desc"
+		}
+		return db.Order(orderBy)
 	}
 }
 

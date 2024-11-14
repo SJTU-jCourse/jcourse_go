@@ -46,7 +46,8 @@ func TestUVStatistic(t *testing.T) {
 		}
 
 		// Test UV
-		handler := UVStatisticMock()
+		m := NewUVMiddleware()
+		handler := m.UVStatisticMock()
 		var wg sync.WaitGroup
 		for i := 0; i < testNum; i++ {
 			wg.Add(1)
@@ -56,12 +57,12 @@ func TestUVStatistic(t *testing.T) {
 			}()
 		}
 		wg.Wait()
-		assert.Equal(t, uint64(testNum), GetUVCount())
+		assert.Equal(t, uint64(testNum), m.GetUVCount())
 		for i := 0; i < testNum; i++ {
-			assert.True(t, rbm.Contains(uint32(i)))
+			assert.True(t, m.ContainsUser(int64(i)))
 		}
 		for i := testNum; i < testNum*2; i++ {
-			assert.False(t, rbm.Contains(uint32(i)))
+			assert.False(t, m.ContainsUser(int64(i)))
 		}
 	})
 }
@@ -69,6 +70,7 @@ func TestUVStatistic(t *testing.T) {
 func BenchmarkRbm(b *testing.B) {
 	// 10000 users: 1.9 ns/op
 	b.Run("CountSeq", func(b *testing.B) {
+		rbm := roaring.New()
 		userNum := 10000
 		for j := 0; j < userNum; j++ {
 			rbm.Add(uint32(j))
@@ -80,6 +82,7 @@ func BenchmarkRbm(b *testing.B) {
 	})
 	// 10000 users: 40 us/op
 	b.Run("CountRandom", func(b *testing.B) {
+		rbm := roaring.New()
 		userNum := 10000
 		for j := 0; j < userNum; j++ {
 			rbm.Add(rand.Uint32())
@@ -91,6 +94,7 @@ func BenchmarkRbm(b *testing.B) {
 	})
 	// 10000 users: 4.2 us/op
 	b.Run("CloneSeq", func(b *testing.B) {
+		rbm := roaring.New()
 		userNum := 10000
 		for j := 0; j < userNum; j++ {
 			rbm.Add(uint32(j))
@@ -102,6 +106,7 @@ func BenchmarkRbm(b *testing.B) {
 	})
 	// 10000 users: 2.3 ms/op
 	b.Run("CloneRandom", func(b *testing.B) {
+		rbm := roaring.New()
 		userNum := 10000
 		for j := 0; j < userNum; j++ {
 			rbm.Add(rand.Uint32())
@@ -113,6 +118,7 @@ func BenchmarkRbm(b *testing.B) {
 	})
 	b.Run("SerializeSeq", func(b *testing.B) {
 		// 10000 users: 11 us/op
+		rbm := roaring.New()
 		userNum := 10000
 		for j := 0; j < userNum; j++ {
 			rbm.Add(uint32(j))
@@ -142,6 +148,7 @@ func BenchmarkRbm(b *testing.B) {
 	})
 	b.Run("SerializeRandom", func(b *testing.B) {
 		// 10000 users: 1.3 ms/op
+		rbm := roaring.New()
 		userNum := 10000
 		for j := 0; j < userNum; j++ {
 			rbm.Add(rand.Uint32())
@@ -186,11 +193,11 @@ func BenchmarkUVStatistic(b *testing.B) {
 		c.Set(constant.CtxKeyUser, user)
 		testCtxs[i] = c
 	}
+	m := NewUVMiddleware()
 	for i := 0; i < b.N; i++ {
-		rbm.Clear()
 		var wg sync.WaitGroup
 		for _, c := range testCtxs {
-			fn := UVStatisticMock()
+			fn := m.UVStatisticMock()
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
@@ -200,23 +207,6 @@ func BenchmarkUVStatistic(b *testing.B) {
 		wg.Wait()
 		// t.Logf("UVStatistic: %d", rbm.GetCardinality())
 	}
-}
-
-func TestScheduleSaveStatistic(t *testing.T) {
-	t.Run("TestSchedule", func(t *testing.T) {
-		stopChan := make(chan struct{})
-		gap := time.Second
-		go ScheduleSaveStatistic(gap, stopChan)
-		time.Sleep(gap * 3)
-		close(stopChan)
-	})
-	t.Run("TestFinish", func(t *testing.T) {
-		stopChan := make(chan struct{})
-		gap := time.Second
-		go ScheduleSaveStatistic(gap, stopChan)
-		time.Sleep(gap * 3)
-		stopChan <- struct{}{}
-	})
 }
 
 func GenerateRandomRequest(N int, paths []string) []*http.Request {
@@ -284,8 +274,9 @@ func TestPVStatistic(t *testing.T) {
 		testParams = append(testParams, c)
 	}
 
+	m := NewPVMiddleware()
 	// Test PV
-	handler := PVStatisticMock()
+	handler := m.PVStatisticMock()
 	var wg sync.WaitGroup
 	for i := 0; i < testNum; i++ {
 		wg.Add(1)
@@ -295,7 +286,7 @@ func TestPVStatistic(t *testing.T) {
 		}()
 	}
 	wg.Wait()
-	t.Logf("PVStatistic: %d", GetPVCount())
+	t.Logf("PVStatistic: %d", m.GetPVCount())
 	t.Logf("It should be approximately to %d", testNum/4) // 4 is the number of different methods
 }
 func BenchmarkPVStatistic(b *testing.B) {
@@ -330,10 +321,11 @@ func BenchmarkPVStatistic(b *testing.B) {
 	}
 
 	// Test PV
+	m := NewPVMiddleware()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		ClearPVCache()
-		handler := PVStatisticMock()
+		m.ClearPVCache()
+		handler := m.PVStatisticMock()
 		var wg sync.WaitGroup
 		for j := 0; j < testNum; j++ {
 			wg.Add(1)
@@ -387,7 +379,7 @@ func GetTestGinEngine() *gin.Engine {
 }
 
 // 只能模拟在c.Next()之前的完成放锁的高并发情况, 否则中间件时延依赖于具体业务时延
-func SimulateHighConcurrency(qps int, seconds int, initUserNum int, totalUserNum int, testFn func(b *testing.B, iter int)) func(b *testing.B) time.Duration {
+func SimulateHighConcurrency(pvMock gin.HandlerFunc, uvMock gin.HandlerFunc, qps int, seconds int, initUserNum int, totalUserNum int, testFn func(b *testing.B, iter int)) func(b *testing.B) time.Duration {
 	return func(b *testing.B) time.Duration {
 		r := GetTestGinEngine()
 		middlewares := make([]gin.HandlerFunc, 0)
@@ -402,8 +394,8 @@ func SimulateHighConcurrency(qps int, seconds int, initUserNum int, totalUserNum
 		}
 		endMiddleWare := func(c *gin.Context) { c.Status(http.StatusOK) }
 		middlewares = append(middlewares, mockLogin)
-		middlewares = append(middlewares, PVStatistic())
-		middlewares = append(middlewares, UVStatistic())
+		middlewares = append(middlewares, pvMock)
+		middlewares = append(middlewares, pvMock)
 		middlewares = append(middlewares, endMiddleWare) // 避免c.Next()带来一些问题
 		for _, m := range middlewares {
 			r.Use(m)
@@ -493,17 +485,19 @@ func SimulateHighConcurrency(qps int, seconds int, initUserNum int, totalUserNum
 func BenchmarkGetPVCount(b *testing.B) {
 	// <23 us / op
 	b.Run("TestHighConcurrency", func(b *testing.B) {
+		pvm := NewPVMiddleware()
 		countLog := map[int64]bool{}
 		mu := sync.Mutex{}
 		GetPVCountWrapper := func(b *testing.B, iter int) {
-			count := GetPVCount()
+			count := pvm.GetPVCount()
 			b.StopTimer()
 			mu.Lock()
 			countLog[count] = true
 			mu.Unlock()
 			b.StartTimer()
 		}
-		avgTime := SimulateHighConcurrency(1000, 5,
+		uvm := NewUVMiddleware()
+		avgTime := SimulateHighConcurrency(uvm.UVStatisticMock(), pvm.PVStatisticMock(), 1000, 5,
 			10000, 10000, GetPVCountWrapper)(b)
 		mu.Lock()
 		defer mu.Unlock()
@@ -517,17 +511,19 @@ func BenchmarkGetPVCount(b *testing.B) {
 func BenchmarkGetUVCount(b *testing.B) {
 	// <23 us / op
 	b.Run("TestHighConcurrency", func(b *testing.B) {
+		pvm := NewPVMiddleware()
+		uvm := NewUVMiddleware()
 		countLog := map[int64]bool{}
 		mu := sync.Mutex{}
 		GetUVCountWrapper := func(b *testing.B, iter int) {
-			count := GetUVCount()
+			count := uvm.GetUVCount()
 			b.StopTimer()
 			mu.Lock()
 			countLog[int64(count)] = true
 			mu.Unlock()
 			b.StartTimer()
 		}
-		avgTime := SimulateHighConcurrency(1000, 5,
+		avgTime := SimulateHighConcurrency(pvm.PVStatisticMock(), uvm.UVStatisticMock(), 1000, 5,
 			5000, 10000, GetUVCountWrapper)(b)
 		mu.Lock()
 		defer mu.Unlock()
@@ -536,18 +532,4 @@ func BenchmarkGetUVCount(b *testing.B) {
 		}
 		b.Logf("Average time: %v", avgTime)
 	})
-}
-
-func BenchmarkSaveStatistic(b *testing.B) {
-	// 10000 user
-	userNum := 10000
-	for i := 0; i < userNum; i++ {
-		rbm.Add(uint32(i))
-	}
-	// TODO: prepare pv
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		SaveStatistic()
-	}
-
 }

@@ -47,7 +47,7 @@ func NewTeacherQuery(db *gorm.DB) ITeacherQuery {
 }
 
 func (q *TeacherQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
-	db := q.db.WithContext(ctx).Model(po.TeacherPO{})
+	db := q.db.WithContext(ctx).Model(&po.TeacherPO{})
 	for _, opt := range opts {
 		db = opt(db)
 	}
