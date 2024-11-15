@@ -32,7 +32,7 @@ func getAllStatisticInCache(ctx context.Context) ([]model.DailyInfoDetail, error
 func updateDailyInfoCache(ctx context.Context, detail model.DailyInfoDetail) error {
 	key := getDailyInfoKeyFromStr(detail.Date)
 	log.Printf("Update: %s", key)
-	// TODO update
+	// TODO
 	return nil
 }
 
@@ -165,7 +165,8 @@ func GetAllStatistics(ctx context.Context) ([]model.DailyInfoDetail, error) {
 	}
 	num := len(statistics)
 	details := make([]model.DailyInfoDetail, num)
-
+	const week = 7
+	const month = 30
 	for i, statisticPO := range statistics {
 		weekWindow := make([]int64, 7)
 		monthWindow := make([]int64, 30)
@@ -175,14 +176,14 @@ func GetAllStatistics(ctx context.Context) ([]model.DailyInfoDetail, error) {
 			WAU:              0,
 			MAU:              0,
 		}
-		if i >= 6 {
-			for j := i - 6; j <= i; j++ {
+		if i >= week-1 {
+			for j := i - week + 1; j <= i; j++ {
 				weekWindow[i] = details[j].DailyInfoMinimal.UVCount
 			}
 			details[i].WAU = avgInt64(weekWindow)
 		}
-		if i >= 29 {
-			for j := i - 29; j <= i; j++ {
+		if i >= month-1 {
+			for j := i - month + 1; j <= i; j++ {
 				monthWindow[i] = details[j].DailyInfoMinimal.UVCount
 			}
 			details[i].MAU = avgInt64(monthWindow)

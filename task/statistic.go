@@ -16,12 +16,15 @@ import (
 	"github.com/pkg/errors"
 )
 
+// maxTaskQueueSize 调度任务队列最多等待的任务数
+const maxTaskQueueSize = 10000
+
 type DailyTriggerOff = time.Duration
 
 // CalOffsetByDailyTrigger 计算从现在到下一次每日触发时间的偏移量
 func CalOffsetByDailyTrigger(triggerOff DailyTriggerOff) time.Duration {
 	now := time.Now()
-	triggerTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.Local).Add(triggerOff)
+	triggerTime := util.GetLocalDayStart().Add(triggerOff)
 	if now.After(triggerTime) {
 		triggerTime = triggerTime.AddDate(0, 0, 1)
 	}
@@ -30,14 +33,13 @@ func CalOffsetByDailyTrigger(triggerOff DailyTriggerOff) time.Duration {
 
 const (
 	DurationRefreshDupJudge = 30 * time.Minute
-	// 2:33 AM 保存前一日的统计数据
+	// StatisticSaveTriggerOff 保存前一日的统计数据的触发时间 现在是 2:33AM
 	StatisticSaveTriggerOff DailyTriggerOff = 2*time.Hour + 33*time.Minute
 	TimeCheckFailed                         = "time check failed"
 )
 
 // runScheduledTask 运行定时任务, 仅适用于执行的任务没有变化的情况(传递原型而非闭包)
 func runScheduledTask(ctx context.Context, tasks []ScheduledTask) {
-	const maxTaskQueueSize = 10000
 	taskQueue := make(chan int64, maxTaskQueueSize)
 	timers := make(map[int64]*time.Ticker, len(tasks))
 	defer func() {
@@ -183,7 +185,7 @@ func SaveStatistic(ctx context.Context, db *gorm.DB, pvm middleware.IPVMiddlewar
 	log.Printf("today: %s", today)
 	log.Printf("pv: %d, uv: %d", curPVCount, curUVCount)
 
-	// TODO: save uv, pv, dau to db
+	// TODO: better error handle
 	userQuery := repository.NewUserQuery(db)
 	courseQuery := repository.NewCourseQuery(db)
 	reviewQuery := repository.NewReviewQuery(db)
@@ -194,19 +196,16 @@ func SaveStatistic(ctx context.Context, db *gorm.DB, pvm middleware.IPVMiddlewar
 	option := repository.WithCreatedAtBetween(dayStart, dayEnd)
 	newUserCount, err := userQuery.GetUserCount(ctx, option)
 	if err != nil {
-		// TODO: save error handle
 		log.Fatalf("failed to save statistic: %v", err)
 		return err
 	}
 	newReviewCount, err := reviewQuery.GetReviewCount(ctx, option)
 	if err != nil {
-		// TODO: save error handle
 		log.Fatalf("failed to save statistic: %v", err)
 		return err
 	}
 	newCourseCount, err := courseQuery.GetCourseCount(ctx, option)
 	if err != nil {
-		// TODO: save error handle
 		log.Fatalf("failed to save statistic: %v", err)
 		return err
 	}

@@ -32,6 +32,15 @@ func GetDayTimeRange(datetime time.Time) (time.Time, time.Time) {
 
 	return start, end
 }
+func GetLocalDayStart() time.Time {
+	now := time.Now()
+	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.Local)
+}
+func GetLocalDayEnd() time.Time {
+	now := time.Now()
+	return time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, int(time.Second-time.Nanosecond), time.Local)
+}
+
 func GetYesterdayTimeRange(datetime time.Time) (time.Time, time.Time) {
 	return GetDayTimeRange(GetTimeSubDay(datetime, 1))
 }
