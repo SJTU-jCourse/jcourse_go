@@ -76,8 +76,7 @@ func registerRouter(r *gin.Engine) {
 	userPointGroup.POST("/transfer", handler.TransferUserPointHandler)
 
 	statisticGroup := needAuthGroup.Group("/statistic")
-	statisticGroup.GET("", handler.GetAllStatisticHandler)
-	statisticGroup.GET("/daily", handler.GetDailyStatisticHandler)
+	statisticGroup.GET("", handler.GetStatisticHandler)
 
 	adminGroup := needAuthGroup.Group("/admin")
 	adminGroup.Use(middleware.RequireAdmin())

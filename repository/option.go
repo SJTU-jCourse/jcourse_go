@@ -70,18 +70,22 @@ func WithDate(datetime time.Time) DBOption {
 }
 
 func WithDateBetween(start, end time.Time) DBOption {
+	startDate := util.GetMidTime(start)
+	endDate := util.GetMidTime(end)
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("date between ? and ?", start, end)
+		return db.Where("date between ? and ?", startDate, endDate)
 	}
 }
 func WithDateAfter(start time.Time) DBOption {
+	startDate := util.GetMidTime(start)
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("date >= ?", start)
+		return db.Where("date >= ?", startDate)
 	}
 }
 func WithDateBefore(end time.Time) DBOption {
+	endDate := util.GetMidTime(end)
 	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("date <= ?", end)
+		return db.Where("date <= ?", endDate)
 	}
 }
 func WithDateOrder(ascending bool) DBOption {

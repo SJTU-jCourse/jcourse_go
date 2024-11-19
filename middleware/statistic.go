@@ -5,6 +5,7 @@ import (
 	"jcourse_go/dal"
 	"jcourse_go/model/model"
 	"jcourse_go/repository"
+	"log"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -17,7 +18,7 @@ var UV = NewUVMiddleware()
 var PV = NewPVMiddleware()
 
 const (
-	DefaultDuplicateJudgeDuration = time.Second
+	DefaultDuplicateJudgeDuration = 10 * time.Minute
 	DuplicateJudgeDurationKey     = "duplicate_judge_duration"
 )
 
@@ -29,10 +30,24 @@ func UpdateDuplicateJudgeDuration(ctx context.Context) time.Duration {
 	siteQuery := repository.NewSettingQuery(dal.GetDBClient())
 	siteSetting, err := siteQuery.GetSetting(ctx, DuplicateJudgeDurationKey)
 	if err != nil {
+		log.Printf("failed to get site setting: %v", err)
 		LastQuerySiteSettingDuration = DefaultDuplicateJudgeDuration
 		return DefaultDuplicateJudgeDuration
 	}
-	return siteSetting.GetValue().(time.Duration)
+	// assert setting type is string
+	duration, err := time.ParseDuration(siteSetting.GetValue().(string))
+	if err != nil {
+		log.Printf("failed to parse setting: %v", siteSetting.GetValue())
+		LastQuerySiteSettingDuration = DefaultDuplicateJudgeDuration
+		return DefaultDuplicateJudgeDuration
+	}
+	if duration > 0 {
+		log.Printf("update duration to: %v", duration)
+		LastQuerySiteSettingDuration = duration
+		return duration
+	}
+	LastQuerySiteSettingDuration = DefaultDuplicateJudgeDuration
+	return DefaultDuplicateJudgeDuration
 }
 func (u *UserRequestCache) IsDuplicate(req string) bool {
 	u.mutex.RLock()

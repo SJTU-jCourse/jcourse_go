@@ -1,4 +1,4 @@
-package task
+package statistic
 
 import (
 	"context"
@@ -57,7 +57,6 @@ func TestSaveStatistic(t *testing.T) {
 		item := statisticPOs[0]
 		assert.Equal(t, int64(userNum), item.UVCount)
 		assert.Equal(t, int64(userNum), item.PVCount)
-		assert.Equal(t, int64(0), item.NewCourses)
 		assert.Equal(t, int64(0), item.NewReviews)
 		assert.Equal(t, item.NewUsers, int64(1))
 

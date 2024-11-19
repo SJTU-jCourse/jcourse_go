@@ -11,12 +11,10 @@ type StatisticPO struct {
 	UVCount      int64
 	PVCount      int64
 	Date         time.Time `gorm:"index:,unique"` // createdAt time != actual datetime, 可能异步落盘, 统一为中午12点
-	NewCourses   int64
 	NewUsers     int64
 	NewReviews   int64
 	TotalUsers   int64 // 这几个是在db之中存储,按天更新,还是调用接口实时统计?
 	TotalReviews int64
-	TotalCourses int64
 }
 
 // StatisticDataPO uv bitmap, etc, separate date and count

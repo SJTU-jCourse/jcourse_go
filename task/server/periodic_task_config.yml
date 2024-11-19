@@ -1,0 +1,6 @@
+#configs:
+#  - cronspec: "* * * * *"
+#    task_type: foo
+#
+#  - cronspec: "* * * * *"
+#    task_type: bar

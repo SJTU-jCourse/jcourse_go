@@ -10,50 +10,32 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetAllStatisticHandler(c *gin.Context) {
-	statistics, err := service.GetAllStatistics(c)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误"})
-		return
-	}
-	c.JSON(http.StatusOK, dto.StatisticResponse{DailyInfos: statistics})
-}
-
-func GetDailyStatisticHandler(c *gin.Context) {
+func GetStatisticHandler(c *gin.Context) {
 	request := dto.StatisticRequest{
-		InDetail: false,
+		StartTime:  0,
+		EndTime:    0,
+		PeriodKeys: []model.PeriodInfoKey{},
 	}
 	if err := c.ShouldBindJSON(&request); err != nil {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	if request.DateTime <= 0 {
+	if request.StartTime > request.EndTime {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	if !request.InDetail {
-		minimal, err := service.GetDailyStatisticMinimal(c, time.Unix(request.DateTime, 0))
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误"})
-			return
-		}
-		detail := model.DailyInfoDetail{
-			DailyInfoMinimal: minimal,
-			WAU:              0,
-			MAU:              0,
-		}
-		c.JSON(http.StatusOK, dto.StatisticResponse{DailyInfos: []model.DailyInfoDetail{
-			detail,
-		}})
-		return
+	filter := model.StatisticFilter{
+		StartTime:      time.Unix(request.StartTime, 0),
+		EndTime:        time.Unix(request.EndTime, 0),
+		PeriodInfoKeys: request.PeriodKeys,
 	}
-
-	detail, err := service.GetDailyStatisticDetail(c, time.Unix(request.DateTime, 0))
+	dailyInfos, periodInfos, err := service.GetStatistics(c, filter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误"})
 		return
 	}
-	c.JSON(http.StatusOK, dto.StatisticResponse{DailyInfos: []model.DailyInfoDetail{
-		detail,
-	}})
+	c.JSON(http.StatusOK, dto.StatisticResponse{
+		DailyInfos:  dailyInfos,
+		PeriodInfos: periodInfos,
+	})
 }
