@@ -24,45 +24,49 @@ func ConvertDailyInfoFromPO(po po.StatisticPO) model.DailyInfo {
 	}
 }
 
-// GetPeriodInfoFromPOs 从统计数据中获取指定的周期信息, 调用者保证pos中的数据是按时间增序排列的
+// GetPeriodInfoFromPOs 从统计数据中获取指定的周期信息, 调用者保证pos中的数据是按时间增序排列的, 保证返回的数据是按时间增序排列的
 func GetPeriodInfoFromPOs(pos []po.StatisticPO, keys []model.PeriodInfoKey) (map[model.PeriodInfoKey][]model.PeriodInfo, error) {
 	const week = 7
 	const month = 30
 	periodInfoMap := make(map[model.PeriodInfoKey][]model.PeriodInfo)
+	total := len(pos)
 	for _, key := range keys {
+		periodInfoMap[key] = make([]model.PeriodInfo, 0)
 		switch key {
 		case model.PeriodInfoKeyMAU:
-			for i := range pos {
-				if i >= month-1 {
-					monthWindow := make([]int64, month)
-					for j := i - month + 1; j <= i; j++ {
-						monthWindow[j] = pos[j].UVCount
-					}
-					newInfo := model.PeriodInfo{
-						StartTime: pos[i-month+1].Date.Unix(),
-						EndTime:   pos[i].Date.Unix(),
-						Value:     mathutil.Average(monthWindow...),
-						Key:       key,
-					}
-					periodInfoMap[key] = append(periodInfoMap[key], newInfo)
+			months := total / month
+			// 这里反向遍历, 保证返回的数据是按时间增序排列的
+			for i := months - 1; i >= 0; i-- {
+				end := total - 1 - i*month
+				start := end - month + 1
+				monthWindow := make([]int64, month)
+				for j := start; j <= end; j++ {
+					monthWindow[j-start] = pos[j].UVCount
 				}
+				newInfo := model.PeriodInfo{
+					StartTime: pos[start].Date.Unix(),
+					EndTime:   pos[end].Date.Unix(),
+					Value:     mathutil.Average(monthWindow...),
+					Key:       key,
+				}
+				periodInfoMap[key] = append(periodInfoMap[key], newInfo)
 			}
 		case model.PeriodInfoKeyWAU:
-			periodInfoMap[key] = make([]model.PeriodInfo, 0)
-			for i := range pos {
-				if i >= week-1 {
-					weekWindow := make([]int64, week)
-					for j := i - week + 1; j <= i; j++ {
-						weekWindow[j] = pos[j].UVCount
-					}
-					newInfo := model.PeriodInfo{
-						StartTime: pos[i-week+1].Date.Unix(),
-						EndTime:   pos[i].Date.Unix(),
-						Value:     mathutil.Average(weekWindow...),
-						Key:       key,
-					}
-					periodInfoMap[key] = append(periodInfoMap[key], newInfo)
+			weeks := total / week
+			for i := weeks - 1; i >= 0; i-- {
+				end := total - 1 - i*week
+				start := end - week + 1
+				weekWindow := make([]int64, week)
+				for j := start; j <= end; j++ {
+					weekWindow[j-start] = pos[j].UVCount
 				}
+				newInfo := model.PeriodInfo{
+					StartTime: pos[start].Date.Unix(),
+					EndTime:   pos[end].Date.Unix(),
+					Value:     mathutil.Average(weekWindow...),
+					Key:       key,
+				}
+				periodInfoMap[key] = append(periodInfoMap[key], newInfo)
 			}
 		default:
 			return nil, fmt.Errorf(model.ErrInvalidPeriodInfoKey, key)
