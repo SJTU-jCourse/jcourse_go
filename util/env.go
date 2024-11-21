@@ -42,6 +42,10 @@ func GetPostgresDBName() string {
 	return GetEnvDefault("POSTGRES_DBNAME", "postgres")
 }
 
+func GetPostgresTestDBName() string {
+	return GetEnvDefault("POSTGRES_TEST_DBNAME", "postgres_test")
+}
+
 // === redis ===
 
 func GetRedisHost() string {

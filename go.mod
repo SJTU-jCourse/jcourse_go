@@ -92,6 +92,7 @@ require (
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.8.0 // indirect
 	modernc.org/sqlite v1.33.1 // indirect
+	syreclabs.com/go/faker v1.2.3 // indirect
 )
 
 // 本地调试修改

@@ -43,3 +43,15 @@ func InitTestMemDBClient() {
 	}
 	dbClient = db
 }
+
+func InitTestDBClient() error {
+	host := util.GetPostgresHost()
+	port := util.GetPostgresPort()
+	user := util.GetPostgresUser()
+	password := util.GetPostgresPassword()
+	dbname := util.GetPostgresTestDBName()
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Shanghai", host, user, password, dbname, port)
+	var err error
+	dbClient, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	return err
+}
