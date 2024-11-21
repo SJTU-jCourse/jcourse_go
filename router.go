@@ -86,9 +86,9 @@ func registerRouter(r *gin.Engine) {
 	adminGroup.GET("/user/point/transfer", handler.AdminTransferUserPoint)
 
 	llmGroup := needAuthGroup.Group(("/llm"))
-	llmGroup.GET("/review/opt", handler.OptCourseReviewHandler)
+	llmGroup.POST("/review/opt", handler.OptCourseReviewHandler)
 	llmGroup.GET("/course/summary/:courseID", handler.GetCourseSummaryHandler)
-	llmGroup.GET("/course/match", handler.GetMatchCoursesHandler)
+	llmGroup.POST("/course/match", handler.GetMatchCoursesHandler)
 
 	if util.IsDebug() {
 		llmGroup.GET("/vectorize/:courseID", handler.VectorizeCourseHandler)
