@@ -4,6 +4,7 @@ import (
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/service"
+	"jcourse_go/util"
 	"net/http"
 	"time"
 
@@ -25,8 +26,8 @@ func GetStatisticHandler(c *gin.Context) {
 		return
 	}
 	filter := model.StatisticFilter{
-		StartTime:      time.Unix(request.StartTime, 0),
-		EndTime:        time.Unix(request.EndTime, 0),
+		StartDate:      util.FormatDate(time.Unix(request.StartTime, 0)),
+		EndDate:        util.FormatDate(time.Unix(request.EndTime, 0)),
 		PeriodInfoKeys: request.PeriodKeys,
 	}
 	dailyInfos, periodInfos, err := service.GetStatistics(c, filter)

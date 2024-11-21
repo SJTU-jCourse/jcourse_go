@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"jcourse_go/model/model"
 	"jcourse_go/model/po"
-	"jcourse_go/util"
 
 	"github.com/duke-git/lancet/v2/mathutil"
 
@@ -14,7 +13,7 @@ import (
 func ConvertDailyInfoFromPO(po po.StatisticPO) model.DailyInfo {
 	return model.DailyInfo{
 		ID:               int64(po.ID),
-		Date:             util.FormatDate(po.Date),
+		Date:             po.Date,
 		UVCount:          po.UVCount,
 		PVCount:          po.PVCount,
 		NewUserCount:     po.NewUsers,
@@ -44,8 +43,8 @@ func GetPeriodInfoFromPOs(pos []po.StatisticPO, keys []model.PeriodInfoKey) (map
 					monthWindow[j-start] = pos[j].UVCount
 				}
 				newInfo := model.PeriodInfo{
-					StartTime: pos[start].Date.Unix(),
-					EndTime:   pos[end].Date.Unix(),
+					StartDate: pos[start].Date,
+					EndDate:   pos[end].Date,
 					Value:     mathutil.Average(monthWindow...),
 					Key:       key,
 				}
@@ -61,8 +60,8 @@ func GetPeriodInfoFromPOs(pos []po.StatisticPO, keys []model.PeriodInfoKey) (map
 					weekWindow[j-start] = pos[j].UVCount
 				}
 				newInfo := model.PeriodInfo{
-					StartTime: pos[start].Date.Unix(),
-					EndTime:   pos[end].Date.Unix(),
+					StartDate: pos[start].Date,
+					EndDate:   pos[end].Date,
 					Value:     mathutil.Average(weekWindow...),
 					Key:       key,
 				}
@@ -92,7 +91,7 @@ func ConvertStatisticDataFromPO(po *po.StatisticDataPO) (model.StatisticData, er
 	return model.StatisticData{
 		ID:          int64(po.ID),
 		StatisticID: po.StatisticID,
-		Date:        util.FormatDate(po.Date),
+		Date:        po.Date,
 		UVData:      uv,
 	}, nil
 }

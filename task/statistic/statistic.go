@@ -83,7 +83,7 @@ func SaveStatistic(ctx context.Context, db *gorm.DB, pvm middleware.IPVMiddlewar
 	}
 	// create statistic item
 	newStatisticItem := po.StatisticPO{
-		Date:         datetime,
+		Date:         util.FormatDate(datetime),
 		UVCount:      int64(curUVCount),
 		PVCount:      curPVCount,
 		NewReviews:   newReviewCount,
@@ -106,7 +106,7 @@ func SaveStatistic(ctx context.Context, db *gorm.DB, pvm middleware.IPVMiddlewar
 		return errors.Errorf("failed to save statistic: Not write ID back")
 	}
 	err = statisticDataQuery.CreateData(ctx, &po.StatisticDataPO{
-		Date:        datetime,
+		Date:        util.FormatDate(datetime),
 		UVData:      uvDataBytes,
 		StatisticID: int64(newStatisticItem.ID),
 	})

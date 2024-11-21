@@ -2,7 +2,6 @@ package repository
 
 import (
 	"fmt"
-	"jcourse_go/util"
 	"time"
 
 	"gorm.io/gorm"
@@ -62,28 +61,23 @@ func WithCreatedOrder(ascending bool) DBOption {
 }
 
 // WithDate 当日的数据
-func WithDate(datetime time.Time) DBOption {
-	date := util.GetMidTime(datetime)
+func WithDate(date string) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("date = ?", date)
 	}
 }
 
-func WithDateBetween(start, end time.Time) DBOption {
-	startDate := util.GetMidTime(start)
-	endDate := util.GetMidTime(end)
+func WithDateBetween(startDate, endDate string) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("date between ? and ?", startDate, endDate)
 	}
 }
-func WithDateAfter(start time.Time) DBOption {
-	startDate := util.GetMidTime(start)
+func WithDateAfter(startDate string) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("date >= ?", startDate)
 	}
 }
-func WithDateBefore(end time.Time) DBOption {
-	endDate := util.GetMidTime(end)
+func WithDateBefore(endDate string) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("date <= ?", endDate)
 	}

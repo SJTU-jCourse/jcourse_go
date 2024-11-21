@@ -24,7 +24,7 @@ func TestConvertStatisticDataFromPO(t *testing.T) {
 		}
 		data := po.StatisticDataPO{
 			StatisticID: 1,
-			Date:        time.Now(),
+			Date:        util.FormatDate(time.Now()),
 			UVData:      bytes,
 		}
 		statisticData, err := ConvertStatisticDataFromPO(&data)
@@ -44,7 +44,7 @@ func TestGetPeriodInfoFromPOs(t *testing.T) {
 	// Helper function to create a StatisticPO with a given date and UVCount
 	createStatisticPO := func(daysAgo int) po.StatisticPO {
 		return po.StatisticPO{
-			Date:         util.GetMidTime(time.Now()).AddDate(0, 0, -daysAgo),
+			Date:         util.FormatDate(util.GetMidTime(time.Now()).AddDate(0, 0, -daysAgo)),
 			UVCount:      int64(rand.Uint64() % 1000),
 			PVCount:      int64(rand.Uint64() % 1000),
 			TotalReviews: 10000 - int64(daysAgo)*100,
@@ -69,8 +69,9 @@ func TestGetPeriodInfoFromPOs(t *testing.T) {
 	// Verify the results for MAU
 	mauInfo := periodInfoMap[model.PeriodInfoKeyMAU]
 	assert.Equal(t, 1, len(mauInfo))
-	assert.Equal(t, pos[10].Date.Unix(), mauInfo[0].StartTime)
-	assert.Equal(t, pos[39].Date.Unix(), mauInfo[0].EndTime)
+
+	assert.Equal(t, pos[10].Date, mauInfo[0].StartDate, 0)
+	assert.Equal(t, pos[39].Date, mauInfo[0].EndDate)
 	mau := int64(0)
 	for i := 10; i < 40; i++ {
 		mau += pos[i].UVCount
@@ -89,8 +90,8 @@ func TestGetPeriodInfoFromPOs(t *testing.T) {
 			expectedValue += pos[j].UVCount
 		}
 		expectedValue /= 7
-		assert.Equal(t, pos[start].Date.Unix(), info.StartTime)
-		assert.Equal(t, pos[end].Date.Unix(), info.EndTime)
+		assert.Equal(t, pos[start].Date, info.StartDate, 0)
+		assert.Equal(t, pos[end].Date, info.EndDate)
 		assert.Equal(t, expectedValue, info.Value)
 	}
 }

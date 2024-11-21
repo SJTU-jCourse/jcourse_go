@@ -1,8 +1,6 @@
 package model
 
 import (
-	"time"
-
 	"github.com/RoaringBitmap/roaring"
 )
 
@@ -17,8 +15,8 @@ type DailyInfo struct {
 	TotalReviewCount int64  `json:"total_review_count"`
 }
 type PeriodInfo struct {
-	StartTime int64  `json:"start_time"`
-	EndTime   int64  `json:"end_time"`
+	StartDate string `json:"start_time"` // yyyy-mm-dd
+	EndDate   string `json:"end_time"`
 	Key       string `json:"key"`
 	Value     int64  `json:"value"`
 }
@@ -37,8 +35,8 @@ var PeriodInfoKeys = []PeriodInfoKey{
 }
 
 type StatisticFilter struct {
-	StartTime      time.Time
-	EndTime        time.Time
+	StartDate      string
+	EndDate        string
 	PeriodInfoKeys []PeriodInfoKey
 }
 

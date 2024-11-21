@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"jcourse_go/model/po"
-	"jcourse_go/util"
 
 	"gorm.io/gorm"
 )
@@ -60,7 +59,6 @@ func (q *StatisticQuery) GetStatisticsByIDs(ctx context.Context, statisticIDs []
 }
 
 func (q *StatisticQuery) CreateStatistic(ctx context.Context, statistic *po.StatisticPO) error {
-	statistic.Date = util.GetMidTime(statistic.Date) // keep midday
 	return q.db.WithContext(ctx).Create(statistic).Error
 }
 
@@ -115,7 +113,6 @@ func (q *StatisticDataQuery) GetDataByIDs(ctx context.Context, ids []int64) (map
 }
 
 func (q *StatisticDataQuery) CreateData(ctx context.Context, data *po.StatisticDataPO) error {
-	data.Date = util.GetMidTime(data.Date) // keep midday
 	return q.db.WithContext(ctx).Create(data).Error
 }
 

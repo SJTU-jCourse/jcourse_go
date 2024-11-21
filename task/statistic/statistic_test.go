@@ -6,6 +6,7 @@ import (
 	"jcourse_go/middleware"
 	"jcourse_go/model/converter"
 	"jcourse_go/repository"
+	"jcourse_go/util"
 	"testing"
 	"time"
 
@@ -47,7 +48,7 @@ func TestSaveStatistic(t *testing.T) {
 		}
 		statisticQuery := repository.NewStatisticQuery(dal.GetDBClient())
 		statisticDataQuery := repository.NewStatisticDataQuery(dal.GetDBClient())
-		statisticPOs, err := statisticQuery.GetStatistics(ctx, repository.WithDate(time.Now()))
+		statisticPOs, err := statisticQuery.GetStatistics(ctx, repository.WithDate(util.FormatDate(time.Now())))
 		if err != nil {
 			t.Errorf("SaveStatistic() error = %v", err)
 		}
@@ -60,7 +61,7 @@ func TestSaveStatistic(t *testing.T) {
 		assert.Equal(t, int64(0), item.NewReviews)
 		assert.Equal(t, item.NewUsers, int64(1))
 
-		data, err := statisticDataQuery.GetUVDataList(ctx, repository.WithDate(time.Now()))
+		data, err := statisticDataQuery.GetUVDataList(ctx, repository.WithDate(util.FormatDate(time.Now())))
 		if err != nil {
 			t.Errorf("SaveStatistic() error = %v", err)
 		}

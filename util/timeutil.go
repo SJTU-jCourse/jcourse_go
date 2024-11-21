@@ -17,19 +17,27 @@ func GetLocation() *time.Location {
 	}
 	return loc
 }
+
+// ParseTime 解析时间字符串(以环境变量时区为准)
 func ParseTime(timeStr string) (time.Time, error) {
-	return time.Parse(GoTimeLayout, timeStr)
+	return time.ParseInLocation(GoTimeLayout, timeStr, GetLocation())
 }
 
+// ParseDate 解析日期字符串(以环境变量时区为准)
 func ParseDate(dateStr string) (time.Time, error) {
-	return time.Parse(GoDateLayout, dateStr)
+	return time.ParseInLocation(GoDateLayout, dateStr, GetLocation())
 }
 
+// FormatTime 格式化时间(以环境变量时区为准)
 func FormatTime(t time.Time) string {
-	return t.Format(GoTimeLayout)
+	dateTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, GetLocation())
+	return dateTime.Format(GoTimeLayout)
 }
+
+// FormatDate 格式化日期(以环境变量时区为准)
 func FormatDate(t time.Time) string {
-	return t.Format(GoDateLayout)
+	dateTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, GetLocation())
+	return dateTime.Format(GoDateLayout)
 }
 
 // GetDayTimeRange 获取某一天的时间范围(以环境变量时区为准)

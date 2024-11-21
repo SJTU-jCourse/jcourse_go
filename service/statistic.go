@@ -54,14 +54,15 @@ func CalDailyInfo(ctx context.Context, datetime time.Time) (model.DailyInfo, err
 	return dailyInfo, nil
 }
 
+// buildStatisticDBOptionsFromFilter filter保证传入str要么是空字符串, 要么是合法的日期字符串
 func buildStatisticDBOptionsFromFilter(query repository.IStatisticQuery, filter model.StatisticFilter) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
-	if !filter.StartTime.IsZero() && !filter.EndTime.IsZero() {
-		opts = append(opts, repository.WithDateBetween(filter.StartTime, filter.EndTime))
-	} else if !filter.StartTime.IsZero() {
-		opts = append(opts, repository.WithDateAfter(filter.StartTime))
-	} else if !filter.EndTime.IsZero() {
-		opts = append(opts, repository.WithDateBefore(filter.EndTime))
+	if filter.StartDate != "" && filter.EndDate != "" {
+		opts = append(opts, repository.WithDateBetween(filter.StartDate, filter.EndDate))
+	} else if filter.StartDate != "" {
+		opts = append(opts, repository.WithDateAfter(filter.StartDate))
+	} else if filter.EndDate != "" {
+		opts = append(opts, repository.WithDateBefore(filter.EndDate))
 	}
 	return opts
 }
@@ -98,7 +99,8 @@ func GetStatistics(ctx context.Context, filter model.StatisticFilter) ([]model.D
 func GetDailyUVData(ctx context.Context, datetime time.Time) (model.UVData, error) {
 	db := dal.GetDBClient()
 	statisticDataQuery := repository.NewStatisticDataQuery(db)
-	data, err := statisticDataQuery.GetUVDataList(ctx, repository.WithDate(datetime))
+	date := util.FormatDate(datetime)
+	data, err := statisticDataQuery.GetUVDataList(ctx, repository.WithDate(date))
 	if err != nil {
 		return nil, err
 	}
