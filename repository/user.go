@@ -50,7 +50,7 @@ func (q *UserQuery) GetUserByIDs(ctx context.Context, userIDs []int64) (map[int6
 }
 
 func (q *UserQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
-	db := q.db.WithContext(ctx).Model(po.UserPO{})
+	db := q.db.WithContext(ctx).Model(&po.UserPO{})
 	for _, opt := range opts {
 		db = opt(db)
 	}

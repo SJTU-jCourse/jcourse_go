@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-
 	"jcourse_go/dal"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
@@ -101,11 +100,11 @@ func buildUserPointDetailDBOptionFromFilter(query repository.IUserPointDetailQue
 	}
 	opts = append(opts, repository.WithPaginate(filter.Page, filter.PageSize))
 	if !filter.StartTime.IsZero() && !filter.EndTime.IsZero() {
-		opts = append(opts, repository.WithTimeBetween(filter.StartTime, filter.EndTime))
+		opts = append(opts, repository.WithCreatedAtBetween(filter.StartTime, filter.EndTime))
 	} else if !filter.StartTime.IsZero() {
-		opts = append(opts, repository.WithTimeAfter(filter.StartTime))
+		opts = append(opts, repository.WithCreatedAtAfter(filter.StartTime))
 	} else if !filter.EndTime.IsZero() {
-		opts = append(opts, repository.WithTimeBefore(filter.EndTime))
+		opts = append(opts, repository.WithCreatedAtBefore(filter.EndTime))
 	}
 	return opts
 }

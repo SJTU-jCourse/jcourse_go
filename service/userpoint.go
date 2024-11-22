@@ -13,9 +13,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-func GetUserPointDetailList(ctx context.Context, fileter model.UserPointDetailFilter) ([]model.UserPointDetailItem, error) {
+func GetUserPointDetailList(ctx context.Context, filter model.UserPointDetailFilter) ([]model.UserPointDetailItem, error) {
 	userPointDetailQuery := repository.NewUserPointDetailQuery(dal.GetDBClient())
-	opts := buildUserPointDetailDBOptionFromFilter(userPointDetailQuery, fileter)
+	opts := buildUserPointDetailDBOptionFromFilter(userPointDetailQuery, filter)
 	userPointDetailPOs, err := userPointDetailQuery.GetUserPointDetail(ctx, opts...)
 	if err != nil {
 		return nil, err

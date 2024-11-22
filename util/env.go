@@ -88,3 +88,8 @@ func GetSessionSecret() string {
 func GetCSRFSecret() string {
 	return GetEnvDefault("CSRF_KEY", "")
 }
+
+// === Time ===
+func GetTimeLocationStr() string {
+	return GetEnvDefault("TIME_ZONE", "Asia/Shanghai")
+}

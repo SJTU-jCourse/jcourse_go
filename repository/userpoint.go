@@ -18,7 +18,7 @@ type UserPointDetailQuery struct {
 }
 
 func (q *UserPointDetailQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
-	db := q.db.WithContext(ctx).Model(po.UserPointDetailPO{})
+	db := q.db.WithContext(ctx).Model(&po.UserPointDetailPO{})
 	for _, opt := range opts {
 		db = opt(db)
 	}
