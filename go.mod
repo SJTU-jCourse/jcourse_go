@@ -2,12 +2,11 @@ module jcourse_go
 
 go 1.23
 
-toolchain go1.23.0
-
 require (
 	github.com/RoaringBitmap/roaring v1.9.4
 	github.com/SJTU-jCourse/password_hasher v0.0.0-20240731144855-1f64f055ff5c
 	github.com/bytedance/sonic v1.12.3
+	github.com/duke-git/lancet/v2 v2.3.3
 	github.com/gin-gonic/contrib v0.0.0-20240508051311-c1c6bf0061b0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/glebarez/sqlite v1.11.0
@@ -38,7 +37,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dlclark/regexp2 v1.11.4 // indirect
-	github.com/duke-git/lancet/v2 v2.3.3 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.6 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect

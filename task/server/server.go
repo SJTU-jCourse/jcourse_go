@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
-	"jcourse_go/task/ping"
-	"jcourse_go/task/statistic"
 	"log"
 	"sync"
 
 	"github.com/hibiken/asynq"
 
+	"jcourse_go/task/biz/ping"
+	"jcourse_go/task/biz/statistic"
 	"jcourse_go/util"
 )
 
