@@ -3,9 +3,6 @@ package impl
 import (
 	"context"
 
-	"jcourse_go/task/biz/ping"
-	"jcourse_go/task/biz/statistic"
-
 	"github.com/hibiken/asynq"
 )
 
