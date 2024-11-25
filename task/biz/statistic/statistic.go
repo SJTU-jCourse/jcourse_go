@@ -6,11 +6,10 @@ import (
 	"jcourse_go/middleware"
 	"jcourse_go/model/po"
 	"jcourse_go/repository"
+	"jcourse_go/task"
 	"jcourse_go/util"
 	"log"
 	"time"
-
-	"github.com/hibiken/asynq"
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/pkg/errors"
@@ -20,11 +19,22 @@ import (
 const (
 	TypeSaveDailyStatistic     = "statistic:save_daily"
 	TypeRefreshPVDupJudge      = "statistic:pv:refresh_dup_judge"
-	IntervalSaveDailyStatistic = "@every 24h"
-	IntervalRefreshPVDupJudge  = "@every 1h"
+	IntervalSaveDailyStatistic = 24 * time.Hour //"@every 24h"
+	IntervalRefreshPVDupJudge  = 1 * time.Hour  //"@every 1h"
 )
 
-func HandleSaveStatisticTask(ctx context.Context, t *asynq.Task) error {
+func Init() {
+	manager := task.TaskManager
+	manager.RegisterTaskHandler(TypeSaveDailyStatistic, HandleSaveStatisticTask)
+	manager.RegisterTaskHandler(TypeRefreshPVDupJudge, HandleRefreshPVDupJudgeTask)
+
+	manager.Submit(manager.CreatePeriodicTask(TypeSaveDailyStatistic, nil,
+		IntervalSaveDailyStatistic, task.TaskOption{WithQueue: task.ScheduleQueues}))
+	manager.Submit(manager.CreatePeriodicTask(TypeRefreshPVDupJudge, nil,
+		IntervalRefreshPVDupJudge, task.TaskOption{WithQueue: task.ScheduleQueues}))
+}
+
+func HandleSaveStatisticTask(ctx context.Context, t task.Task) error {
 	db := dal.GetDBClient()
 	err := SaveStatistic(ctx, db, middleware.PV, middleware.UV, time.Now())
 	if err != nil {
@@ -119,7 +129,7 @@ func SaveStatistic(ctx context.Context, db *gorm.DB, pvm middleware.IPVMiddlewar
 	return nil
 }
 
-func HandleRefreshPVDupJudgeTask(ctx context.Context, t *asynq.Task) error {
+func HandleRefreshPVDupJudgeTask(ctx context.Context, t task.Task) error {
 	middleware.UpdateDuplicateJudgeDuration(ctx)
 	return nil
 }

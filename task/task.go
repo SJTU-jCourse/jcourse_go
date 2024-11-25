@@ -1,35 +1,62 @@
 package task
 
 import (
+	"context"
+	"io"
 	"time"
 )
 
-type ScheduleType = string
+type TaskId = string
+type TaskOption struct {
+	WithQueue string
+}
 
-const (
-	ScheduleTypePeriodic = "periodic"
-	ScheduleTypeOneTime  = "one-time"
-)
+type Task interface {
+	Type() string
+	Payload() interface{}
+	Options() []TaskOption
+	ResultWriter() io.Writer
+}
+
+type TaskPeriodic interface {
+	Task
+	ScheduleInterval() time.Duration
+}
+
+type TaskHandler func(ctx context.Context, t Task) error
+
+var TaskManager IAsyncTaskManager
 
 // IAsyncTaskManager defines an interface for asynchronous task management without exposing implementation details.
 type IAsyncTaskManager interface {
-	// Task runner
+	ITaskFactory
+
+	// RegisterTaskHandler registers a task handler for a task type.
+	ITaskHandlerRegister
+
 	IOneTimeTaskRunner
-	// IScheduleTaskRunner TODO @huangjunqing
+	IScheduleTaskRunner
 	// StartServer registers task types and handlers, then starts the server to process tasks.
 	StartServer() error
 }
 
+type ITaskFactory interface {
+	CreateTask(taskType string, payload interface{}, options ...TaskOption) Task
+	CreatePeriodicTask(taskType string, payload interface{}, duration time.Duration, options ...TaskOption) TaskPeriodic
+}
+
+type ITaskHandlerRegister interface {
+	RegisterTaskHandler(taskType string, handler TaskHandler) error
+}
+
 type IOneTimeTaskRunner interface {
-	// Enqueue enqueues a task based on the scheduleType.
-	// scheduleType: "one-time" only
-	Enqueue(taskType string, payload interface{}, options ...interface{}) error
+	Enqueue(task Task) error
 }
 
 type IScheduleTaskRunner interface {
 	// Submit schedules a new task.
-	Submit(taskType string, payload interface{}, scheduleTime time.Time) (string, error)
+	Submit(task TaskPeriodic) (TaskId, error)
 
 	// Kill removes a scheduled task.
-	Kill(taskID string) error
+	Kill(taskID TaskId) error
 }

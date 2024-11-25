@@ -2,16 +2,19 @@ package ping
 
 import (
 	"context"
+	"jcourse_go/task"
 	"log"
-
-	"github.com/hibiken/asynq"
 )
 
 const (
 	TypePing = "test:ping"
 )
 
-func TaskPingHandler(ctx context.Context, t *asynq.Task) error {
+func Init() {
+	task.TaskManager.RegisterTaskHandler(TypePing, TaskPingHandler)
+}
+
+func TaskPingHandler(ctx context.Context, t task.Task) error {
 	log.Printf("pong for task: %s", t.Type())
 	_, err := t.ResultWriter().Write([]byte("pong"))
 	if err != nil {

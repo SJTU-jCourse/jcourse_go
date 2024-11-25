@@ -8,8 +8,9 @@ import (
 	"jcourse_go/model/model"
 	"jcourse_go/model/po"
 	"jcourse_go/repository"
-	"jcourse_go/task/ping"
-	"jcourse_go/task/statistic"
+	"jcourse_go/task/biz/ping"
+	"jcourse_go/task/biz/statistic"
+
 	"jcourse_go/util"
 	"log"
 	"sync"

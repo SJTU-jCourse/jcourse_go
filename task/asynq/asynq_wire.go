@@ -1,4 +1,4 @@
-package impl
+package asynq
 
 import (
 	"jcourse_go/task"
