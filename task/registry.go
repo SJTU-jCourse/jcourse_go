@@ -19,7 +19,7 @@ var (
 var TaskManager IAsyncTaskManager
 
 // panic if failed
-func MustInitTaskManager(redisConfig base.RedisConfig) {
+func InitTaskManager(redisConfig base.RedisConfig) {
 	TaskManager = asynq.NewAsynqTaskManager(redisConfig)
 	// 1. register task handler
 	for taskType, handler := range TaskRegistry {
@@ -32,8 +32,9 @@ func MustInitTaskManager(redisConfig base.RedisConfig) {
 	}
 
 	// 3. submit periodic task
+	// TODO @huangjunqing support task uniqueness gurantee in distributed env
 	TaskManager.Submit(statistic.IntervalSaveDailyStatistic, TaskManager.CreateTask(statistic.TypeSaveDailyStatistic, nil))
 	TaskManager.Submit(statistic.IntervalRefreshPVDupJudge, TaskManager.CreateTask(statistic.TypeRefreshPVDupJudge, nil))
 
-	log.Println("[MustInitTaskManager] success")
+	log.Println("[MustInitTaskManager] success!")
 }

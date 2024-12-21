@@ -37,14 +37,14 @@ func (a *adapterTask) ResultWriter() base.ResultWriter {
 	return a.rawTask.ResultWriter()
 }
 
-func NewTask(taskType string, payload []byte, opts ...base.TaskOption) base.Task {
+func newTask(taskType string, payload []byte, opts ...base.TaskOption) base.Task {
 	return &adapterTask{
 		asynq.NewTask(taskType, payload, convertOptions(opts...)...),
 	}
 }
 
 func (m *AsynqTaskManager) CreateTask(taskType string, payload []byte, options ...base.TaskOption) base.Task {
-	return NewTask(taskType, payload, options...)
+	return newTask(taskType, payload, options...)
 }
 
 func (m *AsynqTaskManager) RegisterTaskHandler(taskType string, handler base.TaskHandler) error {
@@ -70,7 +70,7 @@ func (m *AsynqTaskManager) Enqueue(task base.Task) error {
 
 func NewAsynqTaskManager(redisConfig base.RedisConfig) *AsynqTaskManager {
 	redisOpt := asynq.RedisClientOpt{
-		Addr:     fmt.Sprintf("%s:%s", redisConfig.Host, redisConfig.Port),
+		Addr:     redisConfig.DSN,
 		Password: redisConfig.Password,
 	}
 
@@ -100,13 +100,7 @@ func (m *AsynqTaskManager) Submit(interval base.TaskInterval, task base.Task) (b
 	}
 
 	intervalStr := convertInterval(interval)
-	entryID, err := m.scheduler.Register(intervalStr, asynqTask.rawTask,
-		asynq.Queue(PeriodicQueue),
-		// prevent duplicate task enqueue, refh: ttps://github.com/hibiken/asynq/issues/369
-		// 本质上是内部实现了一个分布式锁
-		asynq.TaskID(task.Type()),
-		asynq.Retention(interval),
-	)
+	entryID, err := m.scheduler.Register(intervalStr, asynqTask.rawTask, asynq.Queue(PeriodicQueue))
 	if err != nil {
 		return "", err
 	}
@@ -145,14 +139,16 @@ func (m *AsynqTaskManager) RunServer() error {
 	wg.Add(2)
 
 	go func() {
-		defer wg.Done()
+		wg.Done()
+		log.Println("server is starting")
 		if err := m.server.Run(m.mux); err != nil {
 			log.Fatalf("could not run server: %v", err)
 		}
 	}()
 
 	go func() {
-		defer wg.Done()
+		wg.Done()
+		log.Println("scheduler is starting")
 		if err := m.scheduler.Run(); err != nil {
 			log.Fatalf("could not run scheduler: %v", err)
 		}
