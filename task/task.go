@@ -11,9 +11,10 @@ type IAsyncTaskManager interface {
 
 	IOneTimeTaskRunner
 	IScheduleTaskRunner
-	RunServer() error
 
 	HealthChecker
+
+	RunServer() error
 }
 
 type ITaskFactory interface {
