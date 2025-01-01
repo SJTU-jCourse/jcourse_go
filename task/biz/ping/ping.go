@@ -4,10 +4,12 @@ import (
 	"context"
 	"jcourse_go/task/base"
 	"log"
+	"time"
 )
 
 const (
-	TypePing = "test:ping"
+	TypePing     = "test:ping"
+	IntervalPing = 2 * time.Second //"@every 2s"
 )
 
 func TaskPingHandler(ctx context.Context, t base.Task) error {

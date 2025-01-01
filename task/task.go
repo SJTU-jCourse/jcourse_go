@@ -15,6 +15,8 @@ type IAsyncTaskManager interface {
 	HealthChecker
 
 	RunServer() error
+
+	Shutdown() error
 }
 
 type ITaskFactory interface {
@@ -26,7 +28,7 @@ type ITaskHandlerRegister interface {
 }
 
 type IOneTimeTaskRunner interface {
-	Enqueue(task base.Task) error
+	Enqueue(task base.Task, opts ...base.TaskOption) error
 }
 
 type IScheduleTaskRunner interface {

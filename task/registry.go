@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	TaskRegistry = map[string]base.TaskHandler{
+	taskRegistry = map[string]base.TaskHandler{
 		statistic.TypeSaveDailyStatistic: statistic.HandleSaveStatisticTask,
 		statistic.TypeRefreshPVDupJudge:  statistic.HandleRefreshPVDupJudgeTask,
 		ping.TypePing:                    ping.TaskPingHandler,
@@ -23,16 +23,17 @@ var (
 	taskSchedules = map[time.Duration]string{
 		statistic.IntervalSaveDailyStatistic: statistic.TypeSaveDailyStatistic,
 		statistic.IntervalRefreshPVDupJudge:  statistic.TypeRefreshPVDupJudge,
+		ping.IntervalPing:                    ping.TypePing,
 	}
 
-	Scheduler IAsyncTaskManager
+	GlobalTaskManager IAsyncTaskManager
 )
 
 func InitTaskManager(redisConfig base.RedisConfig) {
 	taskManager := asynq.NewAsynqTaskManager(redisConfig)
 
 	// 1. Register task handlers
-	for taskType, handler := range TaskRegistry {
+	for taskType, handler := range taskRegistry {
 		if err := taskManager.RegisterTaskHandler(taskType, handler); err != nil {
 			panic(err)
 		}
@@ -44,7 +45,7 @@ func InitTaskManager(redisConfig base.RedisConfig) {
 	}
 
 	// 3. Create scheduler and submit periodic tasks using errgroup
-	Scheduler = asynq.NewDistributedAsynqTaskManager(taskManager, redis.NewClient(&redis.Options{
+	GlobalTaskManager = asynq.NewDistributedAsynqTaskManager(taskManager, redis.NewClient(&redis.Options{
 		Addr:     redisConfig.DSN,
 		Password: redisConfig.Password,
 	}))
@@ -53,7 +54,7 @@ func InitTaskManager(redisConfig base.RedisConfig) {
 
 	for interval, taskType := range taskSchedules {
 		g.Go(func() error {
-			_, err := Scheduler.Submit(interval, Scheduler.CreateTask(taskType, nil))
+			_, err := GlobalTaskManager.Submit(interval, GlobalTaskManager.CreateTask(taskType, nil))
 			return err
 		})
 	}

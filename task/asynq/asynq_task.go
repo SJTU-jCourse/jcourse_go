@@ -7,13 +7,23 @@ import (
 	"jcourse_go/task/base"
 	"log"
 	"sync"
+	"time"
 
 	"github.com/hibiken/asynq"
 )
 
 const (
-	DefaultQueue  = "default"
-	PeriodicQueue = "periodic"
+	DefaultQueue             = "default"
+	StandalonePeriodicQueue  = "standalone_periodic"
+	DistributedPeriodicQueue = "distributed_periodic"
+)
+
+var (
+	usedQueues = map[string]int{
+		DefaultQueue:             1,
+		StandalonePeriodicQueue:  1,
+		DistributedPeriodicQueue: 1,
+	}
 )
 
 type AsynqTaskManager struct {
@@ -28,7 +38,6 @@ type AsynqTaskManager struct {
 }
 
 type rawTask = *asynq.Task
-
 type adapterTask struct {
 	rawTask
 }
@@ -36,6 +45,10 @@ type adapterTask struct {
 func (a *adapterTask) ResultWriter() base.ResultWriter {
 	return a.rawTask.ResultWriter()
 }
+
+// ----------------------------------------------------------------------------------
+// Creation & Registration
+// ----------------------------------------------------------------------------------
 
 func newTask(taskType string, payload []byte, opts ...base.TaskOption) base.Task {
 	return &adapterTask{
@@ -59,15 +72,24 @@ func (m *AsynqTaskManager) RegisterTaskHandler(taskType string, handler base.Tas
 	return nil
 }
 
-func (m *AsynqTaskManager) Enqueue(task base.Task) error {
+// ----------------------------------------------------------------------------------
+// Queueing
+// ----------------------------------------------------------------------------------
+
+func (m *AsynqTaskManager) Enqueue(task base.Task, opts ...base.TaskOption) error {
 	asynqTask, ok := task.(*adapterTask)
 	if !ok {
 		return errors.New("task is not an instance of asynq.Task")
 	}
-	_, err := m.client.Enqueue(asynqTask.rawTask)
+	_, err := m.client.Enqueue(asynqTask.rawTask, convertOptions(opts...)...)
 	return err
 }
 
+// ----------------------------------------------------------------------------------
+// Initialization
+// ----------------------------------------------------------------------------------
+
+// NewAsynqTaskManager creates and returns a new AsynqTaskManager, but does not start anything yet.
 func NewAsynqTaskManager(redisConfig base.RedisConfig) *AsynqTaskManager {
 	redisOpt := asynq.RedisClientOpt{
 		Addr:     redisConfig.DSN,
@@ -75,12 +97,9 @@ func NewAsynqTaskManager(redisConfig base.RedisConfig) *AsynqTaskManager {
 	}
 
 	client := asynq.NewClient(redisOpt)
-
 	mux := asynq.NewServeMux()
 
 	return &AsynqTaskManager{
-		// server:      nil,
-		// scheduler:   nil,
 		client:      client,
 		redisOpt:    redisOpt,
 		mux:         mux,
@@ -88,42 +107,14 @@ func NewAsynqTaskManager(redisConfig base.RedisConfig) *AsynqTaskManager {
 	}
 }
 
-// must call RunServer first
-func (m *AsynqTaskManager) Submit(interval base.TaskInterval, task base.Task) (base.PeriodicTaskId, error) {
-	if m.scheduler == nil {
-		return "", errors.New("scheduler is not initialized")
-	}
-
-	asynqTask, ok := task.(*adapterTask)
-	if !ok {
-		return "", errors.New("task is not an instance of asynq.Task")
-	}
-
-	intervalStr := convertInterval(interval)
-	entryID, err := m.scheduler.Register(intervalStr, asynqTask.rawTask, asynq.Queue(PeriodicQueue))
-	if err != nil {
-		return "", err
-	}
-	return entryID, nil
-}
-
-func (m *AsynqTaskManager) Kill(id base.PeriodicTaskId) error {
-	if m.scheduler == nil {
-		return errors.New("scheduler is not initialized")
-	}
-	return m.scheduler.Unregister(id)
-}
-
+// RunServer starts the main Asynq server and scheduler concurrently.
+// If either fails, the error is returned immediately.
 func (m *AsynqTaskManager) RunServer() error {
 	m.server = asynq.NewServer(
 		m.redisOpt,
 		asynq.Config{
 			Concurrency: 10,
-			Queues: map[string]int{
-				// TODO @huangjunqing configable queue
-				DefaultQueue:  1,
-				PeriodicQueue: 1,
-			},
+			Queues:      usedQueues,
 		},
 	)
 
@@ -137,30 +128,96 @@ func (m *AsynqTaskManager) RunServer() error {
 
 	var wg sync.WaitGroup
 	wg.Add(2)
+	fail := make(chan error, 2)
 
+	// Start server
 	go func() {
 		wg.Done()
-		log.Println("server is starting")
+		log.Println("[AsynqTaskManager] Server is starting...")
 		if err := m.server.Run(m.mux); err != nil {
-			log.Fatalf("could not run server: %v", err)
+			log.Printf("[AsynqTaskManager] Could not run server: %v", err)
+			fail <- err
 		}
 	}()
 
+	// Start scheduler
 	go func() {
 		wg.Done()
-		log.Println("scheduler is starting")
+		log.Println("[AsynqTaskManager] Scheduler is starting...")
 		if err := m.scheduler.Run(); err != nil {
-			log.Fatalf("could not run scheduler: %v", err)
+			log.Printf("[AsynqTaskManager] Could not run scheduler: %v", err)
+			fail <- err
 		}
 	}()
 
 	wg.Wait()
 
+	select {
+	case err := <-fail:
+		return err
+	case <-time.After(2 * time.Second):
+		// If no error after a little wait, initialization is considered successful
+		return nil
+	}
+}
+
+// ----------------------------------------------------------------------------------
+// Periodic tasks
+// Only For Standalone Env, i.e. only one instance
+// ----------------------------------------------------------------------------------
+
+func (m *AsynqTaskManager) Submit(interval base.TaskInterval, task base.Task) (base.PeriodicTaskId, error) {
+	if m.scheduler == nil {
+		return "", errors.New("scheduler is not initialized")
+	}
+
+	asynqTask, ok := task.(*adapterTask)
+	if !ok {
+		return "", errors.New("task is not an instance of asynq.Task")
+	}
+
+	intervalStr := convertInterval(interval)
+	entryID, err := m.scheduler.Register(intervalStr, asynqTask.rawTask, asynq.Queue(StandalonePeriodicQueue))
+	if err != nil {
+		return "", err
+	}
+	return entryID, nil
+}
+
+func (m *AsynqTaskManager) Kill(id base.PeriodicTaskId) error {
+	if m.scheduler == nil {
+		return errors.New("scheduler is not initialized")
+	}
+	return m.scheduler.Unregister(id)
+}
+
+// ----------------------------------------------------------------------------------
+// Graceful Shutdown
+// ----------------------------------------------------------------------------------
+
+func (m *AsynqTaskManager) Shutdown() error {
+	log.Println("[AsynqTaskManager] Shutting down AsynqTaskManager...")
+
+	if m.scheduler != nil {
+		m.scheduler.Shutdown()
+		log.Println("[AsynqTaskManager] Scheduler shutdown complete.")
+	}
+
+	if m.server != nil {
+		m.server.Shutdown()
+		log.Println("[AsynqTaskManager] Server shutdown complete.")
+	}
+
+	log.Println("[AsynqTaskManager] Shutdown sequence complete.")
 	return nil
 }
 
+// ----------------------------------------------------------------------------------
+// Utilities
+// ----------------------------------------------------------------------------------
+
 func (m *AsynqTaskManager) HealthCheck() error {
-	// TODO @huangjunqing using asynq's Inspector to implement health check
+	// TODO: Use asynq.Inspector for additional health checks
 	return nil
 }
 
@@ -168,18 +225,12 @@ func convertOptions(options ...base.TaskOption) []asynq.Option {
 	var asynqOptions []asynq.Option
 	for _, opt := range options {
 		if opt.WithQueue != nil {
-			// TODO @huangjunqing add more converter
 			asynqOptions = append(asynqOptions, asynq.Queue(*opt.WithQueue))
 		}
 	}
 	return asynqOptions
 }
 
-// Start of Selection
-/*
-24 * time.Hour //"@every 24h"
-1 * time.Hour  //"@every 1h"
-*/
 func convertInterval(interval base.TaskInterval) string {
 	return fmt.Sprintf("@every %s", interval.String())
 }

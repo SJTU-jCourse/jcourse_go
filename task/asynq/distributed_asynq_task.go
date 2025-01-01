@@ -11,6 +11,7 @@ import (
 	"jcourse_go/task/base"
 	"jcourse_go/task/lock"
 
+	"github.com/XQ-Gang/gg/gptr"
 	"github.com/redis/go-redis/v9"
 	"github.com/robfig/cron/v3"
 )
@@ -60,7 +61,9 @@ func (j *distributedJob) Run() {
 		return
 	}
 
-	err = j.tm.Enqueue(j.task)
+	err = j.tm.Enqueue(j.task, base.TaskOption{
+		WithQueue: gptr.Of(DistributedPeriodicQueue), // specfic queue
+	})
 	if err != nil {
 		log.Printf("Enqueue Failed! error: %+v \n", err)
 		_, _ = dLock.Unlock()
@@ -97,7 +100,10 @@ func (s *distributedScheduler) listenForKills() {
 			continue
 		}
 		taskID := msg.Payload
-		s.unregister(taskID)
+		err = s.unregister(taskID)
+		if err != nil {
+			log.Printf("Failed to unregister task: %+v \n", err)
+		}
 	}
 }
 
@@ -105,9 +111,14 @@ func (s *distributedScheduler) startScheduler() {
 	s.cronEngine.Start()
 }
 
-func (s *distributedScheduler) shutdown() {
+func (s *distributedScheduler) shutdown() error {
 	s.cronEngine.Stop()
-	s.killSub.Close()
+	err := s.killSub.Close()
+	if err != nil {
+		log.Printf("Failed to close redis client: %+v \n", err)
+		return err
+	}
+	return nil
 }
 
 func (s *distributedScheduler) register(interval base.TaskInterval, job *distributedJob) (string, error) {
@@ -142,7 +153,7 @@ func (s *distributedScheduler) unregister(jobID string) error {
 	return nil
 }
 
-type distributedAsynqTaskManager struct {
+type DistributedAsynqTaskManager struct {
 	*AsynqTaskManager
 	lock.IDistributedLockManager
 	*distributedScheduler
@@ -153,9 +164,9 @@ type distributedAsynqTaskManager struct {
 func NewDistributedAsynqTaskManager(
 	tm *AsynqTaskManager,
 	rdb *redis.Client,
-) *distributedAsynqTaskManager {
+) *DistributedAsynqTaskManager {
 	lockMgr := lock.NewRedisDistributedLockManager(rdb)
-	m := &distributedAsynqTaskManager{
+	m := &DistributedAsynqTaskManager{
 		AsynqTaskManager:        tm,
 		IDistributedLockManager: lockMgr,
 		rdb:                     rdb,
@@ -169,7 +180,7 @@ func NewDistributedAsynqTaskManager(
 	return m
 }
 
-func (m *distributedAsynqTaskManager) Submit(interval base.TaskInterval, task base.Task) (base.PeriodicTaskId, error) {
+func (m *DistributedAsynqTaskManager) Submit(interval base.TaskInterval, task base.Task) (base.PeriodicTaskId, error) {
 	if m.scheduler == nil {
 		return "", errors.New("failed to initialize distributed scheduler")
 	}
@@ -195,7 +206,7 @@ func (m *distributedAsynqTaskManager) Submit(interval base.TaskInterval, task ba
 	return jobID, nil
 }
 
-func (m *distributedAsynqTaskManager) Kill(taskID base.PeriodicTaskId) error {
+func (m *DistributedAsynqTaskManager) Kill(taskID base.PeriodicTaskId) error {
 	err := m.rdb.Publish(context.Background(), "task_kill_channel", taskID).Err()
 	if err != nil {
 		return fmt.Errorf("failed to publish kill notification for task %s: %v", taskID, err)
@@ -204,9 +215,12 @@ func (m *distributedAsynqTaskManager) Kill(taskID base.PeriodicTaskId) error {
 	return nil
 }
 
-func (m *distributedAsynqTaskManager) Shutdown() {
+func (m *DistributedAsynqTaskManager) Shutdown() error {
 	if m.distributedScheduler != nil {
-		m.distributedScheduler.shutdown()
+		err := m.distributedScheduler.shutdown()
+		if err != nil {
+			return err
+		}
 	}
-	// m.AsynqTaskManager.Shutdown()
+	return m.AsynqTaskManager.Shutdown()
 }

@@ -37,6 +37,8 @@ github.com/RoaringBitmap/roaring v1.9.4 h1:yhEIoH4YezLYT04s1nHehNO64EKFTop/wBhxv
 github.com/RoaringBitmap/roaring v1.9.4/go.mod h1:6AXUsoIEzDTFFQCe1RbGA6uFONMhvejWj5rqITANK90=
 github.com/SJTU-jCourse/password_hasher v0.0.0-20240731144855-1f64f055ff5c h1:WGY3netUDrvhBsc0HOaorABwvTYjbbq8BG7Dyy9tbkk=
 github.com/SJTU-jCourse/password_hasher v0.0.0-20240731144855-1f64f055ff5c/go.mod h1:vdxJOQaD9MexhM0evO8XgV8m+dkiXxA9M/WkOgeB3P4=
+github.com/XQ-Gang/gg v0.2.0 h1:phBoXjKooVdlWgCxvmPS0wsBNQetVHgsFxR4uMrRyIk=
+github.com/XQ-Gang/gg v0.2.0/go.mod h1:I7VZRbNzn9A2oxFx1E3lYwI7c+0qCgkLmvsqaQJRUgM=
 github.com/bits-and-blooms/bitset v1.12.0 h1:U/q1fAF7xXRhFCrhROzIfffYnu+dlS38vCZtmFVPHmA=
 github.com/bits-and-blooms/bitset v1.12.0/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
 github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff h1:RmdPFa+slIr4SCBg4st/l/vZWVe9QJKMXGO60Bxbe04=
