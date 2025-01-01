@@ -25,8 +25,6 @@ type distributedScheduler struct {
 	lockMgr lock.IDistributedLockManager
 	tm      *AsynqTaskManager
 	killSub *redis.PubSub
-	// killChan   chan string
-	// shutdownCh chan struct{}
 }
 
 type distributedJob struct {
@@ -80,8 +78,6 @@ func newDistributedScheduler(lockMgr lock.IDistributedLockManager, tm *AsynqTask
 		lockMgr:    lockMgr,
 		tm:         tm,
 		killSub:    rdb.Subscribe(context.Background(), "task_kill_channel"),
-		// killChan:   make(chan string),
-		// shutdownCh: make(chan struct{}),
 	}
 
 	go s.listenForKills()
@@ -112,7 +108,6 @@ func (s *distributedScheduler) startScheduler() {
 func (s *distributedScheduler) shutdown() {
 	s.cronEngine.Stop()
 	s.killSub.Close()
-	// close(s.shutdownCh)
 }
 
 func (s *distributedScheduler) register(interval base.TaskInterval, job *distributedJob) (string, error) {
@@ -214,5 +209,4 @@ func (m *distributedAsynqTaskManager) Shutdown() {
 		m.distributedScheduler.shutdown()
 	}
 	// m.AsynqTaskManager.Shutdown()
-	// m.rdb.Close() ? should close the external redis client?
 }
