@@ -34,8 +34,10 @@ func GetReviewDetailHandler(c *gin.Context) {
 func GetReviewListHandler(c *gin.Context) {
 	var request = dto.ReviewListRequest{
 		PaginationFilterForQuery: model.PaginationFilterForQuery{
-			Page:     constant.DefaultPage,
-			PageSize: constant.DefaultPageSize,
+			Page:      constant.DefaultPage,
+			PageSize:  constant.DefaultPageSize,
+			Order:     "created_at",
+			Ascending: false,
 		},
 	}
 	if err := c.ShouldBind(&request); err != nil {
