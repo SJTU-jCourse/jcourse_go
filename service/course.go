@@ -11,7 +11,7 @@ import (
 	"jcourse_go/util"
 )
 
-func GetCourseDetail(ctx context.Context, courseID int64) (*model.CourseDetail, error) {
+func GetCourseDetail(ctx context.Context, courseID int64, userID int64) (*model.CourseDetail, error) {
 	if courseID == 0 {
 		return nil, errors.New("course id is 0")
 	}
@@ -43,6 +43,10 @@ func GetCourseDetail(ctx context.Context, courseID int64) (*model.CourseDetail, 
 	info, err := ratingQuery.GetRatingInfo(ctx, model.RelatedTypeCourse, courseID)
 	if err != nil {
 		return nil, err
+	}
+
+	if userID != 0 {
+		info.MyRating, err = ratingQuery.GetUserRating(ctx, model.RelatedTypeCourse, courseID, userID)
 	}
 
 	course := converter.ConvertCourseDetailFromPO(coursePO)

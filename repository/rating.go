@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"gorm.io/gorm"
 
@@ -11,6 +12,7 @@ import (
 
 type IRatingQuery interface {
 	GetRatingInfo(ctx context.Context, relatedType model.RatingRelatedType, relatedID int64) (model.RatingInfo, error)
+	GetUserRating(ctx context.Context, relatedType model.RatingRelatedType, relatedID int64, userID int64) (int64, error)
 	GetRatingInfoByIDs(ctx context.Context, relatedType model.RatingRelatedType, relatedIDs []int64) (map[int64]model.RatingInfo, error)
 	CreateRating(ctx context.Context, ratingPO po.RatingPO) error
 	UpdateRating(ctx context.Context, ratingPO po.RatingPO) error
@@ -19,6 +21,16 @@ type IRatingQuery interface {
 
 type RatingQuery struct {
 	db *gorm.DB
+}
+
+func (r *RatingQuery) GetUserRating(ctx context.Context, relatedType model.RatingRelatedType, relatedID int64, userID int64) (int64, error) {
+	db := r.optionDB(ctx)
+	ratingPO := po.RatingPO{}
+	result := db.Where("user_id = ? and related_id = ? and related_type = ?", userID, relatedID, relatedType).Take(&ratingPO)
+	if result.Error != nil && !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return 0, result.Error
+	}
+	return ratingPO.Rating, nil
 }
 
 func (r *RatingQuery) UpdateRating(ctx context.Context, ratingPO po.RatingPO) error {

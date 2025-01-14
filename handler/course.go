@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"jcourse_go/constant"
+	"jcourse_go/middleware"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/service"
@@ -20,7 +21,13 @@ func GetCourseDetailHandler(c *gin.Context) {
 		return
 	}
 
-	course, err := service.GetCourseDetail(c, request.CourseID)
+	userID := int64(0)
+	user := middleware.GetCurrentUser(c)
+	if user != nil {
+		userID = user.ID
+	}
+
+	course, err := service.GetCourseDetail(c, request.CourseID, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 		return

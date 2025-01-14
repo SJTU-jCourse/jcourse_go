@@ -20,6 +20,7 @@ type RatingInfoDistItem struct {
 }
 
 type RatingInfo struct {
+	MyRating   int64                `json:"my_rating"`
 	Average    float64              `json:"average"`
 	Count      int64                `json:"count"`
 	RatingDist []RatingInfoDistItem `json:"rating_dist"`
