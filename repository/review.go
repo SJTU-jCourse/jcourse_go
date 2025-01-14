@@ -17,28 +17,36 @@ type IReviewQuery interface {
 	CreateReview(ctx context.Context, review po.ReviewPO) (int64, error)
 	UpdateReview(ctx context.Context, review po.ReviewPO) error
 	DeleteReview(ctx context.Context, opts ...DBOption) error
-	GetCourseReviewInfo(ctx context.Context, courseIDs []int64) (map[int64]po.CourseReviewInfo, error)
+	// SyncCourseRating(ctx context.Context, courseID int64) error
 }
 
 type ReviewQuery struct {
 	db *gorm.DB
 }
 
-func (c *ReviewQuery) GetCourseReviewInfo(ctx context.Context, courseIDs []int64) (map[int64]po.CourseReviewInfo, error) {
-	infoMap := make(map[int64]po.CourseReviewInfo)
-	infos := make([]po.CourseReviewInfo, 0)
-	result := c.db.WithContext(ctx).Model(&po.ReviewPO{}).
-		Select("count(*) as count, avg(rating) as average, course_id").
-		Group("course_id").
-		Where("course_id in (?)", courseIDs).
-		Find(&infos)
-	if result.Error != nil {
-		return infoMap, result.Error
+func (c *ReviewQuery) SyncCourseRating(ctx context.Context, db *gorm.DB, courseID int64) error {
+	// 1. Aggregate review data
+	var info po.CourseReviewInfo
+	if err := db.WithContext(ctx).
+		Model(&po.RatingPO{}).
+		Select("COUNT(*) AS count, AVG(rating) AS average").
+		Where("related_type = ? and related_id = ?", model.RelatedTypeCourse, courseID).
+		Scan(&info).
+		Error; err != nil {
+		return err
 	}
-	for _, info := range infos {
-		infoMap[info.CourseID] = info
+
+	// 2. Update the matching course row
+	if err := db.WithContext(ctx).
+		Model(&po.CoursePO{}).
+		Where("id = ?", courseID).
+		Updates(map[string]interface{}{
+			"rating_count": info.Count,
+			"rating_avg":   info.Average,
+		}).Error; err != nil {
+		return err
 	}
-	return infoMap, nil
+	return nil
 }
 
 func (c *ReviewQuery) GetReviewCount(ctx context.Context, opts ...DBOption) (int64, error) {
@@ -77,6 +85,9 @@ func (c *ReviewQuery) CreateReview(ctx context.Context, review po.ReviewPO) (int
 			return err
 		}
 		if err := tx.Model(&po.RatingPO{}).Create(&ratingPO).Error; err != nil {
+			return err
+		}
+		if err := c.SyncCourseRating(ctx, tx, review.CourseID); err != nil {
 			return err
 		}
 		return nil

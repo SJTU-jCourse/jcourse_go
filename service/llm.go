@@ -75,12 +75,6 @@ func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummar
 		return nil, err
 	}
 
-	reviewQuery := repository.NewReviewQuery(dal.GetDBClient())
-	infos, err := reviewQuery.GetCourseReviewInfo(ctx, []int64{courseID})
-	if err != nil {
-		return nil, err
-	}
-
 	filter := model.ReviewFilterForQuery{
 		CourseID: courseID,
 		PaginationFilterForQuery: model.PaginationFilterForQuery{
@@ -104,8 +98,8 @@ func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummar
 	inputJson, _ := json.Marshal(map[string]any{
 		"courseName":    coursePO.Name,
 		"teacherGroup":  offeredCoursePOs[courseID],
-		"ratingAverage": infos[courseID].Average,
-		"ratingCount":   infos[courseID].Count,
+		"ratingAverage": coursePO.RatingAvg,
+		"ratingCount":   coursePO.RatingCount,
 		"recentReviews": reviews,
 	})
 

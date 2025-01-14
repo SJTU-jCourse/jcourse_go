@@ -161,5 +161,8 @@ func buildPaginationDBOptions(filter model.PaginationFilterForQuery) []repositor
 	if filter.Search != "" {
 		opts = append(opts, repository.WithSearch(filter.Search))
 	}
+	if filter.Order != "" {
+		opts = append(opts, repository.WithOrderBy(filter.Order, filter.Ascending))
+	}
 	return opts
 }

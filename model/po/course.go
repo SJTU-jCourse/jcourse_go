@@ -22,6 +22,9 @@ type CoursePO struct {
 	MainTeacherName string  `gorm:"index"`
 	Department      string  `gorm:"index;index:uniq_course,unique"`
 
+	RatingCount int64   `gorm:"index;default:0;not null"`
+	RatingAvg   float64 `gorm:"index;default:0;not null"`
+
 	SearchIndex SearchIndex `gorm:"->:false;<-"`
 }
 
