@@ -47,6 +47,7 @@ func GetReviewListHandler(c *gin.Context) {
 		PaginationFilterForQuery: request.PaginationFilterForQuery,
 		UserID:                   request.UserID,
 		CourseID:                 request.CourseID,
+		Rating:                   request.Rating,
 	}
 
 	// 非本人不可看匿名点评

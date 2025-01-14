@@ -206,6 +206,12 @@ func WithCourseIDs(courseIDs []int64) DBOption {
 	}
 }
 
+func WithRating(rating int64) DBOption {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("rating = ?", rating)
+	}
+}
+
 func WithSemester(semester string) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("semester = ?", semester)

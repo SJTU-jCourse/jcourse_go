@@ -20,6 +20,7 @@ type ReviewListRequest struct {
 	model.PaginationFilterForQuery
 	UserID   int64 `json:"user_id" form:"user_id"`
 	CourseID int64 `json:"course_id" form:"course_id"`
+	Rating   int64 `json:"rating" form:"rating"`
 }
 
 type ReviewListResponse = BasePaginateResponse[model.Review]

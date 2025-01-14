@@ -25,6 +25,9 @@ func buildReviewDBOptionFromFilter(query repository.IReviewQuery, filter model.R
 	if filter.ReviewID != 0 {
 		opts = append(opts, repository.WithID(filter.ReviewID))
 	}
+	if filter.Rating != 0 {
+		opts = append(opts, repository.WithRating(filter.Rating))
+	}
 	if !filter.IncludeAnonymous {
 		opts = append(opts, repository.WithNotAnonymous())
 	}

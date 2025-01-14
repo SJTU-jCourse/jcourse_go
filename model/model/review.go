@@ -8,6 +8,7 @@ type ReviewFilterForQuery struct {
 	Semester         string
 	UserID           int64
 	ReviewID         int64
+	Rating           int64
 	IncludeAnonymous bool
 }
 

@@ -9,7 +9,6 @@ import (
 
 	"jcourse_go/task/asynq"
 	"jcourse_go/task/base"
-	"jcourse_go/task/biz/ping"
 	"jcourse_go/task/biz/statistic"
 )
 
@@ -17,13 +16,13 @@ var (
 	taskRegistry = map[string]base.TaskHandler{
 		statistic.TypeSaveDailyStatistic: statistic.HandleSaveStatisticTask,
 		statistic.TypeRefreshPVDupJudge:  statistic.HandleRefreshPVDupJudgeTask,
-		ping.TypePing:                    ping.TaskPingHandler,
+		// ping.TypePing:                    ping.TaskPingHandler,
 	}
 
 	taskSchedules = map[time.Duration]string{
 		statistic.IntervalSaveDailyStatistic: statistic.TypeSaveDailyStatistic,
 		statistic.IntervalRefreshPVDupJudge:  statistic.TypeRefreshPVDupJudge,
-		ping.IntervalPing:                    ping.TypePing,
+		// ping.IntervalPing:                    ping.TypePing,
 	}
 
 	GlobalTaskManager IAsyncTaskManager
