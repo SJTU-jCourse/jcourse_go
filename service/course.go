@@ -46,7 +46,7 @@ func GetCourseDetail(ctx context.Context, courseID int64, userID int64) (*model.
 	}
 
 	if userID != 0 {
-		info.MyRating, err = ratingQuery.GetUserRating(ctx, model.RelatedTypeCourse, courseID, userID)
+		info.MyRating, _ = ratingQuery.GetUserRating(ctx, model.RelatedTypeCourse, courseID, userID)
 	}
 
 	course := converter.ConvertCourseDetailFromPO(coursePO)
