@@ -55,8 +55,8 @@ func GetReviewListHandler(c *gin.Context) {
 	// 非本人不可看匿名点评
 	currentUserID := int64(0)
 	user := middleware.GetCurrentUser(c)
-	if user == nil || user.ID != request.UserID {
-		filter.IncludeAnonymous = false
+	if request.UserID != 0 && (user == nil || user.ID != request.UserID) {
+		filter.ExcludeAnonymous = true
 	}
 	if user != nil {
 		currentUserID = user.ID

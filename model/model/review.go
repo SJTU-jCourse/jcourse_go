@@ -9,7 +9,7 @@ type ReviewFilterForQuery struct {
 	UserID           int64
 	ReviewID         int64
 	Rating           int64
-	IncludeAnonymous bool
+	ExcludeAnonymous bool
 }
 
 type Review struct {

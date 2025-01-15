@@ -110,7 +110,7 @@ func WithOffset(offset int64) DBOption {
 	}
 }
 
-func WithNotAnonymous() DBOption {
+func WithoutAnonymous() DBOption {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Where("is_anonymous = ?", false)
 	}

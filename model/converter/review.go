@@ -1,6 +1,8 @@
 package converter
 
 import (
+	"gorm.io/gorm"
+
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/model/po"
@@ -51,6 +53,9 @@ func PackReviewWithUser(review *model.Review, user model.UserMinimal) {
 
 func ConvertReviewDTOToPO(dto dto.UpdateReviewDTO, userID int64) po.ReviewPO {
 	return po.ReviewPO{
+		Model: gorm.Model{
+			ID: uint(dto.ID),
+		},
 		CourseID:    dto.CourseID,
 		UserID:      userID,
 		Comment:     dto.Comment,

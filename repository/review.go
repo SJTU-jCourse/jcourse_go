@@ -99,7 +99,7 @@ func (c *ReviewQuery) UpdateReview(ctx context.Context, review po.ReviewPO) erro
 	db := c.db.WithContext(ctx)
 	ratingPO := converter.BuildRatingFromReview(review)
 	err := db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&po.ReviewPO{}).Where("id = ?", review.ID).Updates(&review).Error; err != nil {
+		if err := tx.Save(&review).Error; err != nil {
 			return err
 		}
 		if err := tx.Model(&po.RatingPO{}).
