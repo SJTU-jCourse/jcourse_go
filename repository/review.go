@@ -7,7 +7,6 @@ import (
 	"gorm.io/gorm/clause"
 
 	"jcourse_go/model/converter"
-	"jcourse_go/model/model"
 	"jcourse_go/model/po"
 )
 
@@ -22,31 +21,6 @@ type IReviewQuery interface {
 
 type ReviewQuery struct {
 	db *gorm.DB
-}
-
-func (c *ReviewQuery) SyncCourseRating(ctx context.Context, db *gorm.DB, courseID int64) error {
-	// 1. Aggregate review data
-	var info po.CourseReviewInfo
-	if err := db.WithContext(ctx).
-		Model(&po.RatingPO{}).
-		Select("COUNT(*) AS count, AVG(rating) AS average").
-		Where("related_type = ? and related_id = ?", model.RelatedTypeCourse, courseID).
-		Scan(&info).
-		Error; err != nil {
-		return err
-	}
-
-	// 2. Update the matching course row
-	if err := db.WithContext(ctx).
-		Model(&po.CoursePO{}).
-		Where("id = ?", courseID).
-		Updates(map[string]interface{}{
-			"rating_count": info.Count,
-			"rating_avg":   info.Average,
-		}).Error; err != nil {
-		return err
-	}
-	return nil
 }
 
 func (c *ReviewQuery) GetReviewCount(ctx context.Context, opts ...DBOption) (int64, error) {
@@ -79,15 +53,14 @@ func (c *ReviewQuery) GetReview(ctx context.Context, opts ...DBOption) ([]po.Rev
 
 func (c *ReviewQuery) CreateReview(ctx context.Context, review po.ReviewPO) (int64, error) {
 	db := c.db.WithContext(ctx)
-	ratingPO := converter.BuildRatingFromReview(review)
+
 	err := db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Model(&po.ReviewPO{}).Create(&review).Error; err != nil {
 			return err
 		}
-		if err := tx.Model(&po.RatingPO{}).Create(&ratingPO).Error; err != nil {
-			return err
-		}
-		if err := c.SyncCourseRating(ctx, tx, review.CourseID); err != nil {
+		ratingPO := converter.BuildRatingFromReview(review)
+		ratingQuery := NewRatingQuery(tx)
+		if err := ratingQuery.CreateRating(ctx, ratingPO); err != nil {
 			return err
 		}
 		return nil
@@ -96,15 +69,13 @@ func (c *ReviewQuery) CreateReview(ctx context.Context, review po.ReviewPO) (int
 }
 
 func (c *ReviewQuery) UpdateReview(ctx context.Context, review po.ReviewPO) error {
-	db := c.db.WithContext(ctx)
 	ratingPO := converter.BuildRatingFromReview(review)
-	err := db.Transaction(func(tx *gorm.DB) error {
+	err := c.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Save(&review).Error; err != nil {
 			return err
 		}
-		if err := tx.Model(&po.RatingPO{}).
-			Where("related_type = ? and related_id = ?", model.RelatedTypeCourse, review.ID).
-			Updates(&ratingPO).Error; err != nil {
+		ratingQuery := NewRatingQuery(tx)
+		if err := ratingQuery.UpdateRating(ctx, ratingPO); err != nil {
 			return err
 		}
 		return nil
@@ -122,15 +93,15 @@ func (c *ReviewQuery) DeleteReview(ctx context.Context, opts ...DBOption) error 
 		if err := tx1.Model(&po.ReviewPO{}).Clauses(clause.Returning{}).Delete(&reviews).Error; err != nil {
 			return err
 		}
-
-		ids := make([]int64, 0)
+		ratingQuery := NewRatingQuery(tx)
 		for _, review := range reviews {
-			ids = append(ids, int64(review.ID))
+			rating := converter.BuildRatingFromReview(review)
+			err := ratingQuery.DeleteRating(ctx, rating)
+			if err != nil {
+				return err
+			}
 		}
-		tx2 := tx.Session(&gorm.Session{})
-		if err := tx2.Model(&po.RatingPO{}).Delete(&po.RatingPO{}, "related_id in ? and related_type = ?", ids, model.RelatedTypeCourse).Error; err != nil {
-			return err
-		}
+
 		return nil
 	})
 	return err

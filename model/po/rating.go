@@ -13,3 +13,8 @@ type RatingPO struct {
 func (r *RatingPO) TableName() string {
 	return "ratings"
 }
+
+type RatingInfo struct {
+	Average float64
+	Count   int64
+}

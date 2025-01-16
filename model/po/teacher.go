@@ -15,6 +15,9 @@ type TeacherPO struct {
 	ProfileURL string
 	Biography  string // 个人简述
 
+	RatingCount int64   `gorm:"index;default:0;not null"`
+	RatingAvg   float64 `gorm:"index;default:0;not null"`
+
 	SearchIndex SearchIndex `gorm:"->:false;<-"`
 }
 

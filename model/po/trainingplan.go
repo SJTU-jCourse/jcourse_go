@@ -13,6 +13,9 @@ type TrainingPlanPO struct {
 	MinCredits float64 `gorm:"index;"`                                // 最小学分
 	MajorClass string  `gorm:"index;"`                                // 学位类型（e.g. 工学）
 
+	RatingCount int64   `gorm:"index;default:0;not null"`
+	RatingAvg   float64 `gorm:"index;default:0;not null"`
+
 	SearchIndex SearchIndex `gorm:"->:false;<-"`
 }
 

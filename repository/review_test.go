@@ -114,7 +114,10 @@ func TestReviewQuery_UpdateReview(t *testing.T) {
 		if err != nil {
 			return
 		}
-		assert.Equal(t, int64(1), info.RatingDist[0].Rating)
+		assert.Equal(t, 1, len(info.RatingDist))
+		if len(info.RatingDist) > 0 {
+			assert.Equal(t, int64(1), info.RatingDist[0].Rating)
+		}
 	})
 
 }

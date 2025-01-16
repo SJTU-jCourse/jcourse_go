@@ -34,19 +34,81 @@ func (r *RatingQuery) GetUserRating(ctx context.Context, relatedType model.Ratin
 }
 
 func (r *RatingQuery) UpdateRating(ctx context.Context, ratingPO po.RatingPO) error {
-	db := r.optionDB(ctx)
-	return db.Where("user_id = ? and related_id = ? and related_type = ?", ratingPO.UserID, ratingPO.RelatedID, ratingPO.RelatedType).Updates(&ratingPO).Error
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&po.RatingPO{}).Where("user_id = ? and related_type = ? and related_id = ?", ratingPO.UserID, ratingPO.RelatedType, ratingPO.RelatedID).Updates(&ratingPO).Error; err != nil {
+			return err
+		}
+		if err := r.SyncRating(ctx, tx, ratingPO.RelatedID, ratingPO.RelatedType); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *RatingQuery) DeleteRating(ctx context.Context, ratingPO po.RatingPO) error {
-	db := r.optionDB(ctx)
-	return db.Where("user_id = ? and related_type = ? and related_id = ?", ratingPO.UserID, ratingPO.RelatedType, ratingPO.RelatedID).Delete(&po.RatingPO{}).Error
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&po.RatingPO{}).Where("user_id = ? and related_type = ? and related_id = ?", ratingPO.UserID, ratingPO.RelatedType, ratingPO.RelatedID).Delete(&ratingPO).Error; err != nil {
+			return err
+		}
+		if err := r.SyncRating(ctx, tx, ratingPO.RelatedID, ratingPO.RelatedType); err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (r *RatingQuery) CreateRating(ctx context.Context, ratingPO po.RatingPO) error {
-	db := r.optionDB(ctx)
-	err := db.Create(&ratingPO).Error
+	err := r.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&po.RatingPO{}).Create(&ratingPO).Error; err != nil {
+			return err
+		}
+		if err := r.SyncRating(ctx, tx, ratingPO.RelatedID, ratingPO.RelatedType); err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *RatingQuery) SyncRating(ctx context.Context, db *gorm.DB, relatedID int64, relatedType string) error {
+	// 1. Aggregate review data
+	var info po.RatingInfo
+	if err := db.WithContext(ctx).
+		Model(&po.RatingPO{}).
+		Select("COUNT(*) AS count, AVG(rating) AS average").
+		Where("related_type = ? and related_id = ?", relatedType, relatedID).
+		Scan(&info).
+		Error; err != nil {
+		return err
+	}
+
+	var targetModelMap = map[model.RatingRelatedType]any{
+		model.RelatedTypeCourse:       &po.CoursePO{},
+		model.RelatedTypeTeacher:      &po.TeacherPO{},
+		model.RelatedTypeTrainingPlan: &po.TrainingPlanPO{},
+	}
+
+	targetModel := targetModelMap[relatedType]
+
+	// 2. Update the matching course row
+	if err := db.WithContext(ctx).
+		Model(targetModel).
+		Where("id = ?", relatedID).
+		Updates(map[string]interface{}{
+			"rating_count": info.Count,
+			"rating_avg":   info.Average,
+		}).Error; err != nil {
 		return err
 	}
 	return nil
