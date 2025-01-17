@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"testing"
 
 	"gorm.io/gorm"
 
+	"jcourse_go/dal"
 	"jcourse_go/model/model"
 	"jcourse_go/model/po"
 )
@@ -223,18 +225,21 @@ func createTestReview(db *gorm.DB) error {
 	}
 	ratings := []po.RatingPO{
 		{
+			Model:       gorm.Model{ID: 1},
 			Rating:      5,
 			RelatedID:   1,
 			UserID:      1,
 			RelatedType: model.RelatedTypeCourse,
 		},
 		{
+			Model:       gorm.Model{ID: 2},
 			Rating:      5,
 			RelatedID:   2,
 			UserID:      1,
 			RelatedType: model.RelatedTypeCourse,
 		},
 		{
+			Model:       gorm.Model{ID: 3},
 			Rating:      5,
 			RelatedID:   2,
 			UserID:      1,
@@ -264,4 +269,23 @@ func CreateTestEnv(ctx context.Context, db *gorm.DB) error {
 		}
 	}
 	return nil
+}
+
+func setup() {
+	ctx := context.Background()
+	dal.InitTestMemDBClient()
+	db := dal.GetDBClient()
+	_ = Migrate(db)
+	_ = CreateTestEnv(ctx, db)
+}
+
+func tearDown() {
+	db, _ := dal.GetDBClient().DB()
+	_ = db.Close()
+}
+
+func TestMain(m *testing.M) {
+	setup()
+	m.Run()
+	tearDown()
 }

@@ -17,10 +17,18 @@ type IRatingQuery interface {
 	CreateRating(ctx context.Context, ratingPO po.RatingPO) error
 	UpdateRating(ctx context.Context, ratingPO po.RatingPO) error
 	DeleteRating(ctx context.Context, ratingPO po.RatingPO) error
+	GetRating(ctx context.Context, userID int64, relatedID int64, relatedType model.RatingRelatedType) (po.RatingPO, error)
 }
 
 type RatingQuery struct {
 	db *gorm.DB
+}
+
+func (r *RatingQuery) GetRating(ctx context.Context, userID int64, relatedID int64, relatedType model.RatingRelatedType) (po.RatingPO, error) {
+	db := r.optionDB(ctx)
+	ratingPO := po.RatingPO{}
+	result := db.Where("user_id = ? and related_id = ? and related_type = ?", userID, relatedID, relatedType).Take(&ratingPO)
+	return ratingPO, result.Error
 }
 
 func (r *RatingQuery) GetUserRating(ctx context.Context, relatedType model.RatingRelatedType, relatedID int64, userID int64) (int64, error) {
@@ -35,7 +43,7 @@ func (r *RatingQuery) GetUserRating(ctx context.Context, relatedType model.Ratin
 
 func (r *RatingQuery) UpdateRating(ctx context.Context, ratingPO po.RatingPO) error {
 	err := r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&po.RatingPO{}).Where("user_id = ? and related_type = ? and related_id = ?", ratingPO.UserID, ratingPO.RelatedType, ratingPO.RelatedID).Updates(&ratingPO).Error; err != nil {
+		if err := tx.Save(&ratingPO).Error; err != nil {
 			return err
 		}
 		if err := r.SyncRating(ctx, tx, ratingPO.RelatedID, ratingPO.RelatedType); err != nil {

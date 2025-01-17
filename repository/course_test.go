@@ -9,25 +9,6 @@ import (
 	"jcourse_go/dal"
 )
 
-func setup() {
-	ctx := context.Background()
-	dal.InitTestMemDBClient()
-	db := dal.GetDBClient()
-	_ = Migrate(db)
-	_ = CreateTestEnv(ctx, db)
-}
-
-func tearDown() {
-	db, _ := dal.GetDBClient().DB()
-	_ = db.Close()
-}
-
-func TestMain(m *testing.M) {
-	setup()
-	m.Run()
-	tearDown()
-}
-
 func TestBaseCourseQuery_GetBaseCourse(t *testing.T) {
 	ctx := context.Background()
 	db := dal.GetDBClient()

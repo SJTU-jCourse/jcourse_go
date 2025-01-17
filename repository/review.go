@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm/clause"
 
 	"jcourse_go/model/converter"
+	"jcourse_go/model/model"
 	"jcourse_go/model/po"
 )
 
@@ -69,13 +70,23 @@ func (c *ReviewQuery) CreateReview(ctx context.Context, review po.ReviewPO) (int
 }
 
 func (c *ReviewQuery) UpdateReview(ctx context.Context, review po.ReviewPO) error {
-	ratingPO := converter.BuildRatingFromReview(review)
 	err := c.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		existsReview := po.ReviewPO{}
+		if err := tx.Model(&po.ReviewPO{}).Where("id = ?", review.ID).Take(&existsReview).Error; err != nil {
+			return err
+		}
 		if err := tx.Save(&review).Error; err != nil {
 			return err
 		}
+
 		ratingQuery := NewRatingQuery(tx)
-		if err := ratingQuery.UpdateRating(ctx, ratingPO); err != nil {
+		existsRatingPO, err := ratingQuery.GetRating(ctx, existsReview.UserID, existsReview.CourseID, model.RelatedTypeCourse)
+		if err != nil {
+			return err
+		}
+		existsRatingPO.Rating = review.Rating
+		existsRatingPO.RelatedID = review.CourseID
+		if err := ratingQuery.UpdateRating(ctx, existsRatingPO); err != nil {
 			return err
 		}
 		return nil
