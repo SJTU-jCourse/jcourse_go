@@ -1,7 +1,5 @@
 package model
 
-import "time"
-
 type PointEventType = string
 
 const (
@@ -28,6 +26,6 @@ type UserPointDetailFilter struct {
 	PaginationFilterForQuery
 	UserPointDetailID int64
 	UserID            int64
-	StartTime         time.Time
-	EndTime           time.Time
+	StartTime         int64
+	EndTime           int64
 }

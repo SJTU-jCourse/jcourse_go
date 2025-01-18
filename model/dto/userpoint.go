@@ -12,7 +12,10 @@ type UserPointDetailListAdminRequest struct {
 	UserPointDetailListRequest
 }
 
-type UserPointDetailListResponse = BasePaginateResponse[model.UserPointDetailItem]
+type UserPointDetailListResponse struct {
+	CurrentPoint int64 `json:"current_point"`
+	BasePaginateResponse[model.UserPointDetailItem]
+}
 
 type ChangeUserPointRequest struct {
 	UserID int64 `json:"user_id" form:"user_id" binding:"required"`

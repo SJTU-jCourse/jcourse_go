@@ -1,12 +1,12 @@
 package handler
 
 import (
+	"net/http"
+
 	"jcourse_go/middleware"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/service"
-	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -56,10 +56,10 @@ func GetUserPointDetailListHandler(c *gin.Context) {
 	user := middleware.GetCurrentUser(c)
 	filter := model.UserPointDetailFilter{
 		UserID:    user.ID,
-		StartTime: time.Unix(request.StartTime, 0),
-		EndTime:   time.Unix(request.EndTime, 0),
+		StartTime: request.StartTime,
+		EndTime:   request.EndTime,
 	}
-	userPointDetails, err := service.GetUserPointDetailList(c, filter)
+	totalValue, userPointDetails, err := service.GetUserPointDetailList(c, filter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 	}
@@ -69,10 +69,13 @@ func GetUserPointDetailListHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 	}
 	response := dto.UserPointDetailListResponse{
-		Page:     request.Page,
-		PageSize: request.PageSize,
-		Total:    total,
-		Data:     userPointDetails,
+		BasePaginateResponse: dto.BasePaginateResponse[model.UserPointDetailItem]{
+			Page:     request.Page,
+			PageSize: request.PageSize,
+			Total:    total,
+			Data:     userPointDetails,
+		},
+		CurrentPoint: totalValue,
 	}
 	c.JSON(http.StatusOK, response)
 }
@@ -85,10 +88,10 @@ func AdminGetUserPointDetailList(c *gin.Context) {
 	}
 	filter := model.UserPointDetailFilter{
 		UserID:    request.UserID,
-		StartTime: time.Unix(request.StartTime, 0),
-		EndTime:   time.Unix(request.EndTime, 0),
+		StartTime: request.StartTime,
+		EndTime:   request.EndTime,
 	}
-	userPointDetails, err := service.GetUserPointDetailList(c, filter)
+	_, userPointDetails, err := service.GetUserPointDetailList(c, filter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 	}
@@ -98,10 +101,12 @@ func AdminGetUserPointDetailList(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 	}
 	response := dto.UserPointDetailListResponse{
-		Page:     request.Page,
-		PageSize: request.PageSize,
-		Total:    total,
-		Data:     userPointDetails,
+		BasePaginateResponse: dto.BasePaginateResponse[model.UserPointDetailItem]{
+			Page:     request.Page,
+			PageSize: request.PageSize,
+			Total:    total,
+			Data:     userPointDetails,
+		},
 	}
 	c.JSON(http.StatusOK, response)
 }

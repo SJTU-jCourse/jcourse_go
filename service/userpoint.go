@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+
 	"jcourse_go/constant"
 	"jcourse_go/dal"
 	"jcourse_go/model/converter"
@@ -13,18 +14,24 @@ import (
 	"github.com/pkg/errors"
 )
 
-func GetUserPointDetailList(ctx context.Context, filter model.UserPointDetailFilter) ([]model.UserPointDetailItem, error) {
+func GetUserPointDetailList(ctx context.Context, filter model.UserPointDetailFilter) (int64, []model.UserPointDetailItem, error) {
 	userPointDetailQuery := repository.NewUserPointDetailQuery(dal.GetDBClient())
 	opts := buildUserPointDetailDBOptionFromFilter(userPointDetailQuery, filter)
 	userPointDetailPOs, err := userPointDetailQuery.GetUserPointDetail(ctx, opts...)
 	if err != nil {
-		return nil, err
+		return 0, nil, err
 	}
+
+	totalValue, err := userPointDetailQuery.GetUserPoint(ctx, filter.UserID)
+	if err != nil {
+		return 0, nil, err
+	}
+
 	result := make([]model.UserPointDetailItem, 0)
 	for _, detailPO := range userPointDetailPOs {
 		result = append(result, converter.ConvertUserPointDetailItemFromPO(detailPO))
 	}
-	return result, nil
+	return totalValue, result, nil
 }
 func GetUserPointDetailCount(ctx context.Context, filter model.UserPointDetailFilter) (int64, error) {
 	userPointDetailQuery := repository.NewUserPointDetailQuery(dal.GetDBClient())

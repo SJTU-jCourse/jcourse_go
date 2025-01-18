@@ -7,8 +7,9 @@ import (
 )
 
 func ConvertUserPointDetailItemFromPO(po po.UserPointDetailPO) model.UserPointDetailItem {
+	location := util.GetLocation()
 	return model.UserPointDetailItem{
-		Time:        po.CreatedAt.Format(util.GoTimeLayout),
+		Time:        po.CreatedAt.In(location).Format(util.GoTimeLayout),
 		Value:       po.Value,
 		Description: po.Description,
 	}

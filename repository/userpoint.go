@@ -2,12 +2,14 @@ package repository
 
 import (
 	"context"
+
 	"jcourse_go/model/po"
 
 	"gorm.io/gorm"
 )
 
 type IUserPointDetailQuery interface {
+	GetUserPoint(ctx context.Context, userID int64) (int64, error)
 	GetUserPointDetail(ctx context.Context, opts ...DBOption) ([]po.UserPointDetailPO, error)
 	GetUserPointDetailCount(ctx context.Context, opts ...DBOption) (int64, error)
 	CreateUserPointDetail(ctx context.Context, userID int64, eventType string, value int64, description string) error
@@ -15,6 +17,19 @@ type IUserPointDetailQuery interface {
 
 type UserPointDetailQuery struct {
 	db *gorm.DB
+}
+
+func (q *UserPointDetailQuery) GetUserPoint(ctx context.Context, userID int64) (int64, error) {
+	result := struct {
+		Value int64 `json:"value"`
+	}{}
+	if err := q.db.WithContext(ctx).
+		Model(&po.UserPointDetailPO{}).
+		Select("sum(value) as value").
+		Where("user_id = ?", userID).Find(&result).Error; err != nil {
+		return 0, err
+	}
+	return result.Value, nil
 }
 
 func (q *UserPointDetailQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
@@ -48,12 +63,10 @@ func (q *UserPointDetailQuery) GetUserPointDetailCount(ctx context.Context, opts
 
 func (q *UserPointDetailQuery) CreateUserPointDetail(ctx context.Context, userID int64, eventType string, value int64, description string) error {
 	userPointDetail := po.UserPointDetailPO{
-		UserID: userID,
-		PointEvent: po.PointEvent{
-			EventType:   eventType,
-			Value:       value,
-			Description: description,
-		},
+		UserID:      userID,
+		EventType:   eventType,
+		Value:       value,
+		Description: description,
 	}
 	result := q.optionDB(ctx).Create(&userPointDetail)
 	return result.Error
