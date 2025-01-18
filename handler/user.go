@@ -2,14 +2,14 @@ package handler
 
 import (
 	"errors"
-	"jcourse_go/constant"
+	"net/http"
+	"strconv"
+
 	"jcourse_go/middleware"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/service"
-	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -104,12 +104,11 @@ func WatchUserHandler(c *gin.Context) {}
 func UnWatchUserHandler(c *gin.Context) {}
 
 func UpdateUserProfileHandler(c *gin.Context) {
-	userInterface, exists := c.Get(constant.CtxKeyUser)
-	if !exists {
+	user := middleware.GetCurrentUser(c)
+	if user == nil {
 		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "用户未登录！"})
 		return
 	}
-	user, _ := userInterface.(*model.UserDetail)
 
 	var request dto.UserProfileDTO
 	if err := c.ShouldBindJSON(&request); err != nil {
