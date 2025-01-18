@@ -243,8 +243,12 @@ func WithOrderBy(orderBy string, ascending bool) DBOption {
 
 func WithSearch(query string) DBOption {
 	return func(db *gorm.DB) *gorm.DB {
+		tsQuery := userQueryToTsQuery(query)
+		if tsQuery == "()" {
+			return db
+		}
 		return db.Where("search_index @@ to_tsquery('simple', ?)",
-			userQueryToTsQuery(query),
+			tsQuery,
 		)
 	}
 }

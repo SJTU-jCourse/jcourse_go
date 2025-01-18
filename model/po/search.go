@@ -44,8 +44,6 @@ func (c *CoursePO) BeforeCreate(*gorm.DB) error {
 		c.SearchIndex = toIndex([]string{
 			c.Name,
 			c.Code, // 前缀模糊匹配更为适合
-			c.MainTeacherName,
-			c.Department, // 不分词更为适合
 		})
 	}
 	return nil
@@ -58,8 +56,8 @@ func (t *TeacherPO) BeforeCreate(*gorm.DB) error {
 	if t.SearchIndex == "" {
 		t.SearchIndex = toIndex([]string{
 			t.Name,
-			t.Department,
-			t.Code,
+			t.Pinyin,
+			t.PinyinAbbr,
 		})
 	}
 	return nil
@@ -72,7 +70,6 @@ func (t *TrainingPlanPO) BeforeCreate(*gorm.DB) error {
 	if t.SearchIndex == "" {
 		t.SearchIndex = toIndex([]string{
 			t.Major,
-			t.Department,
 		})
 	}
 	return nil

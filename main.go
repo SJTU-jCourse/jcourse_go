@@ -9,6 +9,7 @@ import (
 	"jcourse_go/dal"
 	"jcourse_go/task"
 	"jcourse_go/task/base"
+	"jcourse_go/util"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -23,6 +24,10 @@ func Init() {
 		DSN:      dal.GetRedisDSN(),
 		Password: dal.GetRedisPassWord(),
 	})
+
+	if err := util.InitSegWord(); err != nil {
+		panic(err)
+	}
 }
 
 func main() {
