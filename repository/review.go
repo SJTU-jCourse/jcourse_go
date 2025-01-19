@@ -69,6 +69,18 @@ func (c *ReviewQuery) CreateReview(ctx context.Context, review po.ReviewPO) (int
 	return int64(review.ID), err
 }
 
+func GetReviewRevisionFromReview(reviewPO po.ReviewPO) po.ReviewRevisionPO {
+	return po.ReviewRevisionPO{
+		ReviewID:    int64(reviewPO.ID),
+		UserID:      reviewPO.UserID,
+		Comment:     reviewPO.Comment,
+		Rating:      reviewPO.Rating,
+		Semester:    reviewPO.Semester,
+		IsAnonymous: reviewPO.IsAnonymous,
+		Grade:       reviewPO.Grade,
+	}
+}
+
 func (c *ReviewQuery) UpdateReview(ctx context.Context, review po.ReviewPO) error {
 	err := c.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		existsReview := po.ReviewPO{}
@@ -76,6 +88,11 @@ func (c *ReviewQuery) UpdateReview(ctx context.Context, review po.ReviewPO) erro
 			return err
 		}
 		if err := tx.Save(&review).Error; err != nil {
+			return err
+		}
+
+		revision := GetReviewRevisionFromReview(existsReview)
+		if err := tx.Create(&revision).Error; err != nil {
 			return err
 		}
 

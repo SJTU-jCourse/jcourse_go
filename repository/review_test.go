@@ -118,6 +118,11 @@ func TestReviewQuery_UpdateReview(t *testing.T) {
 		if len(info.RatingDist) > 0 {
 			assert.Equal(t, int64(1), info.RatingDist[0].Rating)
 		}
+
+		revision := po.ReviewRevisionPO{}
+		err = db.Model(&po.ReviewRevisionPO{}).Where("review_id = ?", 1).Take(&revision).Error
+		assert.Nil(t, err)
+		assert.Equal(t, int64(5), revision.Rating)
 	})
 
 }

@@ -24,8 +24,9 @@ type ReviewRevisionPO struct {
 	UserID      int64 `gorm:"index"`
 	Comment     string
 	Rating      int64
-	Semester    string `gorm:"index"`
+	Semester    string
 	IsAnonymous bool
+	Grade       string // 成绩
 }
 
 func (po *ReviewRevisionPO) TableName() string {
