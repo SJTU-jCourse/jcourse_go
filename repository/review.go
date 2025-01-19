@@ -72,6 +72,7 @@ func (c *ReviewQuery) CreateReview(ctx context.Context, review po.ReviewPO) (int
 func GetReviewRevisionFromReview(reviewPO po.ReviewPO) po.ReviewRevisionPO {
 	return po.ReviewRevisionPO{
 		ReviewID:    int64(reviewPO.ID),
+		CourseID:    reviewPO.CourseID,
 		UserID:      reviewPO.UserID,
 		Comment:     reviewPO.Comment,
 		Rating:      reviewPO.Rating,

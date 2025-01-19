@@ -22,6 +22,7 @@ type ReviewRevisionPO struct {
 	gorm.Model
 	ReviewID    int64 `gorm:"index"`
 	UserID      int64 `gorm:"index"`
+	CourseID    int64 `gorm:"index"`
 	Comment     string
 	Rating      int64
 	Semester    string
