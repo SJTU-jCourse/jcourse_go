@@ -14,9 +14,10 @@ import (
 
 	"jcourse_go/dal"
 	"jcourse_go/model/po"
+	"jcourse_go/util"
 )
 
-const Semester = "2024-2025-1"
+const Semester = "2024-2025-2"
 
 var (
 	db                         *gorm.DB
@@ -36,6 +37,7 @@ func initDB() {
 	_ = godotenv.Load()
 	dal.InitDBClient()
 	db = dal.GetDBClient()
+	util.InitSegWord()
 }
 
 func readRawCSV(filename string) [][]string {
@@ -88,10 +90,18 @@ func main() {
 
 func importBaseCourse(data [][]string) {
 	baseCourses := make([]po.BaseCoursePO, 0)
+	baseCourseDedup := make(map[string]struct{})
 	for _, line := range data[1:] {
-		baseCourses = append(baseCourses, parseBaseCourseFromLine(line))
+		baseCourse := parseBaseCourseFromLine(line)
+		if _, exists := baseCourseDedup[baseCourse.Code]; exists {
+			continue
+		}
+		baseCourseDedup[baseCourse.Code] = struct{}{}
+		baseCourses = append(baseCourses, baseCourse)
 	}
-	db.Model(&po.BaseCoursePO{}).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(&baseCourses, 100)
+	println("base course count: ", len(baseCourses))
+	result := db.Model(&po.BaseCoursePO{}).Clauses(clause.OnConflict{UpdateAll: true}).CreateInBatches(&baseCourses, 100)
+	println("base course rows affected: ", result.RowsAffected)
 }
 
 func importTeacher(data [][]string) {
@@ -106,26 +116,49 @@ func importTeacher(data [][]string) {
 			teacherSet[t.Code] = true
 		}
 	}
-	db.Model(&po.TeacherPO{}).Clauses(clause.OnConflict{
+	println("teacher count: ", len(teachers))
+	result := db.Model(&po.TeacherPO{}).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "code"}},
 		DoUpdates: clause.AssignmentColumns([]string{"department", "title"}),
 	}).CreateInBatches(&teachers, 100)
+	println("teacher rows affected: ", result.RowsAffected)
 }
 
 func importCourse(data [][]string) {
 	courses := make([]po.CoursePO, 0)
+	courseDedup := make(map[string]struct{})
 	for _, line := range data[1:] {
-		courses = append(courses, parseCourseFromLine(line))
+		course := parseCourseFromLine(line)
+		key := makeCourseKey(course.Code, course.MainTeacherName)
+		if _, exists := courseDedup[key]; exists {
+			continue
+		}
+		courseDedup[key] = struct{}{}
+		courses = append(courses, course)
 	}
-	db.Model(&po.CoursePO{}).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(&courses, 100)
+	println("course count: ", len(courses))
+	result := db.Model(&po.CoursePO{}).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{"name", "credit", "main_teacher_name"}),
+	}).CreateInBatches(&courses, 100)
+	println("course rows affected: ", result.RowsAffected)
 }
 
 func importOfferedCourse(data [][]string) {
 	offeredCourses := make([]po.OfferedCoursePO, 0)
+	offeredDedup := make(map[string]struct{})
 	for _, line := range data[1:] {
-		offeredCourses = append(offeredCourses, parseOfferedCourseFromLine(line))
+		offered := parseOfferedCourseFromLine(line)
+		key := makeOfferedCourseKey(offered.CourseID, offered.Semester)
+		if _, exists := offeredDedup[key]; exists {
+			continue
+		}
+		offeredDedup[key] = struct{}{}
+		offeredCourses = append(offeredCourses, offered)
 	}
-	db.Model(&po.OfferedCoursePO{}).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(&offeredCourses, 100)
+	println("offered course count: ", len(offeredCourses))
+	result := db.Model(&po.OfferedCoursePO{}).Clauses(clause.OnConflict{UpdateAll: true}).CreateInBatches(&offeredCourses, 100)
+	println("offered course rows affected: ", result.RowsAffected)
 }
 
 func importCourseCategory(data [][]string) {
@@ -133,15 +166,23 @@ func importCourseCategory(data [][]string) {
 	for _, line := range data[1:] {
 		categories = append(categories, parseCourseCategories(line)...)
 	}
-	db.Model(&po.CourseCategoryPO{}).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(&categories, 100)
+	result := db.Model(&po.CourseCategoryPO{}).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(&categories, 100)
+	println("course category rows affected: ", result.RowsAffected)
 }
 
 func importOfferedCourseTeacher(data [][]string) {
 	offeredCourseTeachers := make([]po.OfferedCourseTeacherPO, 0)
 	for _, line := range data[1:] {
-		offeredCourseTeachers = append(offeredCourseTeachers, parseOfferedCourseTeacherGroup(line)...)
+		teacherGroup := parseOfferedCourseTeacherGroup(line)
+		for _, t := range teacherGroup {
+			if t.TeacherID == 0 {
+				continue
+			}
+			offeredCourseTeachers = append(offeredCourseTeachers, t)
+		}
 	}
-	db.Model(&po.OfferedCourseTeacherPO{}).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(&offeredCourseTeachers, 100)
+	result := db.Model(&po.OfferedCourseTeacherPO{}).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(&offeredCourseTeachers, 100)
+	println("offered course teacher rows affected: ", result.RowsAffected)
 }
 
 func parseBaseCourseFromLine(line []string) po.BaseCoursePO {
