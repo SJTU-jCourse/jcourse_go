@@ -8,8 +8,8 @@ import (
 
 	"gorm.io/gorm"
 
-	"jcourse_go/constant"
 	"jcourse_go/model/po"
+	"jcourse_go/model/types"
 )
 
 const (
@@ -90,7 +90,7 @@ func (q *UserQuery) CreateUser(ctx context.Context, email string, passwordStore 
 	user := po.UserPO{
 		Username:   email,
 		Email:      email,
-		UserRole:   constant.UserRoleNormal,
+		UserRole:   string(types.UserRoleNormal),
 		LastSeenAt: time.Now(),
 		Password:   passwordStore,
 	}

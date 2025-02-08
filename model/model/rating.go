@@ -1,13 +1,5 @@
 package model
 
-type RatingRelatedType = string
-
-const (
-	RelatedTypeCourse       RatingRelatedType = "course"
-	RelatedTypeTeacher      RatingRelatedType = "teacher"
-	RelatedTypeTrainingPlan RatingRelatedType = "training_plan"
-)
-
 type RatingInfoDistItemByID struct {
 	RelatedID int64
 	Rating    int64

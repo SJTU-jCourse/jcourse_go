@@ -7,6 +7,7 @@ import (
 	"jcourse_go/dal"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
+	"jcourse_go/model/types"
 	"jcourse_go/repository"
 )
 
@@ -30,7 +31,7 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*model.TeacherDetai
 	converter.PackTeacherWithCourses(&teacher, courses)
 
 	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
-	info, err := ratingQuery.GetRatingInfo(ctx, model.RelatedTypeTeacher, teacherID)
+	info, err := ratingQuery.GetRatingInfo(ctx, types.RelatedTypeTeacher, teacherID)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +85,7 @@ func SearchTeacherList(ctx context.Context, filter model.TeacherFilterForQuery) 
 	}
 
 	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
-	infos, err := ratingQuery.GetRatingInfoByIDs(ctx, model.RelatedTypeTeacher, teacherIDs)
+	infos, err := ratingQuery.GetRatingInfoByIDs(ctx, types.RelatedTypeTeacher, teacherIDs)
 	if err != nil {
 		return nil, err
 	}

@@ -9,6 +9,7 @@ import (
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
 	"jcourse_go/model/po"
+	"jcourse_go/model/types"
 	"jcourse_go/repository"
 
 	"github.com/pkg/errors"
@@ -41,7 +42,7 @@ func GetUserPointDetailCount(ctx context.Context, filter model.UserPointDetailFi
 }
 
 // HINT: 以下的几个UserPoint相关函数都是并发安全的, 但不保证成功，事务失败时需要上层自行处理
-func ChangeUserPoints(ctx context.Context, userID int64, eventType model.PointEventType, value int64, description string) error {
+func ChangeUserPoints(ctx context.Context, userID int64, eventType types.PointEventType, value int64, description string) error {
 	repo := repository.NewRepository(dal.GetDBClient())
 	userQuery := repo.NewUserQuery()
 	userPOs, err := userQuery.GetUser(ctx, repository.WithID(userID))
@@ -132,11 +133,11 @@ func TransferUserPoints(ctx context.Context, senderID int64, receiverID int64, v
 		if err != nil {
 			return err
 		}
-		err = userPointDetailQuery.CreateUserPointDetail(ctx, senderID, model.PointEventTransfer, -value, description)
+		err = userPointDetailQuery.CreateUserPointDetail(ctx, senderID, types.PointEventTransfer, -value, description)
 		if err != nil {
 			return err
 		}
-		err = userPointDetailQuery.CreateUserPointDetail(ctx, receiverID, model.PointEventTransfer, receivedValue, description)
+		err = userPointDetailQuery.CreateUserPointDetail(ctx, receiverID, types.PointEventTransfer, receivedValue, description)
 		if err != nil {
 			return err
 		}

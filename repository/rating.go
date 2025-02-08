@@ -8,30 +8,31 @@ import (
 
 	"jcourse_go/model/model"
 	"jcourse_go/model/po"
+	"jcourse_go/model/types"
 )
 
 type IRatingQuery interface {
-	GetRatingInfo(ctx context.Context, relatedType model.RatingRelatedType, relatedID int64) (model.RatingInfo, error)
-	GetUserRating(ctx context.Context, relatedType model.RatingRelatedType, relatedID int64, userID int64) (int64, error)
-	GetRatingInfoByIDs(ctx context.Context, relatedType model.RatingRelatedType, relatedIDs []int64) (map[int64]model.RatingInfo, error)
+	GetRatingInfo(ctx context.Context, relatedType types.RatingRelatedType, relatedID int64) (model.RatingInfo, error)
+	GetUserRating(ctx context.Context, relatedType types.RatingRelatedType, relatedID int64, userID int64) (int64, error)
+	GetRatingInfoByIDs(ctx context.Context, relatedType types.RatingRelatedType, relatedIDs []int64) (map[int64]model.RatingInfo, error)
 	CreateRating(ctx context.Context, ratingPO po.RatingPO) error
 	UpdateRating(ctx context.Context, ratingPO po.RatingPO) error
 	DeleteRating(ctx context.Context, ratingPO po.RatingPO) error
-	GetRating(ctx context.Context, userID int64, relatedID int64, relatedType model.RatingRelatedType) (po.RatingPO, error)
+	GetRating(ctx context.Context, userID int64, relatedID int64, relatedType types.RatingRelatedType) (po.RatingPO, error)
 }
 
 type RatingQuery struct {
 	db *gorm.DB
 }
 
-func (r *RatingQuery) GetRating(ctx context.Context, userID int64, relatedID int64, relatedType model.RatingRelatedType) (po.RatingPO, error) {
+func (r *RatingQuery) GetRating(ctx context.Context, userID int64, relatedID int64, relatedType types.RatingRelatedType) (po.RatingPO, error) {
 	db := r.optionDB(ctx)
 	ratingPO := po.RatingPO{}
 	result := db.Where("user_id = ? and related_id = ? and related_type = ?", userID, relatedID, relatedType).Take(&ratingPO)
 	return ratingPO, result.Error
 }
 
-func (r *RatingQuery) GetUserRating(ctx context.Context, relatedType model.RatingRelatedType, relatedID int64, userID int64) (int64, error) {
+func (r *RatingQuery) GetUserRating(ctx context.Context, relatedType types.RatingRelatedType, relatedID int64, userID int64) (int64, error) {
 	db := r.optionDB(ctx)
 	ratingPO := po.RatingPO{}
 	result := db.Where("user_id = ? and related_id = ? and related_type = ?", userID, relatedID, relatedType).Take(&ratingPO)
@@ -101,13 +102,13 @@ func (r *RatingQuery) SyncRating(ctx context.Context, db *gorm.DB, relatedID int
 		return err
 	}
 
-	var targetModelMap = map[model.RatingRelatedType]any{
-		model.RelatedTypeCourse:       &po.CoursePO{},
-		model.RelatedTypeTeacher:      &po.TeacherPO{},
-		model.RelatedTypeTrainingPlan: &po.TrainingPlanPO{},
+	var targetModelMap = map[types.RatingRelatedType]any{
+		types.RelatedTypeCourse:       &po.CoursePO{},
+		types.RelatedTypeTeacher:      &po.TeacherPO{},
+		types.RelatedTypeTrainingPlan: &po.TrainingPlanPO{},
 	}
 
-	targetModel := targetModelMap[relatedType]
+	targetModel := targetModelMap[types.RatingRelatedType(relatedType)]
 
 	// 2. Update the matching course row
 	if err := db.WithContext(ctx).
@@ -122,7 +123,7 @@ func (r *RatingQuery) SyncRating(ctx context.Context, db *gorm.DB, relatedID int
 	return nil
 }
 
-func (r *RatingQuery) GetRatingInfoByIDs(ctx context.Context, relatedType model.RatingRelatedType, relatedIDs []int64) (map[int64]model.RatingInfo, error) {
+func (r *RatingQuery) GetRatingInfoByIDs(ctx context.Context, relatedType types.RatingRelatedType, relatedIDs []int64) (map[int64]model.RatingInfo, error) {
 	res := make(map[int64]model.RatingInfo)
 	distByIDs := make([]model.RatingInfoDistItemByID, 0)
 	db := r.optionDB(ctx)
@@ -153,7 +154,7 @@ func (r *RatingQuery) optionDB(ctx context.Context, opts ...DBOption) *gorm.DB {
 	return db
 }
 
-func (r *RatingQuery) GetRatingInfo(ctx context.Context, relatedType model.RatingRelatedType, relatedID int64) (model.RatingInfo, error) {
+func (r *RatingQuery) GetRatingInfo(ctx context.Context, relatedType types.RatingRelatedType, relatedID int64) (model.RatingInfo, error) {
 	res := model.RatingInfo{}
 	dists := make([]model.RatingInfoDistItem, 0)
 	db := r.optionDB(ctx)

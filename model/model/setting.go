@@ -4,14 +4,7 @@ import (
 	"strconv"
 
 	"jcourse_go/model/po"
-)
-
-type SettingType = string
-
-const (
-	SettingTypeString SettingType = "string"
-	SettingTypeInt    SettingType = "int"
-	SettingTypeBool   SettingType = "bool"
+	"jcourse_go/model/types"
 )
 
 type Setting interface {
@@ -38,7 +31,7 @@ func (s *StringSetting) ToPO() po.SettingPO {
 	return po.SettingPO{
 		Key:   s.Key,
 		Value: s.Value,
-		Type:  SettingTypeString,
+		Type:  string(types.SettingTypeString),
 	}
 }
 
@@ -65,7 +58,7 @@ func (s *IntSetting) ToPO() po.SettingPO {
 	return po.SettingPO{
 		Key:   s.Key,
 		Value: strconv.FormatInt(s.Value, 10),
-		Type:  SettingTypeInt,
+		Type:  string(types.SettingTypeInt),
 	}
 }
 
@@ -92,7 +85,7 @@ func (s *BoolSetting) ToPO() po.SettingPO {
 	return po.SettingPO{
 		Key:   s.Key,
 		Value: strconv.FormatBool(s.Value),
-		Type:  SettingTypeBool,
+		Type:  string(types.SettingTypeBool),
 	}
 }
 

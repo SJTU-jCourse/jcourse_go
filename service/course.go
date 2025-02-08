@@ -7,6 +7,7 @@ import (
 	"jcourse_go/dal"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
+	"jcourse_go/model/types"
 	"jcourse_go/repository"
 	"jcourse_go/util"
 )
@@ -40,13 +41,13 @@ func GetCourseDetail(ctx context.Context, courseID int64, userID int64) (*model.
 	}
 
 	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
-	info, err := ratingQuery.GetRatingInfo(ctx, model.RelatedTypeCourse, courseID)
+	info, err := ratingQuery.GetRatingInfo(ctx, types.RelatedTypeCourse, courseID)
 	if err != nil {
 		return nil, err
 	}
 
 	if userID != 0 {
-		info.MyRating, _ = ratingQuery.GetUserRating(ctx, model.RelatedTypeCourse, courseID, userID)
+		info.MyRating, _ = ratingQuery.GetUserRating(ctx, types.RelatedTypeCourse, courseID, userID)
 	}
 
 	course := converter.ConvertCourseDetailFromPO(coursePO)
@@ -98,7 +99,7 @@ func GetCourseList(ctx context.Context, filter model.CourseListFilterForQuery) (
 	}
 
 	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
-	infos, err := ratingQuery.GetRatingInfoByIDs(ctx, model.RelatedTypeCourse, courseIDs)
+	infos, err := ratingQuery.GetRatingInfoByIDs(ctx, types.RelatedTypeCourse, courseIDs)
 	if err != nil {
 		return nil, err
 	}

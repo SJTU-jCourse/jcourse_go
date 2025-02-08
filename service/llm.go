@@ -10,6 +10,7 @@ import (
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
+	"jcourse_go/model/types"
 	"jcourse_go/repository"
 	"jcourse_go/rpc"
 
@@ -235,7 +236,7 @@ func GetMatchCourses(ctx context.Context, description string) ([]model.CourseSum
 	}
 
 	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
-	infos, err := ratingQuery.GetRatingInfoByIDs(ctx, model.RelatedTypeCourse, courseIDs)
+	infos, err := ratingQuery.GetRatingInfoByIDs(ctx, types.RelatedTypeCourse, courseIDs)
 	if err != nil {
 		return nil, err
 	}

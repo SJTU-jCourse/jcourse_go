@@ -7,8 +7,8 @@ import (
 	"gorm.io/gorm/clause"
 
 	"jcourse_go/model/converter"
-	"jcourse_go/model/model"
 	"jcourse_go/model/po"
+	"jcourse_go/model/types"
 )
 
 type IReviewQuery interface {
@@ -98,7 +98,7 @@ func (c *ReviewQuery) UpdateReview(ctx context.Context, review po.ReviewPO) erro
 		}
 
 		ratingQuery := NewRatingQuery(tx)
-		existsRatingPO, err := ratingQuery.GetRating(ctx, existsReview.UserID, existsReview.CourseID, model.RelatedTypeCourse)
+		existsRatingPO, err := ratingQuery.GetRating(ctx, existsReview.UserID, existsReview.CourseID, types.RelatedTypeCourse)
 		if err != nil {
 			return err
 		}

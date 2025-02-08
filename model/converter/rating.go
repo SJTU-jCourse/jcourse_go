@@ -4,6 +4,7 @@ import (
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/model/po"
+	"jcourse_go/model/types"
 )
 
 func ConvertRatingInfoFromPO(po po.RatingPO) model.RatingInfo {
@@ -13,7 +14,7 @@ func ConvertRatingInfoFromPO(po po.RatingPO) model.RatingInfo {
 func BuildRatingFromReview(review po.ReviewPO) po.RatingPO {
 	return po.RatingPO{
 		UserID:      review.UserID,
-		RelatedType: model.RelatedTypeCourse,
+		RelatedType: string(types.RelatedTypeCourse),
 		RelatedID:   review.CourseID,
 		Rating:      review.Rating,
 	}

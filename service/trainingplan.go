@@ -7,6 +7,7 @@ import (
 	"jcourse_go/dal"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
+	"jcourse_go/model/types"
 	"jcourse_go/repository"
 )
 
@@ -48,7 +49,7 @@ func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*model.Tr
 	}
 
 	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
-	info, err := ratingQuery.GetRatingInfo(ctx, model.RelatedTypeTrainingPlan, trainingPlanID)
+	info, err := ratingQuery.GetRatingInfo(ctx, types.RelatedTypeTrainingPlan, trainingPlanID)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +115,7 @@ func SearchTrainingPlanList(ctx context.Context, filter model.TrainingPlanFilter
 	}
 
 	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
-	infos, err := ratingQuery.GetRatingInfoByIDs(ctx, model.RelatedTypeTrainingPlan, trainingPlanIDs)
+	infos, err := ratingQuery.GetRatingInfoByIDs(ctx, types.RelatedTypeTrainingPlan, trainingPlanIDs)
 	if err != nil {
 		return nil, err
 	}

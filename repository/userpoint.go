@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"jcourse_go/model/po"
+	"jcourse_go/model/types"
 
 	"gorm.io/gorm"
 )
@@ -12,7 +13,7 @@ type IUserPointDetailQuery interface {
 	GetUserPoint(ctx context.Context, userID int64) (int64, error)
 	GetUserPointDetail(ctx context.Context, opts ...DBOption) ([]po.UserPointDetailPO, error)
 	GetUserPointDetailCount(ctx context.Context, opts ...DBOption) (int64, error)
-	CreateUserPointDetail(ctx context.Context, userID int64, eventType string, value int64, description string) error
+	CreateUserPointDetail(ctx context.Context, userID int64, eventType types.PointEventType, value int64, description string) error
 }
 
 type UserPointDetailQuery struct {
@@ -61,10 +62,10 @@ func (q *UserPointDetailQuery) GetUserPointDetailCount(ctx context.Context, opts
 	return count, nil
 }
 
-func (q *UserPointDetailQuery) CreateUserPointDetail(ctx context.Context, userID int64, eventType string, value int64, description string) error {
+func (q *UserPointDetailQuery) CreateUserPointDetail(ctx context.Context, userID int64, eventType types.PointEventType, value int64, description string) error {
 	userPointDetail := po.UserPointDetailPO{
 		UserID:      userID,
-		EventType:   eventType,
+		EventType:   string(eventType),
 		Value:       value,
 		Description: description,
 	}
