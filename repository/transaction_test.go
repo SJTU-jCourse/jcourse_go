@@ -3,9 +3,6 @@ package repository
 import (
 	"context"
 	"fmt"
-
-	"jcourse_go/model/model"
-	"jcourse_go/model/po"
 	"log"
 	"testing"
 
@@ -13,6 +10,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
+
+	"jcourse_go/model/po"
+	"jcourse_go/model/types"
 )
 
 func InitTestDB(t *testing.T) (IRepository, *gorm.DB) {
@@ -124,11 +124,11 @@ func TestInTransAction(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		err = userPointDetailQuery.CreateUserPointDetail(ctx, int64(user1.ID), model.PointEventTransfer, -100, "test")
+		err = userPointDetailQuery.CreateUserPointDetail(ctx, int64(user1.ID), types.PointEventTransfer, -100, "test")
 		if err != nil {
 			return err
 		}
-		err = userPointDetailQuery.CreateUserPointDetail(ctx, int64(user2.ID), model.PointEventTransfer, 99, "test")
+		err = userPointDetailQuery.CreateUserPointDetail(ctx, int64(user2.ID), types.PointEventTransfer, 99, "test")
 		if err != nil {
 			return err
 		}
@@ -154,11 +154,11 @@ func TestInTransAction(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		err = userPointDetailQuery.CreateUserPointDetail(ctx, int64(user1.ID), model.PointEventTransfer, -100, "test")
+		err = userPointDetailQuery.CreateUserPointDetail(ctx, int64(user1.ID), types.PointEventTransfer, -100, "test")
 		if err != nil {
 			return err
 		}
-		err = userPointDetailQuery.CreateUserPointDetail(ctx, int64(user2.ID), model.PointEventTransfer, 99, "test")
+		err = userPointDetailQuery.CreateUserPointDetail(ctx, int64(user2.ID), types.PointEventTransfer, 99, "test")
 		if err != nil {
 			return err
 		}
@@ -188,11 +188,11 @@ func TestInTransAction(t *testing.T) {
 			return err
 		}
 		err = errors.New("test rollback in mid")
-		ign := userPointDetailQuery.CreateUserPointDetail(ctx, int64(user1.ID), model.PointEventTransfer, -100, "test")
+		ign := userPointDetailQuery.CreateUserPointDetail(ctx, int64(user1.ID), types.PointEventTransfer, -100, "test")
 		if ign != nil {
 			return err
 		}
-		ign = userPointDetailQuery.CreateUserPointDetail(ctx, int64(user2.ID), model.PointEventTransfer, 99, "test")
+		ign = userPointDetailQuery.CreateUserPointDetail(ctx, int64(user2.ID), types.PointEventTransfer, 99, "test")
 		if ign != nil {
 			return err
 		}
@@ -235,7 +235,7 @@ func TestInTransAction(t *testing.T) {
 				assert.Equal(t, int64(900), user1PO.Points)
 				assert.Len(t, userPointDetails, 1)
 				assert.Equal(t, int64(user1PO.ID), userPointDetails[0].UserID)
-				assert.Equal(t, model.PointEventTransfer, userPointDetails[0].EventType)
+				assert.Equal(t, string(types.PointEventTransfer), userPointDetails[0].EventType)
 				assert.Equal(t, int64(-100), userPointDetails[0].Value)
 				user2PO, userPointDetails, err := QueryUser(repo, 1)
 				if err != nil {
@@ -249,7 +249,7 @@ func TestInTransAction(t *testing.T) {
 				assert.Equal(t, int64(1099), user2PO.Points)
 				assert.Len(t, userPointDetails, 1)
 				assert.Equal(t, int64(user2PO.ID), userPointDetails[0].UserID)
-				assert.Equal(t, model.PointEventTransfer, userPointDetails[0].EventType)
+				assert.Equal(t, string(types.PointEventTransfer), userPointDetails[0].EventType)
 				assert.Equal(t, int64(99), userPointDetails[0].Value)
 			} else {
 				// rollback

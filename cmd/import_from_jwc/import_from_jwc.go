@@ -37,7 +37,7 @@ func initDB() {
 	_ = godotenv.Load()
 	dal.InitDBClient()
 	db = dal.GetDBClient()
-	util.InitSegWord()
+	_ = util.InitSegWord()
 }
 
 func readRawCSV(filename string) [][]string {

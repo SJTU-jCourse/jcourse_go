@@ -7,8 +7,8 @@ import (
 	"gorm.io/gorm"
 
 	"jcourse_go/dal"
-	"jcourse_go/model/model"
 	"jcourse_go/model/po"
+	"jcourse_go/model/types"
 )
 
 func createTestBaseCourse(db *gorm.DB) error {
@@ -229,21 +229,21 @@ func createTestReview(db *gorm.DB) error {
 			Rating:      5,
 			RelatedID:   1,
 			UserID:      1,
-			RelatedType: model.RelatedTypeCourse,
+			RelatedType: string(types.RelatedTypeCourse),
 		},
 		{
 			Model:       gorm.Model{ID: 2},
 			Rating:      5,
 			RelatedID:   2,
 			UserID:      1,
-			RelatedType: model.RelatedTypeCourse,
+			RelatedType: string(types.RelatedTypeCourse),
 		},
 		{
 			Model:       gorm.Model{ID: 3},
 			Rating:      5,
 			RelatedID:   2,
 			UserID:      1,
-			RelatedType: model.RelatedTypeTeacher,
+			RelatedType: string(types.RelatedTypeTeacher),
 		},
 	}
 

@@ -8,15 +8,15 @@ import (
 	"gorm.io/gorm"
 
 	"jcourse_go/dal"
-	"jcourse_go/model/model"
 	"jcourse_go/model/po"
+	"jcourse_go/model/types"
 )
 
 func TestRatingQuery_GetRatingInfo(t *testing.T) {
 	ctx := context.Background()
 	db := dal.GetDBClient()
 	query := NewRatingQuery(db)
-	info, err := query.GetRatingInfo(ctx, model.RelatedTypeCourse, 1)
+	info, err := query.GetRatingInfo(ctx, types.RelatedTypeCourse, 1)
 	assert.Nil(t, err)
 	assert.Len(t, info.RatingDist, 1)
 	assert.Equal(t, int64(1), info.Count)
@@ -27,7 +27,7 @@ func TestRatingQuery_GetRatingInfoByIDs(t *testing.T) {
 	ctx := context.Background()
 	db := dal.GetDBClient()
 	query := NewRatingQuery(db)
-	infoMap, err := query.GetRatingInfoByIDs(ctx, model.RelatedTypeCourse, []int64{1})
+	infoMap, err := query.GetRatingInfoByIDs(ctx, types.RelatedTypeCourse, []int64{1})
 	assert.Nil(t, err)
 	assert.Len(t, infoMap, 1)
 	info := infoMap[1]
@@ -42,14 +42,14 @@ func TestRatingQuery_CreateRating(t *testing.T) {
 	query := NewRatingQuery(db)
 	rating := po.RatingPO{
 		UserID:      3,
-		RelatedType: model.RelatedTypeTeacher,
+		RelatedType: string(types.RelatedTypeTeacher),
 		RelatedID:   1,
 		Rating:      5,
 	}
 	err := query.CreateRating(ctx, rating)
 	assert.Nil(t, err)
 
-	info, err := query.GetRatingInfo(ctx, model.RelatedTypeTeacher, 1)
+	info, err := query.GetRatingInfo(ctx, types.RelatedTypeTeacher, 1)
 	assert.Nil(t, err)
 	assert.Len(t, info.RatingDist, 1)
 	assert.Equal(t, int64(1), info.Count)
@@ -63,14 +63,14 @@ func TestRatingQuery_UpdateRating(t *testing.T) {
 	rating := po.RatingPO{
 		Model:       gorm.Model{ID: 3},
 		UserID:      1,
-		RelatedType: model.RelatedTypeTeacher,
+		RelatedType: string(types.RelatedTypeTeacher),
 		RelatedID:   2,
 		Rating:      3,
 	}
 	err := query.UpdateRating(ctx, rating)
 	assert.Nil(t, err)
 
-	info, err := query.GetRatingInfo(ctx, model.RelatedTypeTeacher, 2)
+	info, err := query.GetRatingInfo(ctx, types.RelatedTypeTeacher, 2)
 	assert.Nil(t, err)
 	assert.Len(t, info.RatingDist, 1)
 	assert.Equal(t, int64(1), info.Count)
@@ -83,14 +83,14 @@ func TestRatingQuery_DeleteRating(t *testing.T) {
 	query := NewRatingQuery(db)
 	rating := po.RatingPO{
 		UserID:      1,
-		RelatedType: model.RelatedTypeTeacher,
+		RelatedType: string(types.RelatedTypeTeacher),
 		RelatedID:   2,
 		Rating:      3,
 	}
 	err := query.DeleteRating(ctx, rating)
 	assert.Nil(t, err)
 
-	info, err := query.GetRatingInfo(ctx, model.RelatedTypeTeacher, 2)
+	info, err := query.GetRatingInfo(ctx, types.RelatedTypeTeacher, 2)
 	assert.Nil(t, err)
 	assert.Len(t, info.RatingDist, 0)
 	assert.Equal(t, int64(0), info.Count)

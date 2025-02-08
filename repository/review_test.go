@@ -8,8 +8,8 @@ import (
 	"gorm.io/gorm"
 
 	"jcourse_go/dal"
-	"jcourse_go/model/model"
 	"jcourse_go/model/po"
+	"jcourse_go/model/types"
 )
 
 func TestReviewQuery_GetReview(t *testing.T) {
@@ -52,7 +52,7 @@ func TestReviewQuery_CreateReview_normal(t *testing.T) {
 		assert.Nil(t, err)
 		assert.NotZero(t, id)
 
-		rating, err := ratingQuery.GetRatingInfo(ctx, model.RelatedTypeCourse, 2)
+		rating, err := ratingQuery.GetRatingInfo(ctx, types.RelatedTypeCourse, 2)
 		assert.Nil(t, err)
 		assert.Equal(t, int64(2), rating.Count)
 		assert.Equal(t, float64(5), rating.Average)
@@ -85,7 +85,7 @@ func TestReviewQuery_UpdateReview(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, int64(5), reviews[0].Rating)
 
-		info, err := ratingQuery.GetRatingInfo(ctx, model.RelatedTypeCourse, 1)
+		info, err := ratingQuery.GetRatingInfo(ctx, types.RelatedTypeCourse, 1)
 		if err != nil {
 			return
 		}
@@ -110,7 +110,7 @@ func TestReviewQuery_UpdateReview(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, int64(1), reviews[0].Rating)
 
-		info, err := ratingQuery.GetRatingInfo(ctx, model.RelatedTypeCourse, 3)
+		info, err := ratingQuery.GetRatingInfo(ctx, types.RelatedTypeCourse, 3)
 		if err != nil {
 			return
 		}
@@ -140,7 +140,7 @@ func TestReviewQuery_DeleteReview(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Len(t, reviews, 0)
 
-		info, err := ratingQuery.GetRatingInfo(ctx, model.RelatedTypeCourse, 1)
+		info, err := ratingQuery.GetRatingInfo(ctx, types.RelatedTypeCourse, 1)
 		if err != nil {
 			return
 		}
