@@ -65,3 +65,21 @@ func ConvertReviewDTOToPO(dto dto.UpdateReviewDTO, userID int64) po.ReviewPO {
 		Grade:       dto.Grade,
 	}
 }
+
+func PackReviewWithReaction(review *model.Review, currentUserID int64, reactions []po.ReviewReactionPO) {
+	if review == nil {
+		return
+	}
+	if review.Reaction.TotalReactions == nil {
+		review.Reaction.TotalReactions = make(map[string]int64)
+	}
+	if review.Reaction.MyReactions == nil {
+		review.Reaction.MyReactions = make(map[string]int64)
+	}
+	for _, reaction := range reactions {
+		if reaction.UserID == currentUserID {
+			review.Reaction.MyReactions[reaction.Reaction] = int64(reaction.ID)
+		}
+		review.Reaction.TotalReactions[reaction.Reaction] += 1
+	}
+}

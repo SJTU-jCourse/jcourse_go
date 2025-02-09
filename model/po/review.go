@@ -36,10 +36,9 @@ func (po *ReviewRevisionPO) TableName() string {
 
 type ReviewReactionPO struct {
 	gorm.Model
-	ReviewID    int64  `gorm:"index"`
-	UserID      int64  `gorm:"index"`
-	Reaction    string `gorm:"index"`
-	IsAnonymous bool
+	ReviewID int64  `gorm:"index"`
+	UserID   int64  `gorm:"index"`
+	Reaction string `gorm:"index"`
 }
 
 func (po *ReviewReactionPO) TableName() string {

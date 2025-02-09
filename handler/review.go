@@ -22,11 +22,19 @@ func GetReviewDetailHandler(c *gin.Context) {
 		return
 	}
 
-	reviews, err := service.GetReviewList(c, model.ReviewFilterForQuery{ReviewID: request.ReviewID})
+	currentUserID := int64(0)
+	user := middleware.GetCurrentUser(c)
+	if user != nil {
+		currentUserID = user.ID
+	}
+
+	reviews, err := service.GetReviewList(c, user, model.ReviewFilterForQuery{ReviewID: request.ReviewID})
 	if err != nil || len(reviews) == 0 {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 		return
 	}
+
+	converter.RemoveReviewsUserInfo(reviews, currentUserID, true)
 
 	c.JSON(http.StatusOK, reviews[0])
 }
@@ -62,7 +70,7 @@ func GetReviewListHandler(c *gin.Context) {
 		currentUserID = user.ID
 	}
 
-	reviews, err := service.GetReviewList(c, filter)
+	reviews, err := service.GetReviewList(c, user, filter)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 		return
@@ -136,7 +144,13 @@ func DeleteReviewHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	err := service.DeleteReview(c, request.ReviewID)
+	user := middleware.GetCurrentUser(c)
+	if user == nil {
+		c.JSON(http.StatusUnauthorized, dto.BaseResponse{Message: "用户未登录！"})
+		return
+	}
+
+	err := service.DeleteReview(c, request.ReviewID, user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
 		return

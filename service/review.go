@@ -34,7 +34,7 @@ func buildReviewDBOptionFromFilter(query repository.IReviewQuery, filter model.R
 	return opts
 }
 
-func GetReviewList(ctx context.Context, filter model.ReviewFilterForQuery) ([]model.Review, error) {
+func GetReviewList(ctx context.Context, currentUser *model.UserDetail, filter model.ReviewFilterForQuery) ([]model.Review, error) {
 	reviewQuery := repository.NewReviewQuery(dal.GetDBClient())
 	opts := buildReviewDBOptionFromFilter(reviewQuery, filter)
 	reviewPOs, err := reviewQuery.GetReview(ctx, opts...)
@@ -44,10 +44,12 @@ func GetReviewList(ctx context.Context, filter model.ReviewFilterForQuery) ([]mo
 
 	courseIDs := make([]int64, 0)
 	userIDs := make([]int64, 0)
+	reviewIDs := make([]int64, 0)
 
 	for _, review := range reviewPOs {
 		courseIDs = append(courseIDs, review.CourseID)
 		userIDs = append(userIDs, review.UserID)
+		reviewIDs = append(reviewIDs, int64(review.ID))
 	}
 
 	courseMap, err := GetCourseByIDs(ctx, courseIDs)
@@ -55,6 +57,11 @@ func GetReviewList(ctx context.Context, filter model.ReviewFilterForQuery) ([]mo
 		return nil, err
 	}
 	userMap, err := GetUserByIDs(ctx, userIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	reactionMap, err := GetReviewReactionMap(ctx, reviewIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -72,6 +79,12 @@ func GetReviewList(ctx context.Context, filter model.ReviewFilterForQuery) ([]mo
 		if ok {
 			converter.PackReviewWithUser(&review, user)
 		}
+
+		reactions, ok := reactionMap[review.ID]
+		if ok {
+			converter.PackReviewWithReaction(&review, currentUser.ID, reactions)
+		}
+
 		result = append(result, review)
 	}
 
@@ -114,9 +127,19 @@ func UpdateReview(ctx context.Context, review dto.UpdateReviewDTO, user *model.U
 	return nil
 }
 
-func DeleteReview(ctx context.Context, reviewID int64) error {
+func DeleteReview(ctx context.Context, reviewID int64, user *model.UserDetail) error {
 	query := repository.NewReviewQuery(dal.GetDBClient())
-	err := query.DeleteReview(ctx, repository.WithID(reviewID))
+	reviews, err := query.GetReview(ctx, repository.WithID(reviewID))
+	if err != nil {
+		return err
+	}
+	if len(reviews) == 0 {
+		return errors.New("no review found")
+	}
+	if user != nil && reviews[0].UserID != user.ID {
+		return errors.New("no permission to delete review")
+	}
+	err = query.DeleteReview(ctx, repository.WithID(reviewID))
 	if err != nil {
 		return err
 	}
