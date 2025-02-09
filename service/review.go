@@ -82,7 +82,11 @@ func GetReviewList(ctx context.Context, currentUser *model.UserDetail, filter mo
 
 		reactions, ok := reactionMap[review.ID]
 		if ok {
-			converter.PackReviewWithReaction(&review, currentUser.ID, reactions)
+			currentUserID := int64(0)
+			if currentUser != nil {
+				currentUserID = currentUser.ID
+			}
+			converter.PackReviewWithReaction(&review, currentUserID, reactions)
 		}
 
 		result = append(result, review)
