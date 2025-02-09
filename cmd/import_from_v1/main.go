@@ -39,6 +39,7 @@ var (
 	reviewMap         map[int64]ReviewV1
 	reviewRevisionMap map[int64]ReviewRevisionV1
 	userPointMap      map[int64]UserPointV1
+	reviewReactionMap map[int64]ReviewReactionV1
 
 	oldToNewCourseMap  map[int64]po.CoursePO  // old id -> new model
 	oldToNewTeacherMap map[int64]po.TeacherPO // old id -> new model
@@ -50,6 +51,7 @@ var (
 	newReviewMap         map[int64]po.ReviewPO          // uid -> new
 	newReviewRevisionMap map[int64]po.ReviewRevisionPO  // uid -> new
 	newUserPointMap      map[int64]po.UserPointDetailPO // uid -> new
+	newReviewReactionMap map[int64]po.ReviewReactionPO  // uid -> new
 )
 
 func makeCourseKey(course po.CoursePO) string {
@@ -137,6 +139,15 @@ func loadOldReviewRevision() {
 	}
 }
 
+func loadOldReviewReaction() {
+	reviewReactions := make([]ReviewReactionV1, 0)
+	oldDB.Model(&ReviewReactionV1{}).Where("reaction != 0").Find(&reviewReactions)
+	reviewReactionMap = make(map[int64]ReviewReactionV1)
+	for _, reviewReaction := range reviewReactions {
+		reviewReactionMap[reviewReaction.ID] = reviewReaction
+	}
+}
+
 func loadNewBaseCourse() {
 	baseCourses := make([]po.BaseCoursePO, 0)
 	newDB.Model(&po.BaseCoursePO{}).Find(&baseCourses)
@@ -197,6 +208,15 @@ func loadNewReviewRevision() {
 	newReviewRevisionMap = make(map[int64]po.ReviewRevisionPO)
 	for _, reviewRevision := range reviewRevisions {
 		newReviewRevisionMap[int64(reviewRevision.ID)] = reviewRevision
+	}
+}
+
+func loadNewReviewReaction() {
+	reviewReactions := make([]po.ReviewReactionPO, 0)
+	newDB.Model(&po.ReviewReactionPO{}).Find(&reviewReactions)
+	newReviewReactionMap = make(map[int64]po.ReviewReactionPO)
+	for _, reviewReaction := range reviewReactions {
+		newReviewReactionMap[int64(reviewReaction.ID)] = reviewReaction
 	}
 }
 
@@ -294,6 +314,21 @@ func BuildUserPointFromOld(point UserPointV1) po.UserPointDetailPO {
 	}
 }
 
+func BuildNewReviewReactionFromOld(reaction ReviewReactionV1) po.ReviewReactionPO {
+	reactionMapping := map[int64]string{
+		1:  "like",
+		-1: "dislike",
+	}
+	return po.ReviewReactionPO{
+		Model: gorm.Model{
+			ID: uint(reaction.ID),
+		},
+		UserID:   reaction.UserID,
+		ReviewID: reaction.ReviewID,
+		Reaction: reactionMapping[reaction.Reaction],
+	}
+}
+
 func main() {
 	_ = godotenv.Load()
 	oldDB = InitOldDB()
@@ -309,6 +344,7 @@ func main() {
 	loadOldUserPoint()
 	loadOldReview()
 	loadOldReviewRevision()
+	loadOldReviewReaction()
 
 	loadNewBaseCourse()
 	loadNewCourse()
@@ -317,6 +353,7 @@ func main() {
 	loadNewUserPoint()
 	loadNewReview()
 	loadNewReviewRevision()
+	loadNewReviewReaction()
 
 	// course、teacher 如果新的没有，需要添加
 	oldToNewTeacherMap = make(map[int64]po.TeacherPO)
@@ -419,6 +456,21 @@ func main() {
 			}
 			// println("created review revision ", newReviewRevision.ID, newReviewRevision.CourseID, newReviewRevision.UserID, newReviewRevision.CreatedAt.Unix())
 			newReviewRevisionMap[int64(newReviewRevision.ID)] = newReviewRevision
+		}
+	}
+
+	// review reaction 导入
+
+	for _, reviewReaction := range reviewReactionMap {
+		newReviewReaction := BuildNewReviewReactionFromOld(reviewReaction)
+		if _, ok := newReviewReactionMap[int64(newReviewReaction.ID)]; !ok {
+			err := newDB.Model(&po.ReviewReactionPO{}).Clauses(clause.OnConflict{DoNothing: true}).Create(&newReviewReaction).Error
+			if err != nil {
+				println("create review reaction error", newReviewReaction.ReviewID, newReviewReaction.UserID, err.Error())
+				continue
+			}
+			// println("created review reaction ", newReviewReaction.ID, newReviewReaction.CourseID, newReviewReaction.UserID, newReviewReaction.CreatedAt.Unix())
+			newReviewReactionMap[int64(newReviewReaction.ID)] = newReviewReaction
 		}
 	}
 }

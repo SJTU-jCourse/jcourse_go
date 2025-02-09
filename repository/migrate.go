@@ -11,7 +11,7 @@ func Migrate(db *gorm.DB) error {
 		&po.BaseCoursePO{}, &po.CoursePO{}, &po.TeacherPO{}, &po.CourseCategoryPO{},
 		&po.OfferedCoursePO{}, &po.OfferedCourseTeacherPO{},
 		&po.TrainingPlanPO{}, &po.TrainingPlanCoursePO{},
-		&po.ReviewPO{}, &po.RatingPO{}, &po.ReviewRevisionPO{},
+		&po.ReviewPO{}, &po.RatingPO{}, &po.ReviewRevisionPO{}, &po.ReviewReactionPO{},
 		&po.SettingPO{}, &po.UserPointDetailPO{}, &po.StatisticPO{}, &po.StatisticDataPO{})
 	if err != nil {
 		return err

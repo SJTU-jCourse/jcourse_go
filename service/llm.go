@@ -84,7 +84,7 @@ func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummar
 		},
 	}
 
-	reviews, err := GetReviewList(ctx, filter)
+	reviews, err := GetReviewList(ctx, nil, filter)
 	if err != nil {
 
 		return nil, err
@@ -149,7 +149,7 @@ func VectorizeCourse(ctx context.Context, courseID int64) error {
 		},
 	}
 
-	reviews, err := GetReviewList(ctx, filter)
+	reviews, err := GetReviewList(ctx, nil, filter)
 	if err != nil {
 
 		return err
