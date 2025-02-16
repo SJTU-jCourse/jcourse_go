@@ -12,7 +12,7 @@ type SettingPO struct {
 	Key       string `gorm:"index:uniq_setting,unique"`
 	Type      string
 	Value     string
-	UpdatedBy int64 // user id
+	UpdatedBy int64 `gorm:"index"` // user id
 	Client    bool  // should client side fetch
 }
 

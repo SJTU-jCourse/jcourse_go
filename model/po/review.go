@@ -17,7 +17,10 @@ type ReviewPO struct {
 	Rating      int64  `gorm:"index"`
 	Semester    string `gorm:"index"`
 	IsAnonymous bool
-	Grade       string      // 成绩
+	Grade       string // 成绩
+
+	Reaction []ReviewReactionPO `gorm:"foreignKey:ReviewID"`
+
 	SearchIndex SearchIndex `gorm:"->:false;<-"`
 }
 
@@ -28,7 +31,6 @@ func (po *ReviewPO) TableName() string {
 type ReviewRevisionPO struct {
 	ID        int64     `gorm:"primarykey"`
 	CreatedAt time.Time `gorm:"index"`
-	UpdatedAt time.Time `gorm:"index"`
 
 	ReviewID    int64    `gorm:"index"`
 	Review      ReviewPO `gorm:"constraint:OnDelete:CASCADE;"`
@@ -41,8 +43,6 @@ type ReviewRevisionPO struct {
 	Semester    string
 	IsAnonymous bool
 	Grade       string // 成绩
-
-	Reaction []ReviewReactionPO `gorm:"foreignKey:ReviewID"`
 }
 
 func (po *ReviewRevisionPO) TableName() string {
@@ -52,7 +52,6 @@ func (po *ReviewRevisionPO) TableName() string {
 type ReviewReactionPO struct {
 	ID        int64     `gorm:"primarykey"`
 	CreatedAt time.Time `gorm:"index"`
-	UpdatedAt time.Time `gorm:"index"`
 
 	ReviewID int64    `gorm:"index"`
 	Review   ReviewPO `gorm:"constraint:OnDelete:CASCADE;"`

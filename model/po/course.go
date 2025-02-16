@@ -60,7 +60,6 @@ func (po *CourseCategoryPO) TableName() string {
 type OfferedCoursePO struct {
 	ID        int64 `gorm:"primarykey"`
 	CreatedAt time.Time
-	UpdatedAt time.Time
 
 	CourseID      int64     `gorm:"index;index:uniq_offered_course,unique"`
 	Course        CoursePO  `gorm:"constraint:OnDelete:CASCADE;"`
@@ -80,7 +79,6 @@ func (po *OfferedCoursePO) TableName() string {
 type OfferedCourseTeacherPO struct {
 	ID        int64 `gorm:"primarykey"`
 	CreatedAt time.Time
-	UpdatedAt time.Time
 
 	CourseID        int64           `gorm:"index"`
 	Course          CoursePO        `gorm:"constraint:OnDelete:CASCADE;"`

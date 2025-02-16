@@ -7,7 +7,6 @@ import (
 type StatisticPO struct {
 	ID        int64     `gorm:"primarykey"`
 	CreatedAt time.Time `gorm:"index"`
-	UpdatedAt time.Time `gorm:"index"`
 
 	UVCount      int64
 	PVCount      int64
@@ -22,7 +21,6 @@ type StatisticPO struct {
 type StatisticDataPO struct {
 	ID        int64     `gorm:"primarykey"`
 	CreatedAt time.Time `gorm:"index"`
-	UpdatedAt time.Time `gorm:"index"`
 
 	StatisticID int64  `gorm:"index:,unique"`
 	Date        string `gorm:"index:,unique"` // redundant column for speed up

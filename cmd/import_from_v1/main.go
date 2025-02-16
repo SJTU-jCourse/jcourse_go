@@ -283,10 +283,12 @@ func BuildNewReviewFormOld(review ReviewV1) po.ReviewPO {
 }
 
 func BuildNewReviewRevisionFromOld(revision ReviewRevisionV1) po.ReviewRevisionPO {
+	newCourse := oldToNewCourseMap[revision.CourseID]
+
 	return po.ReviewRevisionPO{
 		ID:        revision.ID,
 		CreatedAt: revision.CreatedAt,
-		CourseID:  revision.CourseID,
+		CourseID:  newCourse.ID,
 		ReviewID:  revision.ReviewID,
 		UserID:    revision.UserID,
 		Comment:   revision.Comment,
