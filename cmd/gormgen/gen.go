@@ -21,9 +21,9 @@ func main() {
 	g.UseDB(db) // reuse your gorm db
 
 	// Generate basic type-safe DAO API for struct `model.User` following conventions
-	g.ApplyBasic(po.UserPO{},
+	g.ApplyBasic(po.UserPO{}, po.UserPointDetailPO{},
 		po.TeacherPO{}, po.CoursePO{}, po.BaseCoursePO{}, po.OfferedCoursePO{}, po.TrainingPlanPO{},
-		po.ReviewPO{}, po.RatingPO{},
+		po.ReviewPO{}, po.RatingPO{}, po.ReviewReactionPO{}, po.ReviewRevisionPO{},
 		po.SettingPO{}, po.StatisticPO{})
 
 	// Generate the code
