@@ -46,9 +46,9 @@ func TestBaseCourseQuery_GetCourseByIDs(t *testing.T) {
 		courseMap, err := query.GetBaseCoursesByIDs(ctx, []int64{1, 2})
 		assert.Nil(t, err)
 		assert.Len(t, courseMap, 2)
-		assert.Equal(t, uint(1), courseMap[1].ID)
+		assert.Equal(t, 1, int(courseMap[1].ID))
 		assert.Equal(t, "MARX1001", courseMap[1].Code)
-		assert.Equal(t, uint(2), courseMap[2].ID)
+		assert.Equal(t, 2, int(courseMap[2].ID))
 		assert.Equal(t, "CS1500", courseMap[2].Code)
 	})
 	t.Run("not found", func(t *testing.T) {
@@ -108,9 +108,9 @@ func TestCourseQuery_GetCourseByIDs(t *testing.T) {
 	courseMap, err := query.GetCourseByIDs(ctx, []int64{1, 2})
 	assert.Nil(t, err)
 	assert.Len(t, courseMap, 2)
-	assert.Equal(t, uint(1), courseMap[1].ID)
+	assert.Equal(t, 1, int(courseMap[1].ID))
 	assert.Equal(t, "MARX1001", courseMap[1].Code)
-	assert.Equal(t, uint(2), courseMap[2].ID)
+	assert.Equal(t, 2, int(courseMap[2].ID))
 	assert.Equal(t, "MARX1001", courseMap[2].Code)
 }
 

@@ -1,10 +1,16 @@
 package po
 
-import "gorm.io/gorm"
+import (
+	"time"
+)
 
 type RatingPO struct {
-	gorm.Model
+	ID        int64     `gorm:"primarykey"`
+	CreatedAt time.Time `gorm:"index"`
+	UpdatedAt time.Time
+
 	UserID      int64  `gorm:"index;index:uniq_rating,unique"`
+	User        UserPO `gorm:"constraint:OnDelete:CASCADE;"`
 	RelatedType string `gorm:"index;index:uniq_rating,unique"`
 	RelatedID   int64  `gorm:"index;index:uniq_rating,unique"`
 	Rating      int64  `gorm:"index"`

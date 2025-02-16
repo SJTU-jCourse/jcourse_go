@@ -1,11 +1,14 @@
 package po
 
 import (
-	"gorm.io/gorm"
+	"time"
 )
 
 type StatisticPO struct {
-	gorm.Model
+	ID        int64     `gorm:"primarykey"`
+	CreatedAt time.Time `gorm:"index"`
+	UpdatedAt time.Time `gorm:"index"`
+
 	UVCount      int64
 	PVCount      int64
 	Date         string `gorm:"index:,unique"` // 异步落盘, yyyy-mm-dd
@@ -17,7 +20,10 @@ type StatisticPO struct {
 
 // StatisticDataPO uv bitmap, etc, separate date and count
 type StatisticDataPO struct {
-	gorm.Model
+	ID        int64     `gorm:"primarykey"`
+	CreatedAt time.Time `gorm:"index"`
+	UpdatedAt time.Time `gorm:"index"`
+
 	StatisticID int64  `gorm:"index:,unique"`
 	Date        string `gorm:"index:,unique"` // redundant column for speed up
 	UVData      []byte

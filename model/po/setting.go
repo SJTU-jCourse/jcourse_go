@@ -1,9 +1,14 @@
 package po
 
-import "gorm.io/gorm"
+import (
+	"time"
+)
 
 type SettingPO struct {
-	gorm.Model
+	ID        int64     `gorm:"primarykey"`
+	CreatedAt time.Time `gorm:"index"`
+	UpdatedAt time.Time `gorm:"index"`
+
 	Key       string `gorm:"index:uniq_setting,unique"`
 	Type      string
 	Value     string

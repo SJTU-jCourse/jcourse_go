@@ -22,14 +22,14 @@ const Semester = "2024-2025-2"
 var (
 	db                         *gorm.DB
 	baseCourseKeyMap           = make(map[string]po.BaseCoursePO)
-	baseCourseIDMap            = make(map[uint]po.BaseCoursePO)
+	baseCourseIDMap            = make(map[int64]po.BaseCoursePO)
 	courseKeyMap               = make(map[string]po.CoursePO)
-	courseIDMap                = make(map[uint]po.CoursePO)
+	courseIDMap                = make(map[int64]po.CoursePO)
 	teacherKeyMap              = make(map[string]po.TeacherPO)
-	teacherIDMap               = make(map[uint]po.TeacherPO)
+	teacherIDMap               = make(map[int64]po.TeacherPO)
 	courseCategoryMap          = make(map[string]po.CourseCategoryPO)
 	offeredCourseKeyMap        = make(map[string]po.OfferedCoursePO)
-	offeredCourseIDMap         = make(map[uint]po.OfferedCoursePO)
+	offeredCourseIDMap         = make(map[int64]po.OfferedCoursePO)
 	offeredCourseTeacherKeyMap = make(map[string]po.OfferedCourseTeacherPO)
 )
 
@@ -402,7 +402,7 @@ func queryAllCourseCategory() {
 		return
 	}
 	for _, courseCategory := range courseCategories {
-		course, ok := courseIDMap[uint(courseCategory.CourseID)]
+		course, ok := courseIDMap[(courseCategory.CourseID)]
 		if !ok {
 			continue
 		}

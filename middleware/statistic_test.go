@@ -3,8 +3,6 @@ package middleware
 import (
 	"context"
 	"io"
-	"jcourse_go/constant"
-	"jcourse_go/model/model"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
@@ -13,6 +11,9 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"jcourse_go/constant"
+	"jcourse_go/model/model"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"

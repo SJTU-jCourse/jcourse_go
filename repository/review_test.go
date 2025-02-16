@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"gorm.io/gorm"
 
 	"jcourse_go/dal"
 	"jcourse_go/model/po"
@@ -68,7 +67,7 @@ func TestReviewQuery_UpdateReview(t *testing.T) {
 
 	t.Run("duplicate", func(t *testing.T) {
 		reviewPO := po.ReviewPO{
-			Model:       gorm.Model{ID: 1},
+			ID:          1,
 			CourseID:    2,
 			UserID:      1,
 			Comment:     "",
@@ -95,7 +94,7 @@ func TestReviewQuery_UpdateReview(t *testing.T) {
 
 	t.Run("normal", func(t *testing.T) {
 		reviewPO := po.ReviewPO{
-			Model:       gorm.Model{ID: 1},
+			ID:          1,
 			CourseID:    3,
 			UserID:      1,
 			Comment:     "",

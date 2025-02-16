@@ -1,9 +1,14 @@
 package po
 
-import "gorm.io/gorm"
+import (
+	"time"
+)
 
 type TrainingPlanPO struct {
-	gorm.Model
+	ID        int64     `gorm:"primarykey"`
+	CreatedAt time.Time `gorm:"index"`
+	UpdatedAt time.Time `gorm:"index"`
+
 	Degree     string  `gorm:"index;index:uniq_training_plan,unique"` // 学位层次（e.g. 本科）
 	Major      string  `gorm:"index;index:uniq_training_plan,unique"`
 	Department string  `gorm:"index;index:uniq_training_plan,unique"`
@@ -16,6 +21,8 @@ type TrainingPlanPO struct {
 	RatingCount int64   `gorm:"index;default:0;not null"`
 	RatingAvg   float64 `gorm:"index;default:0;not null"`
 
+	BaseCourses []TrainingPlanCoursePO `gorm:"foreignKey:TrainingPlanID"`
+
 	SearchIndex SearchIndex `gorm:"->:false;<-"`
 }
 
@@ -24,9 +31,13 @@ func (po *TrainingPlanPO) TableName() string {
 }
 
 type TrainingPlanCoursePO struct {
-	gorm.Model
-	BaseCourseID   int64 `gorm:"index;index:uniq_training_plan_course,unique"`
-	TrainingPlanID int64 `gorm:"index;index:uniq_training_plan_course,unique"`
+	ID        int64     `gorm:"primarykey"`
+	CreatedAt time.Time `gorm:"index"`
+
+	BaseCourseID   int64          `gorm:"index;index:uniq_training_plan_course,unique"`
+	BaseCourse     BaseCoursePO   `gorm:"constraint:OnDelete:CASCADE;"`
+	TrainingPlanID int64          `gorm:"index;index:uniq_training_plan_course,unique"`
+	TrainingPlan   TrainingPlanPO `gorm:"constraint:OnDelete:CASCADE;"`
 	// SuggestSemester:year+semester e.g. 2023-2024-2
 	SuggestSemester string `gorm:"index;index:uniq_training_plan_course,unique"`
 	Category        string `gorm:"index;"`

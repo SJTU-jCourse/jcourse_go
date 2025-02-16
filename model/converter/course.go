@@ -9,7 +9,7 @@ import (
 
 func ConvertBaseCourseFromPO(po po.BaseCoursePO) model.BaseCourse {
 	return model.BaseCourse{
-		ID:     int64(po.ID),
+		ID:     po.ID,
 		Code:   po.Code,
 		Name:   po.Name,
 		Credit: po.Credit,
@@ -19,7 +19,7 @@ func ConvertBaseCourseFromPO(po po.BaseCoursePO) model.BaseCourse {
 func ConvertCourseSummaryFromPO(po po.CoursePO) model.CourseSummary {
 	return model.CourseSummary{
 		CourseMinimal: model.CourseMinimal{
-			ID: int64(po.ID),
+			ID: po.ID,
 			BaseCourse: model.BaseCourse{
 				Code:   po.Code,
 				Name:   po.Name,

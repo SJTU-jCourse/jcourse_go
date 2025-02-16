@@ -1,9 +1,13 @@
 package po
 
-import "gorm.io/gorm"
+import (
+	"time"
+)
 
 type UserPointDetailPO struct {
-	gorm.Model
+	ID        int64     `gorm:"primarykey"`
+	CreatedAt time.Time `gorm:"index"`
+
 	EventType   string `gorm:"index"`
 	Description string `gorm:"index"`
 	Value       int64  // 积分变动值
