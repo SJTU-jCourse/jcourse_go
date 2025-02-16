@@ -1,9 +1,13 @@
 package po
 
-import "gorm.io/gorm"
+import (
+	"time"
+)
 
 type BaseCoursePO struct {
-	gorm.Model
+	ID        int64 `gorm:"primarykey"`
+	CreatedAt time.Time
+
 	Code   string  `gorm:"index;uniqueIndex"`
 	Name   string  `gorm:"index"`
 	Credit float64 `gorm:"index"`
@@ -14,16 +18,24 @@ func (po *BaseCoursePO) TableName() string {
 }
 
 type CoursePO struct {
-	gorm.Model
-	Code            string  `gorm:"index;index:uniq_course,unique"`
-	Name            string  `gorm:"index"`
-	Credit          float64 `gorm:"index"`
-	MainTeacherID   int64   `gorm:"index;index:uniq_course,unique"`
-	MainTeacherName string  `gorm:"index"`
-	Department      string  `gorm:"index;index:uniq_course,unique"`
+	ID        int64 `gorm:"primarykey"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+
+	Code   string  `gorm:"index;index:uniq_course,unique"`
+	Name   string  `gorm:"index"`
+	Credit float64 `gorm:"index"`
+
+	MainTeacherID   int64     `gorm:"index;index:uniq_course,unique"`
+	MainTeacher     TeacherPO `gorm:"constraint:OnDelete:CASCADE;"`
+	MainTeacherName string    `gorm:"index"`
+	Department      string    `gorm:"index;index:uniq_course,unique"`
 
 	RatingCount int64   `gorm:"index;default:0;not null"`
 	RatingAvg   float64 `gorm:"index;default:0;not null"`
+
+	Categories     []CourseCategoryPO       `gorm:"foreignKey:CourseID"`
+	OfferedCourses []OfferedCourseTeacherPO `gorm:"foreignKey:CourseID"`
 
 	SearchIndex SearchIndex `gorm:"->:false;<-"`
 }
@@ -33,9 +45,12 @@ func (po *CoursePO) TableName() string {
 }
 
 type CourseCategoryPO struct {
-	gorm.Model
-	CourseID int64  `gorm:"index;index:uniq_offered_course_category,unique"`
-	Category string `gorm:"index;index:uniq_offered_course_category,unique"`
+	ID        int64 `gorm:"primarykey"`
+	CreatedAt time.Time
+
+	CourseID int64    `gorm:"index;index:uniq_offered_course_category,unique"`
+	Course   CoursePO `gorm:"constraint:OnDelete:CASCADE;"`
+	Category string   `gorm:"index;index:uniq_offered_course_category,unique"`
 }
 
 func (po *CourseCategoryPO) TableName() string {
@@ -43,12 +58,18 @@ func (po *CourseCategoryPO) TableName() string {
 }
 
 type OfferedCoursePO struct {
-	gorm.Model
-	CourseID      int64  `gorm:"index;index:uniq_offered_course,unique"`
-	MainTeacherID int64  `gorm:"index"`
-	Semester      string `gorm:"index;index:uniq_offered_course,unique"`
-	Language      string `gorm:"index"`
-	Grade         string `gorm:"index"`
+	ID        int64 `gorm:"primarykey"`
+	CreatedAt time.Time
+
+	CourseID      int64     `gorm:"index;index:uniq_offered_course,unique"`
+	Course        CoursePO  `gorm:"constraint:OnDelete:CASCADE;"`
+	MainTeacherID int64     `gorm:"index"`
+	MainTeacher   TeacherPO `gorm:"constraint:OnDelete:CASCADE;"`
+	Semester      string    `gorm:"index;index:uniq_offered_course,unique"`
+	Language      string    `gorm:"index"`
+	Grade         string    `gorm:"index"`
+
+	OfferedCourseTeacher []OfferedCourseTeacherPO `gorm:"foreignKey:OfferedCourseID"`
 }
 
 func (po *OfferedCoursePO) TableName() string {
@@ -56,12 +77,18 @@ func (po *OfferedCoursePO) TableName() string {
 }
 
 type OfferedCourseTeacherPO struct {
-	gorm.Model
-	CourseID        int64  `gorm:"index"`
-	OfferedCourseID int64  `gorm:"index;index:uniq_offered_course_teacher,unique"`
-	MainTeacherID   int64  `gorm:"index"`
-	TeacherID       int64  `gorm:"index;index:uniq_offered_course_teacher,unique"`
-	TeacherName     string `gorm:"index"`
+	ID        int64 `gorm:"primarykey"`
+	CreatedAt time.Time
+
+	CourseID        int64           `gorm:"index"`
+	Course          CoursePO        `gorm:"constraint:OnDelete:CASCADE;"`
+	OfferedCourseID int64           `gorm:"index;index:uniq_offered_course_teacher,unique"`
+	OfferedCourse   OfferedCoursePO `gorm:"constraint:OnDelete:CASCADE;"`
+	MainTeacherID   int64           `gorm:"index"`
+	MainTeacher     TeacherPO       `gorm:"constraint:OnDelete:CASCADE;"`
+	TeacherID       int64           `gorm:"index;index:uniq_offered_course_teacher,unique"`
+	Teacher         TeacherPO       `gorm:"constraint:OnDelete:CASCADE;"`
+	TeacherName     string          `gorm:"index"`
 }
 
 func (po *OfferedCourseTeacherPO) TableName() string {

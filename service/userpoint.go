@@ -99,10 +99,10 @@ func TransferUserPoints(ctx context.Context, senderID int64, receiverID int64, v
 	var senderPO *po.UserPO = nil
 	var receiverPO *po.UserPO = nil
 	for _, user := range userPOs {
-		if user.ID == uint(senderID) {
+		if user.ID == (senderID) {
 			senderPO = &user
 		}
-		if user.ID == uint(receiverID) {
+		if user.ID == (receiverID) {
 			receiverPO = &user
 		}
 	}

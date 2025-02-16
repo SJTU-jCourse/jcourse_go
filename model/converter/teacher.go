@@ -22,7 +22,7 @@ func PackTeacherWithCourses(t *model.TeacherDetail, courses []model.CourseSummar
 
 func ConvertTeacherSummaryFromPO(po po.TeacherPO) model.TeacherSummary {
 	return model.TeacherSummary{
-		ID:         int64(po.ID),
+		ID:         po.ID,
 		Name:       po.Name,
 		Department: po.Department,
 		Picture:    po.Picture,

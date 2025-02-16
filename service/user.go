@@ -84,7 +84,7 @@ func GetUserCount(ctx context.Context, filter model.UserFilterForQuery) (int64, 
 func UpdateUserProfileByID(ctx context.Context, userProfileDTO dto.UserProfileDTO, userID int64) error {
 	userQuery := repository.NewUserQuery(dal.GetDBClient())
 	newUserPO := converter.ConvertUserProfileToPO(userProfileDTO)
-	newUserPO.ID = uint(userID)
+	newUserPO.ID = userID
 	errUpdate := userQuery.UpdateUser(ctx, newUserPO)
 	if errUpdate != nil {
 		return errUpdate

@@ -14,19 +14,19 @@ import (
 func createTestBaseCourse(db *gorm.DB) error {
 	baseCourses := []po.BaseCoursePO{
 		{
-			Model:  gorm.Model{ID: 1},
+			ID:     1,
 			Code:   "MARX1001",
 			Name:   "思想道德修养与法律基础",
 			Credit: 3,
 		},
 		{
-			Model:  gorm.Model{ID: 2},
+			ID:     2,
 			Code:   "CS1500",
 			Name:   "计算机科学导论",
 			Credit: 4,
 		},
 		{
-			Model:  gorm.Model{ID: 3},
+			ID:     3,
 			Code:   "CS2500",
 			Name:   "算法与复杂性",
 			Credit: 2,
@@ -38,7 +38,7 @@ func createTestBaseCourse(db *gorm.DB) error {
 func createTestTeacher(db *gorm.DB) error {
 	teachers := []po.TeacherPO{
 		{
-			Model:      gorm.Model{ID: 1},
+			ID:         1,
 			Code:       "10001",
 			Name:       "高女士",
 			Email:      "gaoxiaofeng@example.com",
@@ -48,7 +48,7 @@ func createTestTeacher(db *gorm.DB) error {
 			Title:      "教授",
 		},
 		{
-			Model:      gorm.Model{ID: 2},
+			ID:         2,
 			Code:       "10002",
 			Name:       "潘老师",
 			Email:      "panli@example.com",
@@ -58,7 +58,7 @@ func createTestTeacher(db *gorm.DB) error {
 			Title:      "教授",
 		},
 		{
-			Model:      gorm.Model{ID: 3},
+			ID:         3,
 			Code:       "10003",
 			Name:       "梁女士",
 			Email:      "liangqin@example.com",
@@ -68,7 +68,7 @@ func createTestTeacher(db *gorm.DB) error {
 			Title:      "教授",
 		},
 		{
-			Model:      gorm.Model{ID: 4},
+			ID:         4,
 			Code:       "10004",
 			Name:       "赵先生",
 			Email:      "zhaohao@example.com",
@@ -84,7 +84,7 @@ func createTestTeacher(db *gorm.DB) error {
 func createTestCourse(db *gorm.DB) error {
 	courses := []po.CoursePO{
 		{
-			Model:           gorm.Model{ID: 1},
+			ID:              1,
 			Code:            "MARX1001",
 			Name:            "思想道德修养与法律基础",
 			Credit:          3,
@@ -93,7 +93,7 @@ func createTestCourse(db *gorm.DB) error {
 			Department:      "MARX",
 		},
 		{
-			Model:           gorm.Model{ID: 2},
+			ID:              2,
 			Code:            "MARX1001",
 			Name:            "思想道德修养与法律基础",
 			Credit:          3,
@@ -102,7 +102,7 @@ func createTestCourse(db *gorm.DB) error {
 			Department:      "MARX",
 		},
 		{
-			Model:           gorm.Model{ID: 3},
+			ID:              3,
 			Code:            "CS1500",
 			Name:            "计算机科学导论",
 			Credit:          3,
@@ -111,7 +111,7 @@ func createTestCourse(db *gorm.DB) error {
 			Department:      "SEIEE",
 		},
 		{
-			Model:           gorm.Model{ID: 4},
+			ID:              4,
 			Code:            "CS2500",
 			Name:            "算法与复杂性",
 			Credit:          3,
@@ -146,7 +146,7 @@ func createCourseCategories(db *gorm.DB) error {
 func createTrainingPlan(db *gorm.DB) error {
 	trainingPlans := []po.TrainingPlanPO{
 		{
-			Model:      gorm.Model{ID: 1},
+			ID:         1,
 			Degree:     "本科",
 			Department: "SEIEE",
 			EntryYear:  "2020",
@@ -183,17 +183,17 @@ func createTrainingPlan(db *gorm.DB) error {
 func createTestUser(db *gorm.DB) error {
 	users := []po.UserPO{
 		{
-			Model:    gorm.Model{ID: 1},
+			ID:       1,
 			Username: "test1",
 			Email:    "test1@example.com",
 		},
 		{
-			Model:    gorm.Model{ID: 2},
+			ID:       2,
 			Username: "test2",
 			Email:    "test2@example.com",
 		},
 		{
-			Model:    gorm.Model{ID: 3},
+			ID:       3,
 			Username: "test3",
 			Email:    "test3@example.com",
 		},
@@ -205,14 +205,14 @@ func createTestUser(db *gorm.DB) error {
 func createTestReview(db *gorm.DB) error {
 	reviews := []po.ReviewPO{
 		{
-			Model:    gorm.Model{ID: 1},
+			ID:       1,
 			CourseID: 1,
 			UserID:   1,
 			Comment:  "test review",
 			Rating:   5,
 		},
 		{
-			Model:    gorm.Model{ID: 2},
+			ID:       2,
 			CourseID: 2,
 			UserID:   1,
 			Comment:  "test review",
@@ -225,21 +225,21 @@ func createTestReview(db *gorm.DB) error {
 	}
 	ratings := []po.RatingPO{
 		{
-			Model:       gorm.Model{ID: 1},
+			ID:          1,
 			Rating:      5,
 			RelatedID:   1,
 			UserID:      1,
 			RelatedType: string(types.RelatedTypeCourse),
 		},
 		{
-			Model:       gorm.Model{ID: 2},
+			ID:          2,
 			Rating:      5,
 			RelatedID:   2,
 			UserID:      1,
 			RelatedType: string(types.RelatedTypeCourse),
 		},
 		{
-			Model:       gorm.Model{ID: 3},
+			ID:          3,
 			Rating:      5,
 			RelatedID:   2,
 			UserID:      1,

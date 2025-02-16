@@ -214,7 +214,7 @@ func (o *OfferedCourseQuery) GetOfferedCourseTeacherGroup(ctx context.Context, o
 			val = make([]po.TeacherPO, 0)
 		}
 		teacher := po.TeacherPO{Name: courseTeacher.TeacherName}
-		teacher.ID = uint(courseTeacher.TeacherID)
+		teacher.ID = courseTeacher.TeacherID
 		val = append(val, teacher)
 		courseTeacherMap[courseTeacher.OfferedCourseID] = val
 	}

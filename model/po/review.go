@@ -1,16 +1,26 @@
 package po
 
-import "gorm.io/gorm"
+import (
+	"time"
+)
 
 type ReviewPO struct {
-	gorm.Model
-	CourseID    int64 `gorm:"index;index:uniq_course_review,unique"`
-	UserID      int64 `gorm:"index;index:uniq_course_review,unique"`
+	ID        int64     `gorm:"primarykey"`
+	CreatedAt time.Time `gorm:"index"`
+	UpdatedAt time.Time `gorm:"index"`
+
+	CourseID    int64    `gorm:"index;index:uniq_course_review,unique"`
+	Course      CoursePO `gorm:"constraint:OnDelete:CASCADE;"`
+	UserID      int64    `gorm:"index;index:uniq_course_review,unique"`
+	User        UserPO   `gorm:"constraint:OnDelete:CASCADE;"`
 	Comment     string
 	Rating      int64  `gorm:"index"`
 	Semester    string `gorm:"index"`
 	IsAnonymous bool
-	Grade       string      // 成绩
+	Grade       string // 成绩
+
+	Reaction []ReviewReactionPO `gorm:"foreignKey:ReviewID"`
+
 	SearchIndex SearchIndex `gorm:"->:false;<-"`
 }
 
@@ -19,10 +29,15 @@ func (po *ReviewPO) TableName() string {
 }
 
 type ReviewRevisionPO struct {
-	gorm.Model
-	ReviewID    int64 `gorm:"index"`
-	UserID      int64 `gorm:"index"`
-	CourseID    int64 `gorm:"index"`
+	ID        int64     `gorm:"primarykey"`
+	CreatedAt time.Time `gorm:"index"`
+
+	ReviewID    int64    `gorm:"index"`
+	Review      ReviewPO `gorm:"constraint:OnDelete:CASCADE;"`
+	UserID      int64    `gorm:"index"`
+	User        UserPO   `gorm:"constraint:OnDelete:CASCADE;"`
+	CourseID    int64    `gorm:"index"`
+	Course      CoursePO `gorm:"constraint:OnDelete:CASCADE;"`
 	Comment     string
 	Rating      int64
 	Semester    string
@@ -35,25 +50,16 @@ func (po *ReviewRevisionPO) TableName() string {
 }
 
 type ReviewReactionPO struct {
-	gorm.Model
-	ReviewID int64  `gorm:"index"`
-	UserID   int64  `gorm:"index"`
-	Reaction string `gorm:"index"`
+	ID        int64     `gorm:"primarykey"`
+	CreatedAt time.Time `gorm:"index"`
+
+	ReviewID int64    `gorm:"index"`
+	Review   ReviewPO `gorm:"constraint:OnDelete:CASCADE;"`
+	UserID   int64    `gorm:"index"`
+	User     UserPO   `gorm:"constraint:OnDelete:CASCADE;"`
+	Reaction string   `gorm:"index"`
 }
 
 func (po *ReviewReactionPO) TableName() string {
 	return "review_reactions"
-}
-
-type ReviewReplyPO struct {
-	gorm.Model
-	ReviewID       int64 `gorm:"index"`
-	UserID         int64 `gorm:"index"`
-	ReplyToReplyID int64 `gorm:"index"`
-	Comment        string
-	IsAnonymous    bool
-}
-
-func (po *ReviewReplyPO) TableName() string {
-	return "review_replies"
 }

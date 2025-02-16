@@ -1,9 +1,14 @@
 package po
 
-import "gorm.io/gorm"
+import (
+	"time"
+)
 
 type TeacherPO struct {
-	gorm.Model
+	ID        int64     `gorm:"primarykey"`
+	CreatedAt time.Time `gorm:"index"`
+	UpdatedAt time.Time `gorm:"index"`
+
 	Name       string `gorm:"index"`
 	Code       string `gorm:"index:,unique"`
 	Email      string `gorm:"index"`

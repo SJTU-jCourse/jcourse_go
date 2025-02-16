@@ -252,13 +252,11 @@ func BuildNewCourseFromOld(course CourseV1) (po.BaseCoursePO, po.CoursePO) {
 
 func BuildNewUserFromOld(user UserV1) po.UserPO {
 	newUser := po.UserPO{
-		Model: gorm.Model{
-			ID:        uint(user.ID),
-			CreatedAt: user.DateJoined,
-		},
-		Username: user.Username,
-		Password: user.Password,
-		Email:    user.Username,
+		ID:        user.ID,
+		CreatedAt: user.DateJoined,
+		Username:  user.Username,
+		Password:  user.Password,
+		Email:     user.Username,
 	}
 
 	profile := userProfileMap[user.ID]
@@ -269,11 +267,9 @@ func BuildNewUserFromOld(user UserV1) po.UserPO {
 
 func BuildNewReviewFormOld(review ReviewV1) po.ReviewPO {
 	newReview := po.ReviewPO{
-		Model: gorm.Model{
-			ID:        uint(review.ID),
-			CreatedAt: review.CreatedAt,
-			UpdatedAt: review.ModifiedAt,
-		},
+		ID:          review.ID,
+		CreatedAt:   review.CreatedAt,
+		UpdatedAt:   review.ModifiedAt,
 		Comment:     review.Comment,
 		Grade:       review.Score,
 		Rating:      review.Rating,
@@ -287,27 +283,25 @@ func BuildNewReviewFormOld(review ReviewV1) po.ReviewPO {
 }
 
 func BuildNewReviewRevisionFromOld(revision ReviewRevisionV1) po.ReviewRevisionPO {
+	newCourse := oldToNewCourseMap[revision.CourseID]
+
 	return po.ReviewRevisionPO{
-		Model: gorm.Model{
-			ID:        uint(revision.ID),
-			CreatedAt: revision.CreatedAt,
-		},
-		CourseID: revision.CourseID,
-		ReviewID: revision.ReviewID,
-		UserID:   revision.UserID,
-		Comment:  revision.Comment,
-		Rating:   revision.Rating,
-		Grade:    revision.Score,
-		Semester: semesterMap[revision.SemesterID],
+		ID:        revision.ID,
+		CreatedAt: revision.CreatedAt,
+		CourseID:  newCourse.ID,
+		ReviewID:  revision.ReviewID,
+		UserID:    revision.UserID,
+		Comment:   revision.Comment,
+		Rating:    revision.Rating,
+		Grade:     revision.Score,
+		Semester:  semesterMap[revision.SemesterID],
 	}
 }
 
 func BuildUserPointFromOld(point UserPointV1) po.UserPointDetailPO {
 	return po.UserPointDetailPO{
-		Model: gorm.Model{
-			ID:        uint(point.ID),
-			CreatedAt: point.Time,
-		},
+		ID:          point.ID,
+		CreatedAt:   point.Time,
 		UserID:      point.UserID,
 		Description: point.Description,
 		Value:       point.Value,
@@ -320,9 +314,7 @@ func BuildNewReviewReactionFromOld(reaction ReviewReactionV1) po.ReviewReactionP
 		-1: "dislike",
 	}
 	return po.ReviewReactionPO{
-		Model: gorm.Model{
-			ID: uint(reaction.ID),
-		},
+		ID:       reaction.ID,
 		UserID:   reaction.UserID,
 		ReviewID: reaction.ReviewID,
 		Reaction: reactionMapping[reaction.Reaction],

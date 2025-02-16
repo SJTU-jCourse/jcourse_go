@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"gorm.io/gorm"
 
 	"jcourse_go/dal"
 	"jcourse_go/model/po"
@@ -61,7 +60,7 @@ func TestRatingQuery_UpdateRating(t *testing.T) {
 	db := dal.GetDBClient()
 	query := NewRatingQuery(db)
 	rating := po.RatingPO{
-		Model:       gorm.Model{ID: 3},
+		ID:          3,
 		UserID:      1,
 		RelatedType: string(types.RelatedTypeTeacher),
 		RelatedID:   2,
