@@ -19,7 +19,8 @@ type ReviewPO struct {
 	IsAnonymous bool
 	Grade       string // 成绩
 
-	Reaction []ReviewReactionPO `gorm:"foreignKey:ReviewID"`
+	Revivisions []ReviewRevisionPO `gorm:"foreignKey:ReviewID"`
+	Reaction    []ReviewReactionPO `gorm:"foreignKey:ReviewID"`
 
 	SearchIndex SearchIndex `gorm:"->:false;<-"`
 }
@@ -37,7 +38,6 @@ type ReviewRevisionPO struct {
 	UserID      int64    `gorm:"index"`
 	User        UserPO   `gorm:"constraint:OnDelete:CASCADE;"`
 	CourseID    int64    `gorm:"index"`
-	Course      CoursePO `gorm:"constraint:OnDelete:CASCADE;"`
 	Comment     string
 	Rating      int64
 	Semester    string
