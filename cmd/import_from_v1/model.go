@@ -20,6 +20,15 @@ func (p *SemesterV1) TableName() string {
 	return "jcourse_api_semester"
 }
 
+type CategoryV1 struct {
+	ID   int64
+	Name string
+}
+
+func (p *CategoryV1) TableName() string {
+	return "jcourse_api_categories"
+}
+
 type CourseV1 struct {
 	ID            int64
 	Code          string
