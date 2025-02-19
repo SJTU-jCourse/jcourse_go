@@ -327,6 +327,7 @@ func main() {
 	dal.InitDBClient()
 	newDB = dal.GetDBClient()
 
+	println("loading old")
 	loadOldSemester()
 	loadOldDepartment()
 	loadOldTeacher()
@@ -338,6 +339,7 @@ func main() {
 	loadOldReviewRevision()
 	loadOldReviewReaction()
 
+	println("loading new")
 	loadNewBaseCourse()
 	loadNewCourse()
 	loadNewTeacher()
@@ -347,6 +349,8 @@ func main() {
 	loadNewReviewRevision()
 	loadNewReviewReaction()
 
+	println("start import")
+	println("importing teacher")
 	// course、teacher 如果新的没有，需要添加
 	oldToNewTeacherMap = make(map[int64]po.TeacherPO)
 	for _, teacher := range teacherMap {
@@ -364,7 +368,7 @@ func main() {
 			oldToNewTeacherMap[teacher.ID] = newTeacherMap[newTeacher.Code]
 		}
 	}
-
+	println("importing course")
 	oldToNewCourseMap = make(map[int64]po.CoursePO)
 	for _, course := range courseMap {
 		newBaseCourse, newCourse := BuildNewCourseFromOld(course)
@@ -392,7 +396,7 @@ func main() {
 	}
 
 	// user 导入
-
+	println("importing user")
 	for _, user := range userMap {
 		newUser := BuildNewUserFromOld(user)
 		if _, ok := newUserMap[int64(newUser.ID)]; !ok {
@@ -407,7 +411,7 @@ func main() {
 	}
 
 	// user point 导入
-
+	println("importing user point")
 	for _, userPoint := range userPointMap {
 		newUserPoint := BuildUserPointFromOld(userPoint)
 		if _, ok := newUserPointMap[int64(newUserPoint.ID)]; !ok {
@@ -422,7 +426,7 @@ func main() {
 	}
 
 	// review 导入
-
+	println("importing review")
 	for _, review := range reviewMap {
 		newReview := BuildNewReviewFormOld(review)
 		if _, ok := newReviewMap[int64(newReview.ID)]; !ok {
@@ -437,7 +441,7 @@ func main() {
 	}
 
 	// review revision 导入
-
+	println("importing review revision")
 	for _, reviewRevision := range reviewRevisionMap {
 		newReviewRevision := BuildNewReviewRevisionFromOld(reviewRevision)
 		if _, ok := newReviewRevisionMap[int64(newReviewRevision.ID)]; !ok {
@@ -452,7 +456,7 @@ func main() {
 	}
 
 	// review reaction 导入
-
+	println("importing review reaction")
 	for _, reviewReaction := range reviewReactionMap {
 		newReviewReaction := BuildNewReviewReactionFromOld(reviewReaction)
 		if _, ok := newReviewReactionMap[int64(newReviewReaction.ID)]; !ok {

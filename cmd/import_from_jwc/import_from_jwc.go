@@ -17,7 +17,7 @@ import (
 	"jcourse_go/util"
 )
 
-const Semester = "2024-2025-1"
+const Semester = "2024-2025-2"
 
 var (
 	db                         *gorm.DB
