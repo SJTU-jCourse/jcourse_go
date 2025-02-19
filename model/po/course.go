@@ -34,8 +34,8 @@ type CoursePO struct {
 	RatingCount int64   `gorm:"index;default:0;not null"`
 	RatingAvg   float64 `gorm:"index;default:0;not null"`
 
-	Categories     []CourseCategoryPO       `gorm:"foreignKey:CourseID"`
-	OfferedCourses []OfferedCourseTeacherPO `gorm:"foreignKey:CourseID"`
+	Categories     []CourseCategoryPO `gorm:"foreignKey:CourseID"`
+	OfferedCourses []OfferedCoursePO  `gorm:"foreignKey:CourseID"`
 
 	SearchIndex SearchIndex `gorm:"->:false;<-"`
 }

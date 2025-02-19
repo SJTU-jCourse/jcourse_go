@@ -17,7 +17,7 @@ import (
 	"jcourse_go/util"
 )
 
-const Semester = "2024-2025-2"
+const Semester = "2024-2025-1"
 
 var (
 	db                         *gorm.DB
@@ -129,6 +129,10 @@ func importCourse(data [][]string) {
 	courseDedup := make(map[string]struct{})
 	for _, line := range data[1:] {
 		course := parseCourseFromLine(line)
+		if course.MainTeacherID == 0 {
+			println("no main teacher id: ", strings.Join(line, ","))
+			continue
+		}
 		key := makeCourseKey(course.Code, course.MainTeacherName)
 		if _, exists := courseDedup[key]; exists {
 			continue
@@ -215,6 +219,13 @@ func queryAllBaseCourse() {
 }
 
 func parseMainTeacherFromLine(line []string) po.TeacherPO {
+	if line[4] == "" {
+		groups := parseTeacherGroupFromLine(line)
+		if len(groups) == 0 {
+			return po.TeacherPO{}
+		}
+		return groups[0]
+	}
 	teacherInfo := strings.Split(line[4], "|")
 	if len(teacherInfo) <= 1 {
 		return po.TeacherPO{}
@@ -255,7 +266,7 @@ func parseTeacherGroupFromLine(line []string) []po.TeacherPO {
 	replaced := strings.ReplaceAll(line[3], "THIERRY; Fine; VAN CHUNG", "THIERRY, Fine, VAN CHUNG")
 	teacherInfos := strings.Split(replaced, ";")
 
-	teachers := make([]po.TeacherPO, len(teacherInfos))
+	teachers := make([]po.TeacherPO, 0)
 	for _, teacherInfo := range teacherInfos {
 		teachers = append(teachers, parseSingleTeacherFromLine(teacherInfo))
 	}
