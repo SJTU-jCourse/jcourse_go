@@ -8,21 +8,23 @@ import (
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
 	"jcourse_go/model/types"
+	"jcourse_go/query"
 	"jcourse_go/repository"
 )
 
 func GetTeacherDetail(ctx context.Context, teacherID int64) (*model.TeacherDetail, error) {
 	if teacherID == 0 {
-		return nil, errors.New("training-plan id is 0")
+		return nil, errors.New("teacher id is 0")
 	}
-	teacherQuery := repository.NewTeacherQuery(dal.GetDBClient())
-
-	teacherPOs, err := teacherQuery.GetTeacher(ctx, repository.WithID(teacherID))
-	if err != nil || len(teacherPOs) == 0 {
+	t := query.Use(dal.GetDBClient()).TeacherPO
+	teacherPO, err := t.WithContext(ctx).Where(t.ID.Eq(teacherID)).Take()
+	if err != nil {
 		return nil, err
 	}
-	teacherPO := teacherPOs[0]
-	teacher := converter.ConvertTeacherDetailFromPO(teacherPO)
+	if teacherPO == nil {
+		return nil, errors.New("teacher not found")
+	}
+	teacher := converter.ConvertTeacherDetailFromPO(*teacherPO)
 
 	courses, err := GetCourseList(ctx, model.CourseListFilterForQuery{MainTeacherID: teacherID})
 	if err != nil {
@@ -30,8 +32,7 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*model.TeacherDetai
 	}
 	converter.PackTeacherWithCourses(&teacher, courses)
 
-	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
-	info, err := ratingQuery.GetRatingInfo(ctx, types.RelatedTypeTeacher, teacherID)
+	info, err := GetRating(ctx, types.RelatedTypeTeacher, teacherID)
 	if err != nil {
 		return nil, err
 	}
