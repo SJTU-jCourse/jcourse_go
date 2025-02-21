@@ -2,13 +2,12 @@ package service
 
 import (
 	"context"
-	"time"
 
-	"jcourse_go/dal"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
-	"jcourse_go/repository"
+	"jcourse_go/query"
+	"jcourse_go/util"
 )
 
 func GetUserActivityByID(ctx context.Context, userID int64) (*model.UserActivity, error) {
@@ -29,15 +28,13 @@ func GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]model.UserMin
 	if len(userIDs) == 0 {
 		return result, nil
 	}
-
-	userQuery := repository.NewUserQuery(dal.GetDBClient())
-	userMap, err := userQuery.GetUserByIDs(ctx, userIDs)
+	u := query.Q.UserPO
+	userPOs, err := u.WithContext(ctx).Where(u.ID.In(userIDs...)).Find()
 	if err != nil {
-		return nil, err
+		return result, err
 	}
-
-	for _, userPO := range userMap {
-		user := converter.ConvertUserMinimalFromPO(userPO)
+	for _, userPO := range userPOs {
+		user := converter.ConvertUserMinimalFromPO(*userPO)
 		result[user.ID] = user
 	}
 	return result, nil
@@ -45,70 +42,61 @@ func GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]model.UserMin
 
 // 共用函数，用于获取用户基本信息和详细资料并组装成domain.User
 func GetUserDetailByID(ctx context.Context, userID int64) (*model.UserDetail, error) {
-	userQuery := repository.NewUserQuery(dal.GetDBClient())
-	userPO, err := userQuery.GetUser(ctx, repository.WithID(userID))
-	if err != nil || len(userPO) == 0 {
+	u := query.Q.UserPO
+	userPO, err := u.WithContext(ctx).Where(u.ID.Eq(userID)).Take()
+	if err != nil {
 		return nil, err
 	}
-	user := converter.ConvertUserDetailFromPO(userPO[0])
+	user := converter.ConvertUserDetailFromPO(*userPO)
 	return &user, nil
 }
 
-func buildUserDBOptionFromFilter(query repository.IUserQuery, filter model.UserFilterForQuery) []repository.DBOption {
-	opts := buildPaginationDBOptions(filter.PaginationFilterForQuery)
-	return opts
+func buildUserDBOptionFromFilter(ctx context.Context, q *query.Query, filter model.UserFilterForQuery) query.IUserPODo {
+	builder := q.UserPO.WithContext(ctx)
+	u := q.UserPO
+	if filter.Page > 0 || filter.PageSize > 0 {
+		builder = builder.Offset(int(util.CalcOffset(filter.Page, filter.PageSize))).Limit(int(filter.PageSize))
+	}
+	if filter.Order != "" {
+		field, ok := u.GetFieldByName(filter.Order)
+		if ok {
+			if filter.Ascending {
+				builder = builder.Order(field)
+			} else {
+				builder = builder.Order(field.Desc())
+			}
+		}
+	}
+	return builder
 }
 
 func GetUserList(ctx context.Context, filter model.UserFilterForQuery) ([]model.UserMinimal, error) {
-	userQuery := repository.NewUserQuery(dal.GetDBClient())
-	opts := buildUserDBOptionFromFilter(userQuery, filter)
-	userPOs, err := userQuery.GetUser(ctx, opts...)
+	q := buildUserDBOptionFromFilter(ctx, query.Q, filter)
+	userPOs, err := q.Find()
 	if err != nil {
 		return nil, err
 	}
 
 	result := make([]model.UserMinimal, 0)
 	for _, userPO := range userPOs {
-		result = append(result, converter.ConvertUserMinimalFromPO(userPO))
+		result = append(result, converter.ConvertUserMinimalFromPO(*userPO))
 	}
 	return result, nil
 }
 
 func GetUserCount(ctx context.Context, filter model.UserFilterForQuery) (int64, error) {
-	userQuery := repository.NewUserQuery(dal.GetDBClient())
 	filter.Page, filter.PageSize = 0, 0
-	opts := buildUserDBOptionFromFilter(userQuery, filter)
-	return userQuery.GetUserCount(ctx, opts...)
+	q := buildUserDBOptionFromFilter(ctx, query.Q, filter)
+	return q.Count()
 }
 
 func UpdateUserProfileByID(ctx context.Context, userProfileDTO dto.UserProfileDTO, userID int64) error {
-	userQuery := repository.NewUserQuery(dal.GetDBClient())
+	u := query.Q.UserPO
 	newUserPO := converter.ConvertUserProfileToPO(userProfileDTO)
 	newUserPO.ID = userID
-	errUpdate := userQuery.UpdateUser(ctx, newUserPO)
-	if errUpdate != nil {
-		return errUpdate
+	err := u.WithContext(ctx).Save(&newUserPO)
+	if err != nil {
+		return err
 	}
 	return nil
-}
-
-func buildUserPointDetailDBOptionFromFilter(query repository.IUserPointDetailQuery, filter model.UserPointDetailFilter) []repository.DBOption {
-	opts := make([]repository.DBOption, 0)
-	if filter.UserPointDetailID > 0 {
-		opts = append(opts, repository.WithID(filter.UserPointDetailID))
-	}
-	if filter.UserID > 0 {
-		opts = append(opts, repository.WithUserID(filter.UserID))
-	}
-	if filter.Page > 0 && filter.PageSize > 0 {
-		opts = append(opts, repository.WithPaginate(filter.Page, filter.PageSize))
-	}
-	if filter.StartTime > 0 && filter.EndTime > 0 {
-		opts = append(opts, repository.WithCreatedAtBetween(time.Unix(filter.StartTime, 0), time.Unix(filter.EndTime, 0)))
-	} else if filter.StartTime > 0 {
-		opts = append(opts, repository.WithCreatedAtAfter(time.Unix(filter.StartTime, 0)))
-	} else if filter.EndTime > 0 {
-		opts = append(opts, repository.WithCreatedAtBefore(time.Unix(filter.EndTime, 0)))
-	}
-	return opts
 }

@@ -7,18 +7,8 @@ import (
 	"jcourse_go/dal"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
-	"jcourse_go/model/po"
 	"jcourse_go/repository"
 )
-
-func GetReviewReactionMap(ctx context.Context, reviewIDs []int64) (map[int64][]po.ReviewReactionPO, error) {
-	reactionQuery := repository.NewReviewReactionQuery(dal.GetDBClient())
-	reactionMap, err := reactionQuery.GetReviewReactions(ctx, reviewIDs)
-	if err != nil {
-		return nil, err
-	}
-	return reactionMap, nil
-}
 
 func CreateReviewReaction(ctx context.Context, request dto.CreateReviewReactionRequest, user *model.UserDetail) (int64, error) {
 

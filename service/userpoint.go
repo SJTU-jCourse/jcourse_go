@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"jcourse_go/constant"
 	"jcourse_go/dal"
@@ -14,6 +15,27 @@ import (
 
 	"github.com/pkg/errors"
 )
+
+func buildUserPointDetailDBOptionFromFilter(query repository.IUserPointDetailQuery, filter model.UserPointDetailFilter) []repository.DBOption {
+	opts := make([]repository.DBOption, 0)
+	if filter.UserPointDetailID > 0 {
+		opts = append(opts, repository.WithID(filter.UserPointDetailID))
+	}
+	if filter.UserID > 0 {
+		opts = append(opts, repository.WithUserID(filter.UserID))
+	}
+	if filter.Page > 0 && filter.PageSize > 0 {
+		opts = append(opts, repository.WithPaginate(filter.Page, filter.PageSize))
+	}
+	if filter.StartTime > 0 && filter.EndTime > 0 {
+		opts = append(opts, repository.WithCreatedAtBetween(time.Unix(filter.StartTime, 0), time.Unix(filter.EndTime, 0)))
+	} else if filter.StartTime > 0 {
+		opts = append(opts, repository.WithCreatedAtAfter(time.Unix(filter.StartTime, 0)))
+	} else if filter.EndTime > 0 {
+		opts = append(opts, repository.WithCreatedAtBefore(time.Unix(filter.EndTime, 0)))
+	}
+	return opts
+}
 
 func GetUserPointDetailList(ctx context.Context, filter model.UserPointDetailFilter) (int64, []model.UserPointDetailItem, error) {
 	userPointDetailQuery := repository.NewUserPointDetailQuery(dal.GetDBClient())
@@ -34,6 +56,7 @@ func GetUserPointDetailList(ctx context.Context, filter model.UserPointDetailFil
 	}
 	return totalValue, result, nil
 }
+
 func GetUserPointDetailCount(ctx context.Context, filter model.UserPointDetailFilter) (int64, error) {
 	userPointDetailQuery := repository.NewUserPointDetailQuery(dal.GetDBClient())
 	filter.Page, filter.PageSize = 0, 0

@@ -16,7 +16,7 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*model.TeacherDetai
 	if teacherID == 0 {
 		return nil, errors.New("teacher id is 0")
 	}
-	t := query.Use(dal.GetDBClient()).TeacherPO
+	t := query.Q.TeacherPO
 	teacherPO, err := t.WithContext(ctx).Where(t.ID.Eq(teacherID)).Take()
 	if err != nil {
 		return nil, err
@@ -108,6 +108,20 @@ func GetTeacherCount(ctx context.Context, filter model.TeacherFilterForQuery) (i
 }
 
 func GetTeacherFilter(ctx context.Context) (model.TeacherFilter, error) {
-	query := repository.NewTeacherQuery(dal.GetDBClient())
-	return query.GetTeacherFilter(ctx)
+	filter := model.TeacherFilter{
+		Departments: make([]model.FilterItem, 0),
+		Titles:      make([]model.FilterItem, 0),
+	}
+
+	t := query.Q.TeacherPO
+	err := t.WithContext(ctx).Group(t.Title.As("value"), t.ID.Count().As("count")).Scan(&filter.Titles)
+	if err != nil {
+		return filter, err
+	}
+
+	err = t.WithContext(ctx).Group(t.Department.As("value"), t.ID.Count().As("count")).Scan(&filter.Departments)
+	if err != nil {
+		return filter, err
+	}
+	return filter, nil
 }

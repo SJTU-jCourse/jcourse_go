@@ -8,6 +8,7 @@ import (
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
 	"jcourse_go/model/types"
+	"jcourse_go/query"
 	"jcourse_go/repository"
 )
 
@@ -58,6 +59,7 @@ func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*model.Tr
 	converter.PackTrainingPlanDetailWithCourse(&trainingPlan, domainCourses)
 	return &trainingPlan, nil
 }
+
 func buildTrainingPlanDBOptionFromFilter(query repository.ITrainingPlanQuery, filter model.TrainingPlanFilterForQuery) []repository.DBOption {
 	opts := buildPaginationDBOptions(filter.PaginationFilterForQuery)
 	if filter.Major != "" {
@@ -74,6 +76,7 @@ func buildTrainingPlanDBOptionFromFilter(query repository.ITrainingPlanQuery, fi
 	}
 	return opts
 }
+
 func buildTrainingPlanCourseDBOptionFromFilter(query repository.ITrainingPlanCourseQuery, filter model.TrainingPlanFilterForQuery) []repository.DBOption {
 	opts := make([]repository.DBOption, 0)
 	if len(filter.ContainCourseIDs) > 0 {
@@ -81,6 +84,7 @@ func buildTrainingPlanCourseDBOptionFromFilter(query repository.ITrainingPlanCou
 	}
 	return opts
 }
+
 func GetTrainingPlanCount(ctx context.Context, filter model.TrainingPlanFilterForQuery) (int64, error) {
 	trainingPlanQuery := repository.NewTrainingPlanQuery(dal.GetDBClient())
 	filter.PageSize, filter.Page = 0, 0
@@ -130,6 +134,26 @@ func SearchTrainingPlanList(ctx context.Context, filter model.TrainingPlanFilter
 }
 
 func GetTrainingPlanFilter(ctx context.Context) (model.TrainingPlanFilter, error) {
-	query := repository.NewTrainingPlanQuery(dal.GetDBClient())
-	return query.GetTrainingPlanFilter(ctx)
+	filter := model.TrainingPlanFilter{
+		Departments: make([]model.FilterItem, 0),
+		EntryYears:  make([]model.FilterItem, 0),
+		Degrees:     make([]model.FilterItem, 0),
+	}
+
+	t := query.Q.TrainingPlanPO
+	err := t.WithContext(ctx).Group(t.Major.As("value"), t.ID.Count().As("count")).Scan(&filter.Degrees)
+	if err != nil {
+		return filter, err
+	}
+
+	err = t.WithContext(ctx).Group(t.Department.As("value"), t.ID.Count().As("count")).Scan(&filter.Departments)
+	if err != nil {
+		return filter, err
+	}
+
+	err = t.WithContext(ctx).Group(t.EntryYear.As("value"), t.ID.Count().As("count")).Scan(&filter.EntryYears)
+	if err != nil {
+		return filter, err
+	}
+	return filter, nil
 }
