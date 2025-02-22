@@ -4,98 +4,77 @@ import (
 	"context"
 	"errors"
 
-	"jcourse_go/dal"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
 	"jcourse_go/model/types"
-	"jcourse_go/query"
 	"jcourse_go/repository"
+	"jcourse_go/util"
 )
 
 func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*model.TrainingPlanDetail, error) {
 	if trainingPlanID == 0 {
 		return nil, errors.New("training-plan id is 0")
 	}
-	trainingPlanQuery := repository.NewTrainingPlanQuery(dal.GetDBClient())
 
-	trainingPlanPOs, err := trainingPlanQuery.GetTrainingPlan(ctx, repository.WithID(trainingPlanID))
-	if err != nil || len(trainingPlanPOs) == 0 {
-		return nil, err
-	}
-	trainingPlanPO := trainingPlanPOs[0]
-	trainingPlan := converter.ConvertTrainingPlanDetailFromPO(trainingPlanPO)
-
-	courseQuery := repository.NewTrainingPlanCourseQuery(dal.GetDBClient())
-	courses, err := courseQuery.GetTrainingPlanCourseList(ctx, repository.WithTrainingPlanID(trainingPlanID))
+	tp := repository.Q.TrainingPlanPO
+	trainingPlanPO, err := tp.WithContext(ctx).Preload(tp.BaseCourses, tp.BaseCourses.BaseCourse).Where(tp.ID.Eq(trainingPlanID)).Take()
 	if err != nil {
 		return nil, err
 	}
 
-	baseCourseIDs := make([]int64, 0)
-	for _, course := range courses {
-		baseCourseIDs = append(baseCourseIDs, course.BaseCourseID)
-	}
+	trainingPlan := converter.ConvertTrainingPlanDetailFromPO(*trainingPlanPO)
 
-	baseCourseQuery := repository.NewBaseCourseQuery(dal.GetDBClient())
-	baseCoursePO, err := baseCourseQuery.GetBaseCoursesByIDs(ctx, baseCourseIDs)
-	if err != nil {
-		return nil, err
-	}
-	domainCourses := make([]model.TrainingPlanCourse, 0)
-	for _, c := range courses {
-		course := converter.ConvertTrainingPlanCourseFromPO(c)
-		baseCourse := converter.ConvertBaseCourseFromPO(baseCoursePO[course.BaseCourse.ID])
-		converter.PackTrainingPlanCourseWithBaseCourse(&course, baseCourse)
-		domainCourses = append(domainCourses, course)
-	}
-
-	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
-	info, err := ratingQuery.GetRatingInfo(ctx, types.RelatedTypeTrainingPlan, trainingPlanID)
+	info, err := GetRating(ctx, types.RelatedTypeTrainingPlan, trainingPlanID)
 	if err != nil {
 		return nil, err
 	}
 	converter.PackTrainingPlanWithRatingInfo(&trainingPlan.TrainingPlanSummary, info)
 
-	converter.PackTrainingPlanDetailWithCourse(&trainingPlan, domainCourses)
 	return &trainingPlan, nil
 }
 
-func buildTrainingPlanDBOptionFromFilter(query repository.ITrainingPlanQuery, filter model.TrainingPlanFilterForQuery) []repository.DBOption {
-	opts := buildPaginationDBOptions(filter.PaginationFilterForQuery)
+func buildTrainingPlanDBOptionFromFilter(ctx context.Context, q *repository.Query, filter model.TrainingPlanFilterForQuery) repository.ITrainingPlanPODo {
+	builder := q.TrainingPlanPO.WithContext(ctx)
+	tp := q.TrainingPlanPO
+
+	if filter.Page > 0 || filter.PageSize > 0 {
+		builder = builder.Offset(int(util.CalcOffset(filter.Page, filter.PageSize))).Limit(int(filter.PageSize))
+	}
+	if filter.Order != "" {
+		field, ok := tp.GetFieldByName(filter.Order)
+		if ok {
+			if filter.Ascending {
+				builder = builder.Order(field)
+			} else {
+				builder = builder.Order(field.Desc())
+			}
+		}
+	}
+
 	if filter.Major != "" {
-		opts = append(opts, repository.WithMajor(filter.Major))
+		builder = builder.Where(tp.Major.Eq(filter.Major))
 	}
 	if len(filter.EntryYears) > 0 {
-		opts = append(opts, repository.WithEntryYears(filter.EntryYears))
+		builder = builder.Where(tp.EntryYear.In(filter.EntryYears...))
 	}
 	if len(filter.Departments) > 0 {
-		opts = append(opts, repository.WithDepartments(filter.Departments))
+		builder = builder.Where(tp.Department.In(filter.Departments...))
 	}
 	if len(filter.Degrees) > 0 {
-		opts = append(opts, repository.WithDegrees(filter.Degrees))
+		builder = builder.Where(tp.Degree.In(filter.Degrees...))
 	}
-	return opts
-}
-
-func buildTrainingPlanCourseDBOptionFromFilter(query repository.ITrainingPlanCourseQuery, filter model.TrainingPlanFilterForQuery) []repository.DBOption {
-	opts := make([]repository.DBOption, 0)
-	if len(filter.ContainCourseIDs) > 0 {
-		opts = append(opts, repository.WithCourseIDs(filter.ContainCourseIDs))
-	}
-	return opts
+	return builder
 }
 
 func GetTrainingPlanCount(ctx context.Context, filter model.TrainingPlanFilterForQuery) (int64, error) {
-	trainingPlanQuery := repository.NewTrainingPlanQuery(dal.GetDBClient())
 	filter.PageSize, filter.Page = 0, 0
-	opts := buildTrainingPlanDBOptionFromFilter(trainingPlanQuery, filter)
-	return trainingPlanQuery.GetTrainingPlanCount(ctx, opts...)
+	q := buildTrainingPlanDBOptionFromFilter(ctx, repository.Q, filter)
+	return q.Count()
 }
 
 func SearchTrainingPlanList(ctx context.Context, filter model.TrainingPlanFilterForQuery) ([]model.TrainingPlanSummary, error) {
 
-	trainingPlanQuery := repository.NewTrainingPlanQuery(dal.GetDBClient())
-	tp_opts := buildTrainingPlanDBOptionFromFilter(trainingPlanQuery, filter)
+	q := buildTrainingPlanDBOptionFromFilter(ctx, repository.Q, filter)
 	/*
 		trainingPlanCourseQuery := repository.NewTrainingPlanCourseQuery(dal.GetDBClient())
 		if len(filter.ContainCourseIDs) != 0 {
@@ -108,7 +87,7 @@ func SearchTrainingPlanList(ctx context.Context, filter model.TrainingPlanFilter
 		}
 	*/
 
-	trainingPlanPOs, err := trainingPlanQuery.GetTrainingPlan(ctx, tp_opts...)
+	trainingPlanPOs, err := q.Find()
 	if err != nil {
 		return nil, err
 	}
@@ -117,16 +96,10 @@ func SearchTrainingPlanList(ctx context.Context, filter model.TrainingPlanFilter
 	for _, tp := range trainingPlanPOs {
 		trainingPlanIDs = append(trainingPlanIDs, int64(tp.ID))
 	}
-
-	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
-	infos, err := ratingQuery.GetRatingInfoByIDs(ctx, types.RelatedTypeTrainingPlan, trainingPlanIDs)
-	if err != nil {
-		return nil, err
-	}
-
+	infos, err := GetMultipleRating(ctx, types.RelatedTypeTrainingPlan, trainingPlanIDs)
 	result := make([]model.TrainingPlanSummary, 0)
 	for _, tpPO := range trainingPlanPOs {
-		tp := converter.ConvertTrainingPlanSummaryFromPO(tpPO)
+		tp := converter.ConvertTrainingPlanSummaryFromPO(*tpPO)
 		converter.PackTrainingPlanWithRatingInfo(&tp, infos[tp.ID])
 		result = append(result, tp)
 	}
@@ -140,7 +113,7 @@ func GetTrainingPlanFilter(ctx context.Context) (model.TrainingPlanFilter, error
 		Degrees:     make([]model.FilterItem, 0),
 	}
 
-	t := query.Q.TrainingPlanPO
+	t := repository.Q.TrainingPlanPO
 	err := t.WithContext(ctx).Group(t.Major.As("value"), t.ID.Count().As("count")).Scan(&filter.Degrees)
 	if err != nil {
 		return filter, err

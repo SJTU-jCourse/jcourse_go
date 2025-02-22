@@ -2,13 +2,13 @@ package middleware
 
 import (
 	"context"
-	"jcourse_go/dal"
-	"jcourse_go/model/model"
-	"jcourse_go/repository"
 	"log"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"jcourse_go/model/model"
+	"jcourse_go/service"
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/gin-gonic/gin"
@@ -27,8 +27,7 @@ var LastQuerySiteSettingDuration time.Duration = DefaultDuplicateJudgeDuration
 
 func UpdateDuplicateJudgeDuration(ctx context.Context) time.Duration {
 	LastQuerySiteSettingTime = time.Now()
-	siteQuery := repository.NewSettingQuery(dal.GetDBClient())
-	siteSetting, err := siteQuery.GetSetting(ctx, DuplicateJudgeDurationKey)
+	siteSetting, err := service.GetSetting(ctx, DuplicateJudgeDurationKey)
 	if err != nil {
 		log.Printf("failed to get site setting: %v", err)
 		LastQuerySiteSettingDuration = DefaultDuplicateJudgeDuration

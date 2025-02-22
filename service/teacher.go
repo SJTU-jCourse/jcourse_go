@@ -4,19 +4,18 @@ import (
 	"context"
 	"errors"
 
-	"jcourse_go/dal"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
 	"jcourse_go/model/types"
-	"jcourse_go/query"
 	"jcourse_go/repository"
+	"jcourse_go/util"
 )
 
 func GetTeacherDetail(ctx context.Context, teacherID int64) (*model.TeacherDetail, error) {
 	if teacherID == 0 {
 		return nil, errors.New("teacher id is 0")
 	}
-	t := query.Q.TeacherPO
+	t := repository.Q.TeacherPO
 	teacherPO, err := t.WithContext(ctx).Where(t.ID.Eq(teacherID)).Take()
 	if err != nil {
 		return nil, err
@@ -41,59 +40,66 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*model.TeacherDetai
 	return &teacher, nil
 }
 
-func buildTeacherDBOptionFromFilter(query repository.ITeacherQuery, filter model.TeacherFilterForQuery) []repository.DBOption {
-	opts := buildPaginationDBOptions(filter.PaginationFilterForQuery)
+func buildTeacherDBOptionFromFilter(ctx context.Context, q *repository.Query, filter model.TeacherFilterForQuery) repository.ITeacherPODo {
+	builder := q.TeacherPO.WithContext(ctx)
+	t := q.TeacherPO
+
+	if filter.Page > 0 || filter.PageSize > 0 {
+		builder = builder.Offset(int(util.CalcOffset(filter.Page, filter.PageSize))).Limit(int(filter.PageSize))
+	}
+	if filter.Order != "" {
+		field, ok := t.GetFieldByName(filter.Order)
+		if ok {
+			if filter.Ascending {
+				builder = builder.Order(field)
+			} else {
+				builder = builder.Order(field.Desc())
+			}
+		}
+	}
+
 	if filter.Name != "" {
-		opts = append(opts, repository.WithName(filter.Name))
+		builder = builder.Where(t.Name.Eq(filter.Name))
 	}
 	if filter.Code != "" {
-		opts = append(opts, repository.WithCode(filter.Code))
+		builder = builder.Where(t.Code.Eq(filter.Code))
 	}
 	if len(filter.Departments) > 0 {
-		opts = append(opts, repository.WithDepartments(filter.Departments))
+		builder = builder.Where(t.Department.In(filter.Departments...))
 	}
 	if len(filter.Titles) > 0 {
-		opts = append(opts, repository.WithTitles(filter.Titles))
+		builder = builder.Where(t.Title.In(filter.Titles...))
 	}
 	if filter.Pinyin != "" {
-		opts = append(opts, repository.WithPinyin(filter.Pinyin))
+		builder = builder.Where(t.Pinyin.Eq(filter.Pinyin))
 	}
 	if filter.PinyinAbbr != "" {
-		opts = append(opts, repository.WithPinyinAbbr(filter.PinyinAbbr))
+		builder = builder.Where(t.PinyinAbbr.Eq(filter.PinyinAbbr))
 	}
-	return opts
+	return builder
 }
 
 func SearchTeacherList(ctx context.Context, filter model.TeacherFilterForQuery) ([]model.TeacherSummary, error) {
-	teacherQuery := repository.NewTeacherQuery(dal.GetDBClient())
-	t_opts := buildTeacherDBOptionFromFilter(teacherQuery, filter)
+	q := buildTeacherDBOptionFromFilter(ctx, repository.Q, filter)
 
-	teacherCourseQuery := repository.NewOfferedCourseQuery(dal.GetDBClient())
-	validTeacherIDs, err := teacherCourseQuery.GetMainTeacherIDsWithOfferedCourseIDs(ctx, filter.ContainCourseIDs)
-	if err != nil {
-		return nil, err
-	}
-	t_opts = append(t_opts, repository.WithIDs(validTeacherIDs))
-
-	teachers, err := teacherQuery.GetTeacher(ctx, t_opts...)
+	teachers, err := q.Find()
 	if err != nil {
 		return nil, err
 	}
 
 	teacherIDs := make([]int64, 0)
 	for _, teacher := range teachers {
-		teacherIDs = append(teacherIDs, int64(teacher.ID))
+		teacherIDs = append(teacherIDs, teacher.ID)
 	}
 
-	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
-	infos, err := ratingQuery.GetRatingInfoByIDs(ctx, types.RelatedTypeTeacher, teacherIDs)
+	infos, err := GetMultipleRating(ctx, types.RelatedTypeTeacher, teacherIDs)
 	if err != nil {
 		return nil, err
 	}
 
 	domainTeachers := make([]model.TeacherSummary, 0)
 	for _, t := range teachers {
-		teacherDomain := converter.ConvertTeacherSummaryFromPO(t)
+		teacherDomain := converter.ConvertTeacherSummaryFromPO(*t)
 		converter.PackTeacherWithRatingInfo(&teacherDomain, infos[teacherDomain.ID])
 		domainTeachers = append(domainTeachers, teacherDomain)
 	}
@@ -101,10 +107,10 @@ func SearchTeacherList(ctx context.Context, filter model.TeacherFilterForQuery) 
 }
 
 func GetTeacherCount(ctx context.Context, filter model.TeacherFilterForQuery) (int64, error) {
-	query := repository.NewTeacherQuery(dal.GetDBClient())
+
 	filter.Page, filter.PageSize = 0, 0
-	opts := buildTeacherDBOptionFromFilter(query, filter)
-	return query.GetTeacherCount(ctx, opts...)
+	q := buildTeacherDBOptionFromFilter(ctx, repository.Q, filter)
+	return q.Count()
 }
 
 func GetTeacherFilter(ctx context.Context) (model.TeacherFilter, error) {
@@ -113,7 +119,7 @@ func GetTeacherFilter(ctx context.Context) (model.TeacherFilter, error) {
 		Titles:      make([]model.FilterItem, 0),
 	}
 
-	t := query.Q.TeacherPO
+	t := repository.Q.TeacherPO
 	err := t.WithContext(ctx).Group(t.Title.As("value"), t.ID.Count().As("count")).Scan(&filter.Titles)
 	if err != nil {
 		return filter, err

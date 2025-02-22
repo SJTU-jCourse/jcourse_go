@@ -17,12 +17,17 @@ func ConvertTrainingPlanSummaryFromPO(po po.TrainingPlanPO) model.TrainingPlanSu
 }
 
 func ConvertTrainingPlanDetailFromPO(po po.TrainingPlanPO) model.TrainingPlanDetail {
-	return model.TrainingPlanDetail{
+	detail := model.TrainingPlanDetail{
 		TrainingPlanSummary: ConvertTrainingPlanSummaryFromPO(po),
 		TotalYear:           po.TotalYear,
 		MinCredits:          po.MinCredits,
 		MajorClass:          po.MajorClass,
+		Courses:             make([]model.TrainingPlanCourse, 0),
 	}
+	for _, baseCourse := range po.BaseCourses {
+		detail.Courses = append(detail.Courses, ConvertTrainingPlanCourseFromPO(baseCourse))
+	}
+	return detail
 }
 
 func PackTrainingPlanDetailWithCourse(tp *model.TrainingPlanDetail, courses []model.TrainingPlanCourse) {
@@ -30,7 +35,7 @@ func PackTrainingPlanDetailWithCourse(tp *model.TrainingPlanDetail, courses []mo
 }
 
 func ConvertTrainingPlanCourseFromPO(po po.TrainingPlanCoursePO) model.TrainingPlanCourse {
-	return model.TrainingPlanCourse{
+	tpCourse := model.TrainingPlanCourse{
 		BaseCourse: model.BaseCourse{
 			ID: po.BaseCourseID,
 		},
@@ -38,6 +43,10 @@ func ConvertTrainingPlanCourseFromPO(po po.TrainingPlanCoursePO) model.TrainingP
 		SuggestSemester: po.SuggestSemester,
 		Category:        po.Category,
 	}
+	if po.BaseCourse.ID != 0 {
+		tpCourse.BaseCourse = ConvertBaseCourseFromPO(po.BaseCourse)
+	}
+	return tpCourse
 }
 
 func PackTrainingPlanCourseWithBaseCourse(c *model.TrainingPlanCourse, course model.BaseCourse) {

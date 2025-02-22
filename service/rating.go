@@ -7,12 +7,12 @@ import (
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/model/types"
-	"jcourse_go/query"
+	"jcourse_go/repository"
 )
 
 func CreateRating(ctx context.Context, userID int64, dto dto.RatingDTO) error {
 	po := converter.ConvertRatingDTOToPO(userID, dto)
-	r := query.Q.RatingPO
+	r := repository.Q.RatingPO
 	err := r.WithContext(ctx).Create(&po)
 	if err != nil {
 		return err
@@ -24,7 +24,7 @@ func GetRating(ctx context.Context, relatedType types.RatingRelatedType, related
 	res := model.RatingInfo{}
 	dist := make([]model.RatingInfoDistItem, 0)
 
-	r := query.Q.RatingPO
+	r := repository.Q.RatingPO
 	err := r.WithContext(ctx).Select(r.Rating, r.ID.Count().As("count")).
 		Where(r.RelatedID.Eq(relatedID), r.RelatedType.Eq(string(relatedType))).
 		Group(r.Rating).Scan(&dist)
@@ -40,7 +40,7 @@ func GetMultipleRating(ctx context.Context, relatedType types.RatingRelatedType,
 	res := make(map[int64]model.RatingInfo)
 	dist := make(map[int64][]model.RatingInfoDistItem)
 
-	r := query.Q.RatingPO
+	r := repository.Q.RatingPO
 	rows := make([]struct {
 		RelatedID int64 `json:"related_id"`
 		Rating    int64 `json:"rating"`
@@ -70,7 +70,7 @@ func GetMultipleRating(ctx context.Context, relatedType types.RatingRelatedType,
 }
 
 func GetUserRating(ctx context.Context, relatedType types.RatingRelatedType, relatedID int64, userID int64) (int64, error) {
-	r := query.Q.RatingPO
+	r := repository.Q.RatingPO
 	rating, err := r.WithContext(ctx).Select(r.Rating).Where(r.RelatedID.Eq(relatedID), r.RelatedType.Eq(string(relatedType)), r.UserID.Eq(userID)).Take()
 	if err != nil {
 		return 0, err

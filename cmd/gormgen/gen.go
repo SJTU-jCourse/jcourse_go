@@ -14,7 +14,7 @@ func main() {
 	db := dal.GetDBClient()
 
 	g := gen.NewGenerator(gen.Config{
-		OutPath: "./query",
+		OutPath: "./repository",
 		Mode:    gen.WithoutContext | gen.WithDefaultQuery | gen.WithQueryInterface, // generate mode
 	})
 	// gormdb, _ := gorm.Open(mysql.Open("root:@(127.0.0.1:3306)/demo?charset=utf8mb4&parseTime=True&loc=Local"))
@@ -25,7 +25,7 @@ func main() {
 		po.TeacherPO{}, po.CoursePO{}, po.BaseCoursePO{}, po.OfferedCoursePO{}, po.TrainingPlanPO{},
 		po.CourseCategoryPO{}, po.TrainingPlanCoursePO{},
 		po.ReviewPO{}, po.RatingPO{}, po.ReviewReactionPO{}, po.ReviewRevisionPO{},
-		po.SettingPO{}, po.StatisticPO{})
+		po.SettingPO{}, po.StatisticPO{}, po.StatisticDataPO{})
 
 	// Generate the code
 	g.Execute()
