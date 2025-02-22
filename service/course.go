@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 
-	"jcourse_go/dal"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
 	"jcourse_go/model/types"
@@ -16,74 +15,69 @@ func GetCourseDetail(ctx context.Context, courseID int64, userID int64) (*model.
 	if courseID == 0 {
 		return nil, errors.New("course id is 0")
 	}
-	courseQuery := repository.NewCourseQuery(dal.GetDBClient())
-	coursePOs, err := courseQuery.GetCourse(ctx, repository.WithID(courseID))
-	if err != nil || len(coursePOs) == 0 {
-		return nil, err
-	}
-	coursePO := coursePOs[0]
-	courseCategories, err := courseQuery.GetCourseCategories(ctx, []int64{int64(coursePO.ID)})
+
+	c := repository.Q.CoursePO
+	coursePO, err := c.WithContext(ctx).Preload(c.MainTeacher, c.OfferedCourses, c.Categories).Where(c.ID.Eq(courseID)).Take()
 	if err != nil {
 		return nil, err
 	}
 
-	teacherQuery := repository.NewTeacherQuery(dal.GetDBClient())
-	teacherPOs, err := teacherQuery.GetTeacher(ctx, repository.WithID(coursePO.MainTeacherID))
-	if err != nil || len(teacherPOs) == 0 {
-		return nil, err
-	}
-	teacherPO := teacherPOs[0]
-
-	offeredCourseQuery := repository.NewOfferedCourseQuery(dal.GetDBClient())
-	offeredCoursePOs, err := offeredCourseQuery.GetOfferedCourse(ctx, repository.WithCourseID(courseID), repository.WithOrderBy("semester", false))
-	if err != nil {
-		return nil, err
-	}
-
-	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
-	info, err := ratingQuery.GetRatingInfo(ctx, types.RelatedTypeCourse, courseID)
+	info, err := GetRating(ctx, types.RelatedTypeCourse, courseID)
 	if err != nil {
 		return nil, err
 	}
 
 	if userID != 0 {
-		info.MyRating, _ = ratingQuery.GetUserRating(ctx, types.RelatedTypeCourse, courseID, userID)
+		info.MyRating, _ = GetUserRating(ctx, types.RelatedTypeCourse, courseID, userID)
 	}
 
-	course := converter.ConvertCourseDetailFromPO(coursePO)
-	converter.PackCourseWithMainTeacher(&course.CourseMinimal, converter.ConvertTeacherSummaryFromPO(teacherPO))
-	offeredCourses := converter.ConvertOfferedCoursesFromPOs(offeredCoursePOs)
-	converter.PackCourseWithOfferedCourse(&course, offeredCourses)
-	converter.PackCourseWithCategories(&course.CourseSummary, courseCategories[course.ID])
+	course := converter.ConvertCourseDetailFromPO(*coursePO)
 	converter.PackCourseWithRatingInfo(&course.CourseSummary, info)
 	return &course, nil
 }
 
-func buildCourseDBOptionFromFilter(query repository.ICourseQuery, filter model.CourseListFilterForQuery) []repository.DBOption {
-	opts := buildPaginationDBOptions(filter.PaginationFilterForQuery)
+func buildCourseDBOptionFromFilter(ctx context.Context, q *repository.Query, filter model.CourseListFilterForQuery) repository.ICoursePODo {
+	builder := q.CoursePO.WithContext(ctx)
+	c := q.CoursePO
+
+	if filter.Page > 0 || filter.PageSize > 0 {
+		builder = builder.Offset(int(util.CalcOffset(filter.Page, filter.PageSize))).Limit(int(filter.PageSize))
+	}
+	if filter.Order != "" {
+		field, ok := q.CoursePO.GetFieldByName(filter.Order)
+		if ok {
+			if filter.Ascending {
+				builder = builder.Order(field)
+			} else {
+				builder = builder.Order(field.Desc())
+			}
+		}
+	}
+
 	if len(filter.Categories) > 0 {
-		opts = append(opts, repository.WithCategories(filter.Categories))
+		builder = builder.Where(q.CourseCategoryPO.Category.In(filter.Categories...))
 	}
 	if len(filter.Departments) > 0 {
-		opts = append(opts, repository.WithDepartments(filter.Departments))
+		builder = builder.Where(c.Department.In(filter.Departments...))
 	}
 	if len(filter.Credits) > 0 {
-		opts = append(opts, repository.WithCredits(filter.Credits))
+		builder = builder.Where(c.Credit.In(filter.Credits...))
 	}
 	if filter.Code != "" {
-		opts = append(opts, repository.WithCode(filter.Code))
+		builder = builder.Where(c.Code.Eq(filter.Code))
 	}
 	if filter.MainTeacherID > 0 {
-		opts = append(opts, repository.WithMainTeacherID(filter.MainTeacherID))
+		builder = builder.Where(c.MainTeacherID.Eq(filter.MainTeacherID))
 	}
-	return opts
+
+	return builder
 }
 
 func GetCourseList(ctx context.Context, filter model.CourseListFilterForQuery) ([]model.CourseSummary, error) {
-	query := repository.NewCourseQuery(dal.GetDBClient())
-	opts := buildCourseDBOptionFromFilter(query, filter)
 
-	coursePOs, err := query.GetCourse(ctx, opts...)
+	q := buildCourseDBOptionFromFilter(ctx, repository.Q, filter)
+
+	coursePOs, err := q.Find()
 	if err != nil {
 		return nil, err
 	}
@@ -93,81 +87,66 @@ func GetCourseList(ctx context.Context, filter model.CourseListFilterForQuery) (
 		courseIDs = append(courseIDs, int64(coursePO.ID))
 	}
 
-	courseCategories, err := query.GetCourseCategories(ctx, courseIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
-	infos, err := ratingQuery.GetRatingInfoByIDs(ctx, types.RelatedTypeCourse, courseIDs)
+	ratingMap, err := GetMultipleRating(ctx, types.RelatedTypeCourse, courseIDs)
 	if err != nil {
 		return nil, err
 	}
 
 	courses := make([]model.CourseSummary, 0, len(coursePOs))
 	for _, coursePO := range coursePOs {
-		course := converter.ConvertCourseSummaryFromPO(coursePO)
-		converter.PackCourseWithCategories(&course, courseCategories[int64(coursePO.ID)])
-		converter.PackCourseWithRatingInfo(&course, infos[int64(coursePO.ID)])
+		course := converter.ConvertCourseSummaryFromPO(*coursePO)
+		converter.PackCourseWithRatingInfo(&course, ratingMap[coursePO.ID])
 		courses = append(courses, course)
 	}
 	return courses, nil
 }
 
 func GetCourseCount(ctx context.Context, filter model.CourseListFilterForQuery) (int64, error) {
-	query := repository.NewCourseQuery(dal.GetDBClient())
 	filter.Page, filter.PageSize = 0, 0
-	opts := buildCourseDBOptionFromFilter(query, filter)
-	return query.GetCourseCount(ctx, opts...)
-}
-
-func GetCourseByIDs(ctx context.Context, courseIDs []int64) (map[int64]model.CourseSummary, error) {
-	result := make(map[int64]model.CourseSummary)
-	if len(courseIDs) == 0 {
-		return result, nil
-	}
-	courseQuery := repository.NewCourseQuery(dal.GetDBClient())
-	courseMap, err := courseQuery.GetCourseByIDs(ctx, courseIDs)
-	if err != nil {
-		return nil, err
-	}
-	for _, course := range courseMap {
-		result[int64(course.ID)] = converter.ConvertCourseSummaryFromPO(course)
-	}
-	return result, nil
+	q := buildCourseDBOptionFromFilter(ctx, repository.Q, filter)
+	return q.Count()
 }
 
 func GetBaseCourse(ctx context.Context, code string) (*model.BaseCourse, error) {
-	query := repository.NewBaseCourseQuery(dal.GetDBClient())
-	baseCourses, err := query.GetBaseCourse(ctx, repository.WithCode(code))
+	c := repository.Q.BaseCoursePO
+	baseCoursePO, err := c.WithContext(ctx).Where(c.Code.Eq(code)).Take()
 	if err != nil {
 		return nil, err
 	}
-	if len(baseCourses) == 0 {
-		return nil, errors.New("no base course")
-	}
-	baseCourse := converter.ConvertBaseCourseFromPO(baseCourses[0])
+	baseCourse := converter.ConvertBaseCourseFromPO(*baseCoursePO)
 	return &baseCourse, nil
 }
 
 func GetCourseFilter(ctx context.Context) (model.CourseFilter, error) {
-	query := repository.NewCourseQuery(dal.GetDBClient())
-	return query.GetCourseFilter(ctx)
-}
+	filter := model.CourseFilter{
+		Categories:  make([]model.FilterItem, 0),
+		Departments: make([]model.FilterItem, 0),
+		Credits:     make([]model.FilterItem, 0),
+		Semesters:   make([]model.FilterItem, 0),
+	}
 
-func buildPaginationDBOptions(filter model.PaginationFilterForQuery) []repository.DBOption {
-	opts := make([]repository.DBOption, 0)
-	if filter.PageSize > 0 {
-		opts = append(opts, repository.WithLimit(filter.PageSize))
+	c := repository.Q.CoursePO
+
+	err := c.WithContext(ctx).Group(c.Credit.As("value"), c.ID.Count().As("count")).Scan(&filter.Credits)
+	if err != nil {
+		return filter, err
 	}
-	if filter.Page > 0 {
-		opts = append(opts, repository.WithOffset(util.CalcOffset(filter.Page, filter.PageSize)))
+
+	err = c.WithContext(ctx).Group(c.Department.As("value"), c.ID.Count().As("count")).Scan(&filter.Departments)
+	if err != nil {
+		return filter, err
 	}
-	if filter.Search != "" {
-		opts = append(opts, repository.WithSearch(filter.Search))
+
+	oc := repository.Q.OfferedCoursePO
+	err = oc.WithContext(ctx).Group(oc.Semester.As("value"), oc.CourseID.Count().As("count")).Scan(&filter.Semesters)
+	if err != nil {
+		return filter, err
 	}
-	if filter.Order != "" {
-		opts = append(opts, repository.WithOrderBy(filter.Order, filter.Ascending))
+
+	cc := repository.Q.CourseCategoryPO
+	err = cc.WithContext(ctx).Group(cc.Category.As("value"), cc.CourseID.Count().As("count")).Scan(&filter.Categories)
+	if err != nil {
+		return filter, err
 	}
-	return opts
+	return filter, nil
 }

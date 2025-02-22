@@ -4,21 +4,11 @@ import (
 	"context"
 	"errors"
 
-	"jcourse_go/dal"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/model/po"
 	"jcourse_go/repository"
 )
-
-func GetReviewReactionMap(ctx context.Context, reviewIDs []int64) (map[int64][]po.ReviewReactionPO, error) {
-	reactionQuery := repository.NewReviewReactionQuery(dal.GetDBClient())
-	reactionMap, err := reactionQuery.GetReviewReactions(ctx, reviewIDs)
-	if err != nil {
-		return nil, err
-	}
-	return reactionMap, nil
-}
 
 func CreateReviewReaction(ctx context.Context, request dto.CreateReviewReactionRequest, user *model.UserDetail) (int64, error) {
 
@@ -26,28 +16,35 @@ func CreateReviewReaction(ctx context.Context, request dto.CreateReviewReactionR
 		return 0, errors.New("user not login")
 	}
 
-	reviewQuery := repository.NewReviewQuery(dal.GetDBClient())
-	result, err := reviewQuery.GetReview(ctx, repository.WithID(request.ReviewID))
-	if err != nil || len(result) == 0 {
-		return 0, errors.New("review not exist")
-	}
-
-	reactionQuery := repository.NewReviewReactionQuery(dal.GetDBClient())
-	reaction, err := reactionQuery.CreateReaction(ctx, request.ReviewID, user.ID, request.Reaction)
+	r := repository.Q.ReviewPO
+	_, err := r.WithContext(ctx).Where(r.ID.Eq(request.ReviewID)).Take()
 	if err != nil {
 		return 0, err
 	}
-	return reaction.ReviewID, nil
+
+	rq := repository.Q.ReviewReactionPO
+	reactionModel := po.ReviewReactionPO{
+		ReviewID: request.ReviewID,
+		UserID:   user.ID,
+		Reaction: request.Reaction,
+	}
+
+	err = rq.WithContext(ctx).Create(&reactionModel)
+	if err != nil {
+		return 0, err
+	}
+	return reactionModel.ReviewID, nil
 }
 
 func DeleteReviewReaction(ctx context.Context, user *model.UserDetail, reactionID int64) error {
-	query := repository.NewReviewReactionQuery(dal.GetDBClient())
-	reaction, err := query.GetReaction(ctx, reactionID)
+	r := repository.Q.ReviewReactionPO
+	reaction, err := r.WithContext(ctx).Where(r.ID.Eq(reactionID)).Take()
 	if err != nil {
 		return err
 	}
 	if user != nil && reaction.UserID != user.ID {
 		return errors.New("user not match")
 	}
-	return query.DeleteReaction(ctx, reactionID)
+	_, err = r.WithContext(ctx).Delete(reaction)
+	return err
 }

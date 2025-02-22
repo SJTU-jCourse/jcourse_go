@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	"jcourse_go/util"
 	"net/http"
 
 	"github.com/gin-gonic/contrib/sessions"
@@ -12,7 +11,8 @@ import (
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
-	"jcourse_go/service"
+	"jcourse_go/service/auth"
+	"jcourse_go/util"
 )
 
 func LoginHandler(c *gin.Context) {
@@ -22,7 +22,7 @@ func LoginHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	userPO, err := service.Login(c, request.Email, request.Password)
+	userPO, err := auth.Login(c, request.Email, request.Password)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "登录失败，请重试。"})
 		return
@@ -48,7 +48,7 @@ func ResetPasswordHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	err = service.ResetPassword(c, request.Email, request.Password, request.Code)
+	err = auth.ResetPassword(c, request.Email, request.Password, request.Code)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "重置密码失败，请重试。"})
 		return
@@ -64,7 +64,7 @@ func RegisterHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	userPO, err := service.Register(c, request.Email, request.Password, request.Code)
+	userPO, err := auth.Register(c, request.Email, request.Password, request.Code)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "注册失败，请重试。"})
 		return
@@ -81,15 +81,15 @@ func RegisterHandler(c *gin.Context) {
 func SendVerifyCodeHandler(c *gin.Context) {
 	var request dto.SendEmailCodeRequest
 	err := c.ShouldBind(&request)
-	if err != nil || !service.ValidateEmail(request.Email) {
+	if err != nil || !auth.ValidateEmail(request.Email) {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
 
 	if util.IsDebug() {
-		err = service.SendRegisterCodeEmailMock(c, request.Email)
+		err = auth.SendRegisterCodeEmailMock(c, request.Email)
 	} else {
-		err = service.SendRegisterCodeEmail(c, request.Email)
+		err = auth.SendRegisterCodeEmail(c, request.Email)
 	}
 
 	if err != nil {

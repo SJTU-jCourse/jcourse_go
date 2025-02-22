@@ -16,24 +16,38 @@ func ConvertBaseCourseFromPO(po po.BaseCoursePO) model.BaseCourse {
 	}
 }
 
-func ConvertCourseSummaryFromPO(po po.CoursePO) model.CourseSummary {
-	return model.CourseSummary{
-		CourseMinimal: model.CourseMinimal{
-			ID: po.ID,
-			BaseCourse: model.BaseCourse{
-				Code:   po.Code,
-				Name:   po.Name,
-				Credit: po.Credit,
-			},
-			MainTeacher: model.TeacherSummary{
-				ID:   po.MainTeacherID,
-				Name: po.MainTeacherName,
-			},
+func ConvertCourseMinimalFromPO(po po.CoursePO) model.CourseMinimal {
+	course := model.CourseMinimal{
+		ID: po.ID,
+		BaseCourse: model.BaseCourse{
+			Code:   po.Code,
+			Name:   po.Name,
+			Credit: po.Credit,
 		},
-		Categories: nil,
-		Department: po.Department,
-		RatingInfo: model.RatingInfo{},
+		MainTeacher: model.TeacherSummary{
+			ID:   po.MainTeacherID,
+			Name: po.MainTeacherName,
+		},
 	}
+	if po.MainTeacher.ID != 0 {
+		course.MainTeacher = ConvertTeacherSummaryFromPO(po.MainTeacher)
+	}
+	return course
+}
+
+func ConvertCourseSummaryFromPO(po po.CoursePO) model.CourseSummary {
+	courseSummary := model.CourseSummary{
+		CourseMinimal: ConvertCourseMinimalFromPO(po),
+		Categories:    make([]string, 0),
+		Department:    po.Department,
+		RatingInfo:    model.RatingInfo{},
+	}
+	if len(po.Categories) > 0 {
+		for _, v := range po.Categories {
+			courseSummary.Categories = append(courseSummary.Categories, v.Category)
+		}
+	}
+	return courseSummary
 }
 
 func ConvertCourseSummariesFromPO(pos []po.CoursePO) []model.CourseSummary {
@@ -44,9 +58,16 @@ func ConvertCourseSummariesFromPO(pos []po.CoursePO) []model.CourseSummary {
 	return res
 }
 func ConvertCourseDetailFromPO(po po.CoursePO) model.CourseDetail {
-	return model.CourseDetail{
+	courseDetail := model.CourseDetail{
 		CourseSummary: ConvertCourseSummaryFromPO(po),
+		OfferedCourse: make([]model.OfferedCourse, 0),
 	}
+	if len(po.OfferedCourses) > 0 {
+		for _, v := range po.OfferedCourses {
+			courseDetail.OfferedCourse = append(courseDetail.OfferedCourse, ConvertOfferedCourseFromPO(v))
+		}
+	}
+	return courseDetail
 }
 
 func PackCourseWithMainTeacher(c *model.CourseMinimal, teacher model.TeacherSummary) {

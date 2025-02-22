@@ -2,6 +2,7 @@ package converter
 
 import (
 	"fmt"
+
 	"jcourse_go/model/model"
 	"jcourse_go/model/po"
 
@@ -24,7 +25,7 @@ func ConvertDailyInfoFromPO(po po.StatisticPO) model.DailyInfo {
 }
 
 // GetPeriodInfoFromPOs 从统计数据中获取指定的周期信息, 调用者保证pos中的数据是按时间增序排列的, 保证返回的数据是按时间增序排列的
-func GetPeriodInfoFromPOs(pos []po.StatisticPO, keys []model.PeriodInfoKey) (map[model.PeriodInfoKey][]model.PeriodInfo, error) {
+func GetPeriodInfoFromPOs(pos []*po.StatisticPO, keys []model.PeriodInfoKey) (map[model.PeriodInfoKey][]model.PeriodInfo, error) {
 	const week = 7
 	const month = 30
 	periodInfoMap := make(map[model.PeriodInfoKey][]model.PeriodInfo)

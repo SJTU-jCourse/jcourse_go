@@ -1,12 +1,13 @@
 package converter
 
 import (
-	"jcourse_go/model/model"
-	"jcourse_go/model/po"
-	"jcourse_go/util"
 	"math/rand"
 	"testing"
 	"time"
+
+	"jcourse_go/model/model"
+	"jcourse_go/model/po"
+	"jcourse_go/util"
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/stretchr/testify/assert"
@@ -55,9 +56,10 @@ func TestGetPeriodInfoFromPOs(t *testing.T) {
 	}
 
 	// Test data
-	pos := make([]po.StatisticPO, 40)
+	pos := make([]*po.StatisticPO, 40)
 	for i := 0; i < 40; i++ {
-		pos[i] = createStatisticPO(i)
+		p := createStatisticPO(i)
+		pos[i] = &p
 	}
 
 	keys := []model.PeriodInfoKey{model.PeriodInfoKeyMAU, model.PeriodInfoKeyWAU}

@@ -93,3 +93,13 @@ func GetCSRFSecret() string {
 func GetTimeLocationStr() string {
 	return GetEnvDefault("TIME_ZONE", "Asia/Shanghai")
 }
+
+// === SJTU Feature ===
+
+func IsEnableSJTUFeature() bool {
+	return GetEnvDefault("ENABLE_SJTU_FEATURE", "") != ""
+}
+
+func GetHashSalt() string {
+	return GetEnvDefault("HASH_SALT", "")
+}

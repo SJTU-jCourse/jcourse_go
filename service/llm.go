@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"jcourse_go/constant"
-	"jcourse_go/dal"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
@@ -63,15 +62,8 @@ func OptCourseReview(ctx context.Context, courseName string, reviewContent strin
 // TODO: 此处基于课程最近的100条评价内容生成课程总结，后续可
 // 以进一步调整和优化。
 func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummaryResponse, error) {
-	courseQuery := repository.NewCourseQuery(dal.GetDBClient())
-	coursePOs, err := courseQuery.GetCourse(ctx, repository.WithID(courseID))
-	if err != nil || len(coursePOs) == 0 {
-		return nil, err
-	}
-	coursePO := coursePOs[0]
-
-	offeredCourseQuery := repository.NewOfferedCourseQuery(dal.GetDBClient())
-	offeredCoursePOs, err := offeredCourseQuery.GetOfferedCourseTeacherGroup(ctx, []int64{courseID})
+	c := repository.Q.CoursePO
+	coursePO, err := c.WithContext(ctx).Preload(c.OfferedCourses).Where(c.ID.Eq(courseID)).Take()
 	if err != nil {
 		return nil, err
 	}
@@ -86,19 +78,17 @@ func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummar
 
 	reviews, err := GetReviewList(ctx, nil, filter)
 	if err != nil {
-
 		return nil, err
 	}
 
 	llm, err := openai.New()
 	if err != nil {
-
 		return nil, err
 	}
 
 	inputJson, _ := json.Marshal(map[string]any{
 		"courseName":    coursePO.Name,
-		"teacherGroup":  offeredCoursePOs[courseID],
+		"teacherGroup":  coursePO.OfferedCourses,
 		"ratingAverage": coursePO.RatingAvg,
 		"ratingCount":   coursePO.RatingCount,
 		"recentReviews": reviews,
@@ -132,12 +122,11 @@ func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummar
 // TODO: 此处使用课程最近100条评论和课程名进行向量化，后续可以
 // 优化和调整；
 func VectorizeCourse(ctx context.Context, courseID int64) error {
-	courseQuery := repository.NewCourseQuery(dal.GetDBClient())
-	coursePOs, err := courseQuery.GetCourse(ctx, repository.WithID(courseID))
-	if err != nil || len(coursePOs) == 0 {
+	c := repository.Q.CoursePO
+	coursePO, err := c.WithContext(ctx).Where(c.ID.Eq(courseID)).Take()
+	if err != nil {
 		return err
 	}
-	coursePO := coursePOs[0]
 
 	courseName := coursePO.Name
 
@@ -223,29 +212,21 @@ func GetMatchCourses(ctx context.Context, description string) ([]model.CourseSum
 		courseIDs = append(courseIDs, int64(courseID))
 	}
 
-	query := repository.NewCourseQuery(dal.GetDBClient())
-
-	coursePOs, err := query.GetCourse(ctx, repository.WithIDs(courseIDs))
+	c := repository.Q.CoursePO
+	coursePOs, err := c.WithContext(ctx).Preload(c.Categories).Where(c.ID.In(courseIDs...)).Find()
 	if err != nil {
 		return nil, err
 	}
 
-	courseCategories, err := query.GetCourseCategories(ctx, courseIDs)
-	if err != nil {
-		return nil, err
-	}
-
-	ratingQuery := repository.NewRatingQuery(dal.GetDBClient())
-	infos, err := ratingQuery.GetRatingInfoByIDs(ctx, types.RelatedTypeCourse, courseIDs)
+	infos, err := GetMultipleRating(ctx, types.RelatedTypeCourse, courseIDs)
 	if err != nil {
 		return nil, err
 	}
 
 	courses := make([]model.CourseSummary, 0, len(coursePOs))
 	for _, coursePO := range coursePOs {
-		course := converter.ConvertCourseSummaryFromPO(coursePO)
-		converter.PackCourseWithCategories(&course, courseCategories[int64(coursePO.ID)])
-		converter.PackCourseWithRatingInfo(&course, infos[int64(coursePO.ID)])
+		course := converter.ConvertCourseSummaryFromPO(*coursePO)
+		converter.PackCourseWithRatingInfo(&course, infos[coursePO.ID])
 		courses = append(courses, course)
 	}
 	return courses, nil

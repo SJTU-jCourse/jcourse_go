@@ -2,13 +2,15 @@ package statistic
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"jcourse_go/dal"
 	"jcourse_go/middleware"
 	"jcourse_go/model/converter"
+	"jcourse_go/model/po"
 	"jcourse_go/repository"
 	"jcourse_go/util"
-	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -22,6 +24,7 @@ func TestSaveStatistic(t *testing.T) {
 		if err != nil {
 			t.Errorf("Migrate() error = %v", err)
 		}
+		repository.SetDefault(db)
 		// uv, pv data
 		userNum := 10000
 		uvm := middleware.NewUVMiddleware()
@@ -37,39 +40,37 @@ func TestSaveStatistic(t *testing.T) {
 			pvm.AddPageView(int64(i), uris[i%len(uris)])
 		}
 		// count data
-		userQuery := repository.NewUserQuery(dal.GetDBClient())
-		_, err = userQuery.CreateUser(ctx, "test@example.com", "password")
+		u := repository.Q.UserPO
+		userPO := po.UserPO{
+			Email:    "test@example.com",
+			Password: "password",
+		}
+		err = u.WithContext(ctx).Create(&userPO)
 		if err != nil {
 			return
 		}
-		err = SaveStatistic(ctx, db, pvm, uvm, time.Now())
+		err = SaveStatistic(ctx, pvm, uvm, time.Now())
 		if err != nil {
 			t.Errorf("SaveStatistic() error = %v", err)
 		}
-		statisticQuery := repository.NewStatisticQuery(dal.GetDBClient())
-		statisticDataQuery := repository.NewStatisticDataQuery(dal.GetDBClient())
-		statisticPOs, err := statisticQuery.GetStatistics(ctx, repository.WithDate(util.FormatDate(time.Now())))
+		s := repository.Q.StatisticPO
+		d := repository.Q.StatisticDataPO
+
+		item, err := s.WithContext(ctx).Where(s.Date.Eq(util.FormatDate(time.Now()))).Take()
 		if err != nil {
 			t.Errorf("SaveStatistic() error = %v", err)
 		}
-		if len(statisticPOs) != 1 {
-			t.Errorf("SaveStatistic() error = %v", err)
-		}
-		item := statisticPOs[0]
+
 		assert.Equal(t, int64(userNum), item.UVCount)
 		assert.Equal(t, int64(userNum), item.PVCount)
 		assert.Equal(t, int64(0), item.NewReviews)
 		assert.Equal(t, item.NewUsers, int64(1))
 
-		data, err := statisticDataQuery.GetUVDataList(ctx, repository.WithDate(util.FormatDate(time.Now())))
+		bytes, err := d.WithContext(ctx).Where(d.Date.Eq(util.FormatDate(time.Now()))).Take()
 		if err != nil {
 			t.Errorf("SaveStatistic() error = %v", err)
 		}
-		if len(data) != 1 {
-			t.Errorf("SaveStatistic() error = %v", err)
-		}
-		bytes := data[0]
-		uv, err := converter.ConvertUVDataFromPO(bytes)
+		uv, err := converter.ConvertUVDataFromPO(bytes.UVData)
 		if err != nil {
 			t.Errorf("SaveStatistic() error = %v", err)
 		}
@@ -85,7 +86,7 @@ func TestSaveStatistic(t *testing.T) {
 }
 
 // TODO: Need Save mock: unique index constraint for date
-//func BenchmarkSaveStatistic(b *testing.B) {
+// func BenchmarkSaveStatistic(b *testing.B) {
 //	// 10000 user
 //	userNum := 10000
 //	uvm := middleware.NewUVMiddleware()
@@ -113,4 +114,4 @@ func TestSaveStatistic(t *testing.T) {
 //			b.Errorf("SaveStatistic() error = %v", err)
 //		}
 //	}
-//}
+// }

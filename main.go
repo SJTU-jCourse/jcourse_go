@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"jcourse_go/dal"
+	"jcourse_go/repository"
 	"jcourse_go/task"
 	"jcourse_go/task/base"
 	"jcourse_go/util"
@@ -19,6 +20,7 @@ func Init() {
 	_ = godotenv.Load()
 	dal.InitRedisClient()
 	dal.InitDBClient()
+	repository.Use(dal.GetDBClient())
 
 	task.InitTaskManager(base.RedisConfig{
 		DSN:      dal.GetRedisDSN(),

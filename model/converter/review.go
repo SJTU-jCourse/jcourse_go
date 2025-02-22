@@ -7,14 +7,10 @@ import (
 )
 
 func ConvertReviewFromPO(po po.ReviewPO) model.Review {
-	return model.Review{
-		ID: int64(po.ID),
-		Course: model.CourseMinimal{
-			ID: po.CourseID,
-		},
-		User: model.UserMinimal{
-			ID: po.UserID,
-		},
+	review := model.Review{
+		ID:          int64(po.ID),
+		Course:      ConvertCourseMinimalFromPO(po.Course),
+		User:        ConvertUserMinimalFromPO(po.User),
 		Comment:     po.Comment,
 		Rating:      po.Rating,
 		Semester:    po.Semester,
@@ -23,6 +19,7 @@ func ConvertReviewFromPO(po po.ReviewPO) model.Review {
 		UpdatedAt:   po.UpdatedAt,
 		Grade:       po.Grade,
 	}
+	return review
 }
 
 func RemoveReviewUserInfo(review *model.Review, userID int64, hideUser bool) {
