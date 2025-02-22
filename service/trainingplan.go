@@ -94,9 +94,12 @@ func SearchTrainingPlanList(ctx context.Context, filter model.TrainingPlanFilter
 
 	trainingPlanIDs := make([]int64, 0)
 	for _, tp := range trainingPlanPOs {
-		trainingPlanIDs = append(trainingPlanIDs, int64(tp.ID))
+		trainingPlanIDs = append(trainingPlanIDs, tp.ID)
 	}
 	infos, err := GetMultipleRating(ctx, types.RelatedTypeTrainingPlan, trainingPlanIDs)
+	if err != nil {
+		return nil, err
+	}
 	result := make([]model.TrainingPlanSummary, 0)
 	for _, tpPO := range trainingPlanPOs {
 		tp := converter.ConvertTrainingPlanSummaryFromPO(*tpPO)
