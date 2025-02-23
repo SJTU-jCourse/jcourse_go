@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"jcourse_go/constant"
-	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/service/auth"
@@ -22,13 +21,12 @@ func LoginHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	userPO, err := auth.Login(c, request.Email, request.Password)
+	user, err := auth.Login(c, request.Email, request.Password)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "登录失败，请重试。"})
 		return
 	}
-	user := converter.ConvertUserDetailFromPO(*userPO)
-	err = storeAuthSession(c, &user)
+	err = storeAuthSession(c, user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "登录失败，请重试。"})
 		return
@@ -64,13 +62,12 @@ func RegisterHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	userPO, err := auth.Register(c, request.Email, request.Password, request.Code)
+	user, err := auth.Register(c, request.Email, request.Password, request.Code)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "注册失败，请重试。"})
 		return
 	}
-	user := converter.ConvertUserDetailFromPO(*userPO)
-	err = storeAuthSession(c, &user)
+	err = storeAuthSession(c, user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "注册失败，请重试。"})
 		return
