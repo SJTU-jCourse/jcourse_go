@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 
+	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
 	"jcourse_go/repository"
 )
@@ -17,7 +18,7 @@ func GetClientSettings(ctx context.Context) (map[string]any, error) {
 	}
 
 	for _, setting := range settings {
-		setModel, _ := repository.GetSettingFromPO(*setting)
+		setModel, _ := converter.GetSettingFromPO(*setting)
 		res[setModel.GetKey()] = setModel.GetValue()
 	}
 	return res, nil
@@ -38,5 +39,5 @@ func GetSetting(ctx context.Context, key string) (model.Setting, error) {
 	if err != nil {
 		return nil, err
 	}
-	return repository.GetSettingFromPO(*setting)
+	return converter.GetSettingFromPO(*setting)
 }

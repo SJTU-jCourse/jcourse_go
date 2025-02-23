@@ -23,6 +23,8 @@ type TeacherPO struct {
 	RatingCount int64   `gorm:"index;default:0;not null"`
 	RatingAvg   float64 `gorm:"index;default:0;not null"`
 
+	Courses []CoursePO `gorm:"foreignKey:MainTeacherID"`
+
 	SearchIndex SearchIndex `gorm:"->:false;<-"`
 }
 

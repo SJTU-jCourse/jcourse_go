@@ -23,6 +23,8 @@ type UserPO struct {
 	Bio        string // 个人介绍
 	Points     int64  // 积分
 
+	UserPointDetails []*UserPointDetailPO `gorm:"foreignkey:UserID"`
+
 	LastSeenAt time.Time
 }
 

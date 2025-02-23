@@ -6,9 +6,9 @@ import (
 	"jcourse_go/model/po"
 )
 
-func ConvertReviewFromPO(po po.ReviewPO) model.Review {
+func ConvertReviewFromPO(po *po.ReviewPO) model.Review {
 	review := model.Review{
-		ID:          int64(po.ID),
+		ID:          po.ID,
 		Course:      ConvertCourseMinimalFromPO(po.Course),
 		User:        ConvertUserMinimalFromPO(po.User),
 		Comment:     po.Comment,
@@ -36,14 +36,6 @@ func RemoveReviewsUserInfo(reviews []model.Review, userID int64, hideUser bool) 
 	for i := range reviews {
 		RemoveReviewUserInfo(&reviews[i], userID, hideUser)
 	}
-}
-
-func PackReviewWithCourse(review *model.Review, course model.CourseMinimal) {
-	review.Course = course
-}
-
-func PackReviewWithUser(review *model.Review, user model.UserMinimal) {
-	review.User = user
 }
 
 func ConvertReviewDTOToPO(dto dto.UpdateReviewDTO, userID int64) po.ReviewPO {

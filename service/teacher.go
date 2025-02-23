@@ -23,7 +23,7 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*model.TeacherDetai
 	if teacherPO == nil {
 		return nil, errors.New("teacher not found")
 	}
-	teacher := converter.ConvertTeacherDetailFromPO(*teacherPO)
+	teacher := converter.ConvertTeacherDetailFromPO(teacherPO)
 
 	courses, err := GetCourseList(ctx, model.CourseListFilterForQuery{MainTeacherID: teacherID})
 	if err != nil {
@@ -99,7 +99,7 @@ func SearchTeacherList(ctx context.Context, filter model.TeacherFilterForQuery) 
 
 	domainTeachers := make([]model.TeacherSummary, 0)
 	for _, t := range teachers {
-		teacherDomain := converter.ConvertTeacherSummaryFromPO(*t)
+		teacherDomain := converter.ConvertTeacherSummaryFromPO(t)
 		converter.PackTeacherWithRatingInfo(&teacherDomain, infos[teacherDomain.ID])
 		domainTeachers = append(domainTeachers, teacherDomain)
 	}

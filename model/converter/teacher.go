@@ -5,7 +5,7 @@ import (
 	"jcourse_go/model/po"
 )
 
-func ConvertTeacherDetailFromPO(po po.TeacherPO) model.TeacherDetail {
+func ConvertTeacherDetailFromPO(po *po.TeacherPO) model.TeacherDetail {
 	return model.TeacherDetail{
 		TeacherSummary: ConvertTeacherSummaryFromPO(po),
 		Email:          po.Email,
@@ -20,7 +20,7 @@ func PackTeacherWithCourses(t *model.TeacherDetail, courses []model.CourseSummar
 	t.Courses = courses
 }
 
-func ConvertTeacherSummaryFromPO(po po.TeacherPO) model.TeacherSummary {
+func ConvertTeacherSummaryFromPO(po *po.TeacherPO) model.TeacherSummary {
 	return model.TeacherSummary{
 		ID:         po.ID,
 		Name:       po.Name,

@@ -6,7 +6,7 @@ import (
 	"jcourse_go/model/po"
 )
 
-func ConvertUserDetailFromPO(po po.UserPO) model.UserDetail {
+func ConvertUserDetailFromPO(po *po.UserPO) model.UserDetail {
 	return model.UserDetail{
 		UserMinimal: ConvertUserMinimalFromPO(po),
 		Bio:         po.Bio,
@@ -20,9 +20,9 @@ func ConvertUserDetailFromPO(po po.UserPO) model.UserDetail {
 	}
 }
 
-func ConvertUserMinimalFromPO(po po.UserPO) model.UserMinimal {
+func ConvertUserMinimalFromPO(po *po.UserPO) model.UserMinimal {
 	return model.UserMinimal{
-		ID:       int64(po.ID),
+		ID:       po.ID,
 		Username: po.Username,
 		Avatar:   po.Avatar,
 	}

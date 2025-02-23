@@ -225,7 +225,7 @@ func GetMatchCourses(ctx context.Context, description string) ([]model.CourseSum
 
 	courses := make([]model.CourseSummary, 0, len(coursePOs))
 	for _, coursePO := range coursePOs {
-		course := converter.ConvertCourseSummaryFromPO(*coursePO)
+		course := converter.ConvertCourseSummaryFromPO(coursePO)
 		converter.PackCourseWithRatingInfo(&course, infos[coursePO.ID])
 		courses = append(courses, course)
 	}

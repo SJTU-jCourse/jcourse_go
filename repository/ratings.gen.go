@@ -38,6 +38,19 @@ func newRatingPO(db *gorm.DB, opts ...gen.DOOption) ratingPO {
 		db: db.Session(&gorm.Session{}),
 
 		RelationField: field.NewRelation("User", "po.UserPO"),
+		UserPointDetails: struct {
+			field.RelationField
+			User struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("User.UserPointDetails", "po.UserPointDetailPO"),
+			User: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("User.UserPointDetails.User", "po.UserPO"),
+			},
+		},
 	}
 
 	_ratingPO.fillFieldMap()
@@ -121,6 +134,13 @@ type ratingPOBelongsToUser struct {
 	db *gorm.DB
 
 	field.RelationField
+
+	UserPointDetails struct {
+		field.RelationField
+		User struct {
+			field.RelationField
+		}
+	}
 }
 
 func (a ratingPOBelongsToUser) Where(conds ...field.Expr) *ratingPOBelongsToUser {

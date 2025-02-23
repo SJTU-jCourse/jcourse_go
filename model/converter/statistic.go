@@ -11,9 +11,9 @@ import (
 	"github.com/RoaringBitmap/roaring"
 )
 
-func ConvertDailyInfoFromPO(po po.StatisticPO) model.DailyInfo {
+func ConvertDailyInfoFromPO(po *po.StatisticPO) model.DailyInfo {
 	return model.DailyInfo{
-		ID:               int64(po.ID),
+		ID:               po.ID,
 		Date:             po.Date,
 		UVCount:          po.UVCount,
 		PVCount:          po.PVCount,

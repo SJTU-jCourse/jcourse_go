@@ -43,6 +43,110 @@ func newTeacherPO(db *gorm.DB, opts ...gen.DOOption) teacherPO {
 	_teacherPO.RatingCount = field.NewInt64(tableName, "rating_count")
 	_teacherPO.RatingAvg = field.NewFloat64(tableName, "rating_avg")
 	_teacherPO.SearchIndex = field.NewField(tableName, "search_index")
+	_teacherPO.Courses = teacherPOHasManyCourses{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("Courses", "po.CoursePO"),
+		MainTeacher: struct {
+			field.RelationField
+			Courses struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("Courses.MainTeacher", "po.TeacherPO"),
+			Courses: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Courses.MainTeacher.Courses", "po.CoursePO"),
+			},
+		},
+		Categories: struct {
+			field.RelationField
+			Course struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("Courses.Categories", "po.CourseCategoryPO"),
+			Course: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Courses.Categories.Course", "po.CoursePO"),
+			},
+		},
+		OfferedCourses: struct {
+			field.RelationField
+			Course struct {
+				field.RelationField
+			}
+			MainTeacher struct {
+				field.RelationField
+			}
+			OfferedCourseTeacher struct {
+				field.RelationField
+				Course struct {
+					field.RelationField
+				}
+				OfferedCourse struct {
+					field.RelationField
+				}
+				MainTeacher struct {
+					field.RelationField
+				}
+				Teacher struct {
+					field.RelationField
+				}
+			}
+		}{
+			RelationField: field.NewRelation("Courses.OfferedCourses", "po.OfferedCoursePO"),
+			Course: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Courses.OfferedCourses.Course", "po.CoursePO"),
+			},
+			MainTeacher: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("Courses.OfferedCourses.MainTeacher", "po.TeacherPO"),
+			},
+			OfferedCourseTeacher: struct {
+				field.RelationField
+				Course struct {
+					field.RelationField
+				}
+				OfferedCourse struct {
+					field.RelationField
+				}
+				MainTeacher struct {
+					field.RelationField
+				}
+				Teacher struct {
+					field.RelationField
+				}
+			}{
+				RelationField: field.NewRelation("Courses.OfferedCourses.OfferedCourseTeacher", "po.OfferedCourseTeacherPO"),
+				Course: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("Courses.OfferedCourses.OfferedCourseTeacher.Course", "po.CoursePO"),
+				},
+				OfferedCourse: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("Courses.OfferedCourses.OfferedCourseTeacher.OfferedCourse", "po.OfferedCoursePO"),
+				},
+				MainTeacher: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("Courses.OfferedCourses.OfferedCourseTeacher.MainTeacher", "po.TeacherPO"),
+				},
+				Teacher: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("Courses.OfferedCourses.OfferedCourseTeacher.Teacher", "po.TeacherPO"),
+				},
+			},
+		},
+	}
 
 	_teacherPO.fillFieldMap()
 
@@ -69,6 +173,7 @@ type teacherPO struct {
 	RatingCount field.Int64
 	RatingAvg   field.Float64
 	SearchIndex field.Field
+	Courses     teacherPOHasManyCourses
 
 	fieldMap map[string]field.Expr
 }
@@ -117,7 +222,7 @@ func (t *teacherPO) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (t *teacherPO) fillFieldMap() {
-	t.fieldMap = make(map[string]field.Expr, 16)
+	t.fieldMap = make(map[string]field.Expr, 17)
 	t.fieldMap["id"] = t.ID
 	t.fieldMap["created_at"] = t.CreatedAt
 	t.fieldMap["updated_at"] = t.UpdatedAt
@@ -134,6 +239,7 @@ func (t *teacherPO) fillFieldMap() {
 	t.fieldMap["rating_count"] = t.RatingCount
 	t.fieldMap["rating_avg"] = t.RatingAvg
 	t.fieldMap["search_index"] = t.SearchIndex
+
 }
 
 func (t teacherPO) clone(db *gorm.DB) teacherPO {
@@ -144,6 +250,114 @@ func (t teacherPO) clone(db *gorm.DB) teacherPO {
 func (t teacherPO) replaceDB(db *gorm.DB) teacherPO {
 	t.teacherPODo.ReplaceDB(db)
 	return t
+}
+
+type teacherPOHasManyCourses struct {
+	db *gorm.DB
+
+	field.RelationField
+
+	MainTeacher struct {
+		field.RelationField
+		Courses struct {
+			field.RelationField
+		}
+	}
+	Categories struct {
+		field.RelationField
+		Course struct {
+			field.RelationField
+		}
+	}
+	OfferedCourses struct {
+		field.RelationField
+		Course struct {
+			field.RelationField
+		}
+		MainTeacher struct {
+			field.RelationField
+		}
+		OfferedCourseTeacher struct {
+			field.RelationField
+			Course struct {
+				field.RelationField
+			}
+			OfferedCourse struct {
+				field.RelationField
+			}
+			MainTeacher struct {
+				field.RelationField
+			}
+			Teacher struct {
+				field.RelationField
+			}
+		}
+	}
+}
+
+func (a teacherPOHasManyCourses) Where(conds ...field.Expr) *teacherPOHasManyCourses {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a teacherPOHasManyCourses) WithContext(ctx context.Context) *teacherPOHasManyCourses {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a teacherPOHasManyCourses) Session(session *gorm.Session) *teacherPOHasManyCourses {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a teacherPOHasManyCourses) Model(m *po.TeacherPO) *teacherPOHasManyCoursesTx {
+	return &teacherPOHasManyCoursesTx{a.db.Model(m).Association(a.Name())}
+}
+
+type teacherPOHasManyCoursesTx struct{ tx *gorm.Association }
+
+func (a teacherPOHasManyCoursesTx) Find() (result []*po.CoursePO, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a teacherPOHasManyCoursesTx) Append(values ...*po.CoursePO) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a teacherPOHasManyCoursesTx) Replace(values ...*po.CoursePO) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a teacherPOHasManyCoursesTx) Delete(values ...*po.CoursePO) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a teacherPOHasManyCoursesTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a teacherPOHasManyCoursesTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type teacherPODo struct{ gen.DO }

@@ -42,6 +42,9 @@ func newOfferedCoursePO(db *gorm.DB, opts ...gen.DOOption) offeredCoursePO {
 			field.RelationField
 			MainTeacher struct {
 				field.RelationField
+				Courses struct {
+					field.RelationField
+				}
 			}
 			Categories struct {
 				field.RelationField
@@ -65,8 +68,16 @@ func newOfferedCoursePO(db *gorm.DB, opts ...gen.DOOption) offeredCoursePO {
 			RelationField: field.NewRelation("OfferedCourseTeacher.Course", "po.CoursePO"),
 			MainTeacher: struct {
 				field.RelationField
+				Courses struct {
+					field.RelationField
+				}
 			}{
 				RelationField: field.NewRelation("OfferedCourseTeacher.Course.MainTeacher", "po.TeacherPO"),
+				Courses: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("OfferedCourseTeacher.Course.MainTeacher.Courses", "po.CoursePO"),
+				},
 			},
 			Categories: struct {
 				field.RelationField
@@ -230,6 +241,9 @@ type offeredCoursePOHasManyOfferedCourseTeacher struct {
 		field.RelationField
 		MainTeacher struct {
 			field.RelationField
+			Courses struct {
+				field.RelationField
+			}
 		}
 		Categories struct {
 			field.RelationField

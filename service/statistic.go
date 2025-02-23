@@ -82,7 +82,7 @@ func GetStatistics(ctx context.Context, filter model.StatisticFilter) ([]model.D
 	dailyInfos := make([]model.DailyInfo, num)
 	if len(filter.PeriodInfoKeys) == 0 {
 		for i, statisticPO := range statistics {
-			dailyInfos[i] = converter.ConvertDailyInfoFromPO(*statisticPO)
+			dailyInfos[i] = converter.ConvertDailyInfoFromPO(statisticPO)
 		}
 		return dailyInfos, nil, nil
 	}
@@ -95,7 +95,7 @@ func GetStatistics(ctx context.Context, filter model.StatisticFilter) ([]model.D
 		periodInfos = append(periodInfos, infos...)
 	}
 	for i, statisticPO := range statistics {
-		dailyInfos[i] = converter.ConvertDailyInfoFromPO(*statisticPO)
+		dailyInfos[i] = converter.ConvertDailyInfoFromPO(statisticPO)
 	}
 	return dailyInfos, periodInfos, nil
 }

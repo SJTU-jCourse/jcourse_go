@@ -22,7 +22,7 @@ func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*model.Tr
 		return nil, err
 	}
 
-	trainingPlan := converter.ConvertTrainingPlanDetailFromPO(*trainingPlanPO)
+	trainingPlan := converter.ConvertTrainingPlanDetailFromPO(trainingPlanPO)
 
 	info, err := GetRating(ctx, types.RelatedTypeTrainingPlan, trainingPlanID)
 	if err != nil {
@@ -102,7 +102,7 @@ func SearchTrainingPlanList(ctx context.Context, filter model.TrainingPlanFilter
 	}
 	result := make([]model.TrainingPlanSummary, 0)
 	for _, tpPO := range trainingPlanPOs {
-		tp := converter.ConvertTrainingPlanSummaryFromPO(*tpPO)
+		tp := converter.ConvertTrainingPlanSummaryFromPO(tpPO)
 		converter.PackTrainingPlanWithRatingInfo(&tp, infos[tp.ID])
 		result = append(result, tp)
 	}

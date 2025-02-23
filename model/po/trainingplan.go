@@ -34,10 +34,10 @@ type TrainingPlanCoursePO struct {
 	ID        int64     `gorm:"primarykey"`
 	CreatedAt time.Time `gorm:"index"`
 
-	BaseCourseID   int64          `gorm:"index;index:uniq_training_plan_course,unique"`
-	BaseCourse     BaseCoursePO   `gorm:"constraint:OnDelete:CASCADE;"`
-	TrainingPlanID int64          `gorm:"index;index:uniq_training_plan_course,unique"`
-	TrainingPlan   TrainingPlanPO `gorm:"constraint:OnDelete:CASCADE;"`
+	BaseCourseID   int64           `gorm:"index;index:uniq_training_plan_course,unique"`
+	BaseCourse     *BaseCoursePO   `gorm:"constraint:OnDelete:CASCADE;"`
+	TrainingPlanID int64           `gorm:"index;index:uniq_training_plan_course,unique"`
+	TrainingPlan   *TrainingPlanPO `gorm:"constraint:OnDelete:CASCADE;"`
 	// SuggestSemester:year+semester e.g. 2023-2024-2
 	SuggestSemester string `gorm:"index;index:uniq_training_plan_course,unique"`
 	Category        string `gorm:"index;"`

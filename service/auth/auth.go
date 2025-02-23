@@ -32,7 +32,7 @@ func Login(ctx context.Context, email string, password string) (*model.UserDetai
 	if !ok {
 		return nil, errors.New("password is wrong")
 	}
-	user := converter.ConvertUserDetailFromPO(*userPO)
+	user := converter.ConvertUserDetailFromPO(userPO)
 	return &user, nil
 }
 
@@ -68,7 +68,7 @@ func Register(ctx context.Context, email string, password string, code string) (
 
 	_ = repository.ClearVerifyCodeHistory(ctx, email)
 
-	userDetail := converter.ConvertUserDetailFromPO(user)
+	userDetail := converter.ConvertUserDetailFromPO(&user)
 	return &userDetail, nil
 }
 

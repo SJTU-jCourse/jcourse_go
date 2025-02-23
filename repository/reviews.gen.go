@@ -48,6 +48,9 @@ func newReviewPO(db *gorm.DB, opts ...gen.DOOption) reviewPO {
 				field.RelationField
 				MainTeacher struct {
 					field.RelationField
+					Courses struct {
+						field.RelationField
+					}
 				}
 				Categories struct {
 					field.RelationField
@@ -82,6 +85,12 @@ func newReviewPO(db *gorm.DB, opts ...gen.DOOption) reviewPO {
 			}
 			User struct {
 				field.RelationField
+				UserPointDetails struct {
+					field.RelationField
+					User struct {
+						field.RelationField
+					}
+				}
 			}
 			Revivisions struct {
 				field.RelationField
@@ -101,6 +110,9 @@ func newReviewPO(db *gorm.DB, opts ...gen.DOOption) reviewPO {
 				field.RelationField
 				MainTeacher struct {
 					field.RelationField
+					Courses struct {
+						field.RelationField
+					}
 				}
 				Categories struct {
 					field.RelationField
@@ -136,8 +148,16 @@ func newReviewPO(db *gorm.DB, opts ...gen.DOOption) reviewPO {
 				RelationField: field.NewRelation("Revivisions.Review.Course", "po.CoursePO"),
 				MainTeacher: struct {
 					field.RelationField
+					Courses struct {
+						field.RelationField
+					}
 				}{
 					RelationField: field.NewRelation("Revivisions.Review.Course.MainTeacher", "po.TeacherPO"),
+					Courses: struct {
+						field.RelationField
+					}{
+						RelationField: field.NewRelation("Revivisions.Review.Course.MainTeacher.Courses", "po.CoursePO"),
+					},
 				},
 				Categories: struct {
 					field.RelationField
@@ -228,8 +248,27 @@ func newReviewPO(db *gorm.DB, opts ...gen.DOOption) reviewPO {
 			},
 			User: struct {
 				field.RelationField
+				UserPointDetails struct {
+					field.RelationField
+					User struct {
+						field.RelationField
+					}
+				}
 			}{
 				RelationField: field.NewRelation("Revivisions.Review.User", "po.UserPO"),
+				UserPointDetails: struct {
+					field.RelationField
+					User struct {
+						field.RelationField
+					}
+				}{
+					RelationField: field.NewRelation("Revivisions.Review.User.UserPointDetails", "po.UserPointDetailPO"),
+					User: struct {
+						field.RelationField
+					}{
+						RelationField: field.NewRelation("Revivisions.Review.User.UserPointDetails.User", "po.UserPO"),
+					},
+				},
 			},
 			Revivisions: struct {
 				field.RelationField
@@ -389,6 +428,9 @@ type reviewPOHasManyRevivisions struct {
 			field.RelationField
 			MainTeacher struct {
 				field.RelationField
+				Courses struct {
+					field.RelationField
+				}
 			}
 			Categories struct {
 				field.RelationField
@@ -423,6 +465,12 @@ type reviewPOHasManyRevivisions struct {
 		}
 		User struct {
 			field.RelationField
+			UserPointDetails struct {
+				field.RelationField
+				User struct {
+					field.RelationField
+				}
+			}
 		}
 		Revivisions struct {
 			field.RelationField

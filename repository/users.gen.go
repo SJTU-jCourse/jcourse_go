@@ -43,6 +43,24 @@ func newUserPO(db *gorm.DB, opts ...gen.DOOption) userPO {
 	_userPO.Bio = field.NewString(tableName, "bio")
 	_userPO.Points = field.NewInt64(tableName, "points")
 	_userPO.LastSeenAt = field.NewTime(tableName, "last_seen_at")
+	_userPO.UserPointDetails = userPOHasManyUserPointDetails{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("UserPointDetails", "po.UserPointDetailPO"),
+		User: struct {
+			field.RelationField
+			UserPointDetails struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("UserPointDetails.User", "po.UserPO"),
+			UserPointDetails: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("UserPointDetails.User.UserPointDetails", "po.UserPointDetailPO"),
+			},
+		},
+	}
 
 	_userPO.fillFieldMap()
 
@@ -52,23 +70,24 @@ func newUserPO(db *gorm.DB, opts ...gen.DOOption) userPO {
 type userPO struct {
 	userPODo
 
-	ALL        field.Asterisk
-	ID         field.Int64
-	CreatedAt  field.Time
-	UpdatedAt  field.Time
-	Username   field.String
-	Email      field.String
-	Password   field.String
-	UserRole   field.String
-	Avatar     field.String
-	Department field.String
-	Type       field.String
-	Major      field.String
-	Degree     field.String
-	Grade      field.String
-	Bio        field.String
-	Points     field.Int64
-	LastSeenAt field.Time
+	ALL              field.Asterisk
+	ID               field.Int64
+	CreatedAt        field.Time
+	UpdatedAt        field.Time
+	Username         field.String
+	Email            field.String
+	Password         field.String
+	UserRole         field.String
+	Avatar           field.String
+	Department       field.String
+	Type             field.String
+	Major            field.String
+	Degree           field.String
+	Grade            field.String
+	Bio              field.String
+	Points           field.Int64
+	LastSeenAt       field.Time
+	UserPointDetails userPOHasManyUserPointDetails
 
 	fieldMap map[string]field.Expr
 }
@@ -117,7 +136,7 @@ func (u *userPO) GetFieldByName(fieldName string) (field.OrderExpr, bool) {
 }
 
 func (u *userPO) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 16)
+	u.fieldMap = make(map[string]field.Expr, 17)
 	u.fieldMap["id"] = u.ID
 	u.fieldMap["created_at"] = u.CreatedAt
 	u.fieldMap["updated_at"] = u.UpdatedAt
@@ -134,6 +153,7 @@ func (u *userPO) fillFieldMap() {
 	u.fieldMap["bio"] = u.Bio
 	u.fieldMap["points"] = u.Points
 	u.fieldMap["last_seen_at"] = u.LastSeenAt
+
 }
 
 func (u userPO) clone(db *gorm.DB) userPO {
@@ -144,6 +164,84 @@ func (u userPO) clone(db *gorm.DB) userPO {
 func (u userPO) replaceDB(db *gorm.DB) userPO {
 	u.userPODo.ReplaceDB(db)
 	return u
+}
+
+type userPOHasManyUserPointDetails struct {
+	db *gorm.DB
+
+	field.RelationField
+
+	User struct {
+		field.RelationField
+		UserPointDetails struct {
+			field.RelationField
+		}
+	}
+}
+
+func (a userPOHasManyUserPointDetails) Where(conds ...field.Expr) *userPOHasManyUserPointDetails {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a userPOHasManyUserPointDetails) WithContext(ctx context.Context) *userPOHasManyUserPointDetails {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a userPOHasManyUserPointDetails) Session(session *gorm.Session) *userPOHasManyUserPointDetails {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a userPOHasManyUserPointDetails) Model(m *po.UserPO) *userPOHasManyUserPointDetailsTx {
+	return &userPOHasManyUserPointDetailsTx{a.db.Model(m).Association(a.Name())}
+}
+
+type userPOHasManyUserPointDetailsTx struct{ tx *gorm.Association }
+
+func (a userPOHasManyUserPointDetailsTx) Find() (result []*po.UserPointDetailPO, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a userPOHasManyUserPointDetailsTx) Append(values ...*po.UserPointDetailPO) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a userPOHasManyUserPointDetailsTx) Replace(values ...*po.UserPointDetailPO) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a userPOHasManyUserPointDetailsTx) Delete(values ...*po.UserPointDetailPO) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a userPOHasManyUserPointDetailsTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a userPOHasManyUserPointDetailsTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type userPODo struct{ gen.DO }

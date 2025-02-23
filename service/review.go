@@ -67,7 +67,7 @@ func GetReviewList(ctx context.Context, currentUser *model.UserDetail, filter mo
 
 	result := make([]model.Review, 0)
 	for _, reviewPO := range reviewPOs {
-		review := converter.ConvertReviewFromPO(*reviewPO)
+		review := converter.ConvertReviewFromPO(reviewPO)
 		converter.PackReviewWithReaction(&review, currentUserID, reviewPO.Reaction)
 		result = append(result, review)
 	}

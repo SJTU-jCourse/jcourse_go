@@ -31,7 +31,7 @@ func GetCourseDetail(ctx context.Context, courseID int64, userID int64) (*model.
 		info.MyRating, _ = GetUserRating(ctx, types.RelatedTypeCourse, courseID, userID)
 	}
 
-	course := converter.ConvertCourseDetailFromPO(*coursePO)
+	course := converter.ConvertCourseDetailFromPO(coursePO)
 	converter.PackCourseWithRatingInfo(&course.CourseSummary, info)
 	return &course, nil
 }
@@ -94,7 +94,7 @@ func GetCourseList(ctx context.Context, filter model.CourseListFilterForQuery) (
 
 	courses := make([]model.CourseSummary, 0, len(coursePOs))
 	for _, coursePO := range coursePOs {
-		course := converter.ConvertCourseSummaryFromPO(*coursePO)
+		course := converter.ConvertCourseSummaryFromPO(coursePO)
 		converter.PackCourseWithRatingInfo(&course, ratingMap[coursePO.ID])
 		courses = append(courses, course)
 	}
@@ -113,7 +113,7 @@ func GetBaseCourse(ctx context.Context, code string) (*model.BaseCourse, error) 
 	if err != nil {
 		return nil, err
 	}
-	baseCourse := converter.ConvertBaseCourseFromPO(*baseCoursePO)
+	baseCourse := converter.ConvertBaseCourseFromPO(baseCoursePO)
 	return &baseCourse, nil
 }
 

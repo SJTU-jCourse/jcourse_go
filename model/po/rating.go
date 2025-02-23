@@ -9,11 +9,11 @@ type RatingPO struct {
 	CreatedAt time.Time `gorm:"index"`
 	UpdatedAt time.Time
 
-	UserID      int64  `gorm:"index;index:uniq_rating,unique"`
-	User        UserPO `gorm:"constraint:OnDelete:CASCADE;"`
-	RelatedType string `gorm:"index;index:uniq_rating,unique;index:related_rating"`
-	RelatedID   int64  `gorm:"index;index:uniq_rating,unique;index:related_rating"`
-	Rating      int64  `gorm:"index"`
+	UserID      int64   `gorm:"index;index:uniq_rating,unique"`
+	User        *UserPO `gorm:"constraint:OnDelete:CASCADE;"`
+	RelatedType string  `gorm:"index;index:uniq_rating,unique;index:related_rating"`
+	RelatedID   int64   `gorm:"index;index:uniq_rating,unique;index:related_rating"`
+	Rating      int64   `gorm:"index"`
 }
 
 func (r *RatingPO) TableName() string {

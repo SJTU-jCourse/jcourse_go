@@ -26,10 +26,10 @@ type CoursePO struct {
 	Name   string  `gorm:"index"`
 	Credit float64 `gorm:"index"`
 
-	MainTeacherID   int64     `gorm:"index;index:uniq_course,unique"`
-	MainTeacher     TeacherPO `gorm:"constraint:OnDelete:CASCADE;"`
-	MainTeacherName string    `gorm:"index"`
-	Department      string    `gorm:"index;index:uniq_course,unique"`
+	MainTeacherID   int64      `gorm:"index;index:uniq_course,unique"`
+	MainTeacher     *TeacherPO `gorm:"constraint:OnDelete:CASCADE;"`
+	MainTeacherName string     `gorm:"index"`
+	Department      string     `gorm:"index;index:uniq_course,unique"`
 
 	RatingCount int64   `gorm:"index;default:0;not null"`
 	RatingAvg   float64 `gorm:"index;default:0;not null"`
@@ -48,9 +48,9 @@ type CourseCategoryPO struct {
 	ID        int64 `gorm:"primarykey"`
 	CreatedAt time.Time
 
-	CourseID int64    `gorm:"index;index:uniq_offered_course_category,unique"`
-	Course   CoursePO `gorm:"constraint:OnDelete:CASCADE;"`
-	Category string   `gorm:"index;index:uniq_offered_course_category,unique"`
+	CourseID int64     `gorm:"index;index:uniq_offered_course_category,unique"`
+	Course   *CoursePO `gorm:"constraint:OnDelete:CASCADE;"`
+	Category string    `gorm:"index;index:uniq_offered_course_category,unique"`
 }
 
 func (po *CourseCategoryPO) TableName() string {
@@ -61,13 +61,13 @@ type OfferedCoursePO struct {
 	ID        int64 `gorm:"primarykey"`
 	CreatedAt time.Time
 
-	CourseID      int64     `gorm:"index;index:uniq_offered_course,unique"`
-	Course        CoursePO  `gorm:"constraint:OnDelete:CASCADE;"`
-	MainTeacherID int64     `gorm:"index"`
-	MainTeacher   TeacherPO `gorm:"constraint:OnDelete:CASCADE;"`
-	Semester      string    `gorm:"index;index:uniq_offered_course,unique"`
-	Language      string    `gorm:"index"`
-	Grade         string    `gorm:"index"`
+	CourseID      int64      `gorm:"index;index:uniq_offered_course,unique"`
+	Course        *CoursePO  `gorm:"constraint:OnDelete:CASCADE;"`
+	MainTeacherID int64      `gorm:"index"`
+	MainTeacher   *TeacherPO `gorm:"constraint:OnDelete:CASCADE;"`
+	Semester      string     `gorm:"index;index:uniq_offered_course,unique"`
+	Language      string     `gorm:"index"`
+	Grade         string     `gorm:"index"`
 
 	OfferedCourseTeacher []OfferedCourseTeacherPO `gorm:"foreignKey:OfferedCourseID"`
 }
@@ -80,15 +80,15 @@ type OfferedCourseTeacherPO struct {
 	ID        int64 `gorm:"primarykey"`
 	CreatedAt time.Time
 
-	CourseID        int64           `gorm:"index"`
-	Course          CoursePO        `gorm:"constraint:OnDelete:CASCADE;"`
-	OfferedCourseID int64           `gorm:"index;index:uniq_offered_course_teacher,unique"`
-	OfferedCourse   OfferedCoursePO `gorm:"constraint:OnDelete:CASCADE;"`
-	MainTeacherID   int64           `gorm:"index"`
-	MainTeacher     TeacherPO       `gorm:"constraint:OnDelete:CASCADE;"`
-	TeacherID       int64           `gorm:"index;index:uniq_offered_course_teacher,unique"`
-	Teacher         TeacherPO       `gorm:"constraint:OnDelete:CASCADE;"`
-	TeacherName     string          `gorm:"index"`
+	CourseID        int64            `gorm:"index"`
+	Course          *CoursePO        `gorm:"constraint:OnDelete:CASCADE;"`
+	OfferedCourseID int64            `gorm:"index;index:uniq_offered_course_teacher,unique"`
+	OfferedCourse   *OfferedCoursePO `gorm:"constraint:OnDelete:CASCADE;"`
+	MainTeacherID   int64            `gorm:"index"`
+	MainTeacher     *TeacherPO       `gorm:"constraint:OnDelete:CASCADE;"`
+	TeacherID       int64            `gorm:"index;index:uniq_offered_course_teacher,unique"`
+	Teacher         *TeacherPO       `gorm:"constraint:OnDelete:CASCADE;"`
+	TeacherName     string           `gorm:"index"`
 }
 
 func (po *OfferedCourseTeacherPO) TableName() string {

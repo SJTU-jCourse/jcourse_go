@@ -45,6 +45,9 @@ func newReviewRevisionPO(db *gorm.DB, opts ...gen.DOOption) reviewRevisionPO {
 			field.RelationField
 			MainTeacher struct {
 				field.RelationField
+				Courses struct {
+					field.RelationField
+				}
 			}
 			Categories struct {
 				field.RelationField
@@ -80,8 +83,16 @@ func newReviewRevisionPO(db *gorm.DB, opts ...gen.DOOption) reviewRevisionPO {
 			RelationField: field.NewRelation("Review.Course", "po.CoursePO"),
 			MainTeacher: struct {
 				field.RelationField
+				Courses struct {
+					field.RelationField
+				}
 			}{
 				RelationField: field.NewRelation("Review.Course.MainTeacher", "po.TeacherPO"),
+				Courses: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("Review.Course.MainTeacher.Courses", "po.CoursePO"),
+				},
 			},
 			Categories: struct {
 				field.RelationField
@@ -172,8 +183,27 @@ func newReviewRevisionPO(db *gorm.DB, opts ...gen.DOOption) reviewRevisionPO {
 		},
 		User: struct {
 			field.RelationField
+			UserPointDetails struct {
+				field.RelationField
+				User struct {
+					field.RelationField
+				}
+			}
 		}{
 			RelationField: field.NewRelation("Review.User", "po.UserPO"),
+			UserPointDetails: struct {
+				field.RelationField
+				User struct {
+					field.RelationField
+				}
+			}{
+				RelationField: field.NewRelation("Review.User.UserPointDetails", "po.UserPointDetailPO"),
+				User: struct {
+					field.RelationField
+				}{
+					RelationField: field.NewRelation("Review.User.UserPointDetails.User", "po.UserPO"),
+				},
+			},
 		},
 		Revivisions: struct {
 			field.RelationField
@@ -322,6 +352,9 @@ type reviewRevisionPOBelongsToReview struct {
 		field.RelationField
 		MainTeacher struct {
 			field.RelationField
+			Courses struct {
+				field.RelationField
+			}
 		}
 		Categories struct {
 			field.RelationField
@@ -356,6 +389,12 @@ type reviewRevisionPOBelongsToReview struct {
 	}
 	User struct {
 		field.RelationField
+		UserPointDetails struct {
+			field.RelationField
+			User struct {
+				field.RelationField
+			}
+		}
 	}
 	Revivisions struct {
 		field.RelationField

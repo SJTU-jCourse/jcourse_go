@@ -33,6 +33,24 @@ func newUserPointDetailPO(db *gorm.DB, opts ...gen.DOOption) userPointDetailPO {
 	_userPointDetailPO.Description = field.NewString(tableName, "description")
 	_userPointDetailPO.Value = field.NewInt64(tableName, "value")
 	_userPointDetailPO.UserID = field.NewInt64(tableName, "user_id")
+	_userPointDetailPO.User = userPointDetailPOBelongsToUser{
+		db: db.Session(&gorm.Session{}),
+
+		RelationField: field.NewRelation("User", "po.UserPO"),
+		UserPointDetails: struct {
+			field.RelationField
+			User struct {
+				field.RelationField
+			}
+		}{
+			RelationField: field.NewRelation("User.UserPointDetails", "po.UserPointDetailPO"),
+			User: struct {
+				field.RelationField
+			}{
+				RelationField: field.NewRelation("User.UserPointDetails.User", "po.UserPO"),
+			},
+		},
+	}
 
 	_userPointDetailPO.fillFieldMap()
 
@@ -49,6 +67,7 @@ type userPointDetailPO struct {
 	Description field.String
 	Value       field.Int64
 	UserID      field.Int64
+	User        userPointDetailPOBelongsToUser
 
 	fieldMap map[string]field.Expr
 }
@@ -87,13 +106,14 @@ func (u *userPointDetailPO) GetFieldByName(fieldName string) (field.OrderExpr, b
 }
 
 func (u *userPointDetailPO) fillFieldMap() {
-	u.fieldMap = make(map[string]field.Expr, 6)
+	u.fieldMap = make(map[string]field.Expr, 7)
 	u.fieldMap["id"] = u.ID
 	u.fieldMap["created_at"] = u.CreatedAt
 	u.fieldMap["event_type"] = u.EventType
 	u.fieldMap["description"] = u.Description
 	u.fieldMap["value"] = u.Value
 	u.fieldMap["user_id"] = u.UserID
+
 }
 
 func (u userPointDetailPO) clone(db *gorm.DB) userPointDetailPO {
@@ -104,6 +124,84 @@ func (u userPointDetailPO) clone(db *gorm.DB) userPointDetailPO {
 func (u userPointDetailPO) replaceDB(db *gorm.DB) userPointDetailPO {
 	u.userPointDetailPODo.ReplaceDB(db)
 	return u
+}
+
+type userPointDetailPOBelongsToUser struct {
+	db *gorm.DB
+
+	field.RelationField
+
+	UserPointDetails struct {
+		field.RelationField
+		User struct {
+			field.RelationField
+		}
+	}
+}
+
+func (a userPointDetailPOBelongsToUser) Where(conds ...field.Expr) *userPointDetailPOBelongsToUser {
+	if len(conds) == 0 {
+		return &a
+	}
+
+	exprs := make([]clause.Expression, 0, len(conds))
+	for _, cond := range conds {
+		exprs = append(exprs, cond.BeCond().(clause.Expression))
+	}
+	a.db = a.db.Clauses(clause.Where{Exprs: exprs})
+	return &a
+}
+
+func (a userPointDetailPOBelongsToUser) WithContext(ctx context.Context) *userPointDetailPOBelongsToUser {
+	a.db = a.db.WithContext(ctx)
+	return &a
+}
+
+func (a userPointDetailPOBelongsToUser) Session(session *gorm.Session) *userPointDetailPOBelongsToUser {
+	a.db = a.db.Session(session)
+	return &a
+}
+
+func (a userPointDetailPOBelongsToUser) Model(m *po.UserPointDetailPO) *userPointDetailPOBelongsToUserTx {
+	return &userPointDetailPOBelongsToUserTx{a.db.Model(m).Association(a.Name())}
+}
+
+type userPointDetailPOBelongsToUserTx struct{ tx *gorm.Association }
+
+func (a userPointDetailPOBelongsToUserTx) Find() (result *po.UserPO, err error) {
+	return result, a.tx.Find(&result)
+}
+
+func (a userPointDetailPOBelongsToUserTx) Append(values ...*po.UserPO) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Append(targetValues...)
+}
+
+func (a userPointDetailPOBelongsToUserTx) Replace(values ...*po.UserPO) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Replace(targetValues...)
+}
+
+func (a userPointDetailPOBelongsToUserTx) Delete(values ...*po.UserPO) (err error) {
+	targetValues := make([]interface{}, len(values))
+	for i, v := range values {
+		targetValues[i] = v
+	}
+	return a.tx.Delete(targetValues...)
+}
+
+func (a userPointDetailPOBelongsToUserTx) Clear() error {
+	return a.tx.Clear()
+}
+
+func (a userPointDetailPOBelongsToUserTx) Count() int64 {
+	return a.tx.Count()
 }
 
 type userPointDetailPODo struct{ gen.DO }

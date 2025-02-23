@@ -9,10 +9,10 @@ type ReviewPO struct {
 	CreatedAt time.Time `gorm:"index"`
 	UpdatedAt time.Time `gorm:"index"`
 
-	CourseID    int64    `gorm:"index;index:uniq_course_review,unique"`
-	Course      CoursePO `gorm:"constraint:OnDelete:CASCADE;"`
-	UserID      int64    `gorm:"index;index:uniq_course_review,unique"`
-	User        UserPO   `gorm:"constraint:OnDelete:CASCADE;"`
+	CourseID    int64     `gorm:"index;index:uniq_course_review,unique"`
+	Course      *CoursePO `gorm:"constraint:OnDelete:CASCADE;"`
+	UserID      int64     `gorm:"index;index:uniq_course_review,unique"`
+	User        *UserPO   `gorm:"constraint:OnDelete:CASCADE;"`
 	Comment     string
 	Rating      int64  `gorm:"index"`
 	Semester    string `gorm:"index"`
@@ -33,11 +33,11 @@ type ReviewRevisionPO struct {
 	ID        int64     `gorm:"primarykey"`
 	CreatedAt time.Time `gorm:"index"`
 
-	ReviewID    int64    `gorm:"index"`
-	Review      ReviewPO `gorm:"constraint:OnDelete:CASCADE;"`
-	UserID      int64    `gorm:"index"`
-	User        UserPO   `gorm:"constraint:OnDelete:CASCADE;"`
-	CourseID    int64    `gorm:"index"`
+	ReviewID    int64     `gorm:"index"`
+	Review      *ReviewPO `gorm:"constraint:OnDelete:CASCADE;"`
+	UserID      int64     `gorm:"index"`
+	User        *UserPO   `gorm:"constraint:OnDelete:CASCADE;"`
+	CourseID    int64     `gorm:"index"`
 	Comment     string
 	Rating      int64
 	Semester    string
@@ -53,11 +53,11 @@ type ReviewReactionPO struct {
 	ID        int64     `gorm:"primarykey"`
 	CreatedAt time.Time `gorm:"index"`
 
-	ReviewID int64    `gorm:"index"`
-	Review   ReviewPO `gorm:"constraint:OnDelete:CASCADE;"`
-	UserID   int64    `gorm:"index"`
-	User     UserPO   `gorm:"constraint:OnDelete:CASCADE;"`
-	Reaction string   `gorm:"index"`
+	ReviewID int64     `gorm:"index"`
+	Review   *ReviewPO `gorm:"constraint:OnDelete:CASCADE;"`
+	UserID   int64     `gorm:"index"`
+	User     *UserPO   `gorm:"constraint:OnDelete:CASCADE;"`
+	Reaction string    `gorm:"index"`
 }
 
 func (po *ReviewReactionPO) TableName() string {

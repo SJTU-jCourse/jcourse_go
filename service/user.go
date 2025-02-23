@@ -34,7 +34,7 @@ func GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]model.UserMin
 		return result, err
 	}
 	for _, userPO := range userPOs {
-		user := converter.ConvertUserMinimalFromPO(*userPO)
+		user := converter.ConvertUserMinimalFromPO(userPO)
 		result[user.ID] = user
 	}
 	return result, nil
@@ -47,7 +47,7 @@ func GetUserDetailByID(ctx context.Context, userID int64) (*model.UserDetail, er
 	if err != nil {
 		return nil, err
 	}
-	user := converter.ConvertUserDetailFromPO(*userPO)
+	user := converter.ConvertUserDetailFromPO(userPO)
 	return &user, nil
 }
 
@@ -79,7 +79,7 @@ func GetUserList(ctx context.Context, filter model.UserFilterForQuery) ([]model.
 
 	result := make([]model.UserMinimal, 0)
 	for _, userPO := range userPOs {
-		result = append(result, converter.ConvertUserMinimalFromPO(*userPO))
+		result = append(result, converter.ConvertUserMinimalFromPO(userPO))
 	}
 	return result, nil
 }
