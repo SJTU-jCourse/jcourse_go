@@ -1,17 +1,14 @@
 package middleware
 
 import (
-	"context"
-	"log"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"jcourse_go/model/model"
-	"jcourse_go/service"
-
 	"github.com/RoaringBitmap/roaring"
 	"github.com/gin-gonic/gin"
+
+	"jcourse_go/model/model"
 )
 
 var UV = NewUVMiddleware()
@@ -19,12 +16,14 @@ var PV = NewPVMiddleware()
 
 const (
 	DefaultDuplicateJudgeDuration = 10 * time.Minute
-	DuplicateJudgeDurationKey     = "duplicate_judge_duration"
+	// DuplicateJudgeDurationKey     = "duplicate_judge_duration"
 )
 
-var LastQuerySiteSettingTime time.Time
+// var LastQuerySiteSettingTime time.Time
+
 var LastQuerySiteSettingDuration time.Duration = DefaultDuplicateJudgeDuration
 
+/*
 func UpdateDuplicateJudgeDuration(ctx context.Context) time.Duration {
 	LastQuerySiteSettingTime = time.Now()
 	siteSetting, err := service.GetSetting(ctx, DuplicateJudgeDurationKey)
@@ -48,6 +47,8 @@ func UpdateDuplicateJudgeDuration(ctx context.Context) time.Duration {
 	LastQuerySiteSettingDuration = DefaultDuplicateJudgeDuration
 	return DefaultDuplicateJudgeDuration
 }
+*/
+
 func (u *UserRequestCache) IsDuplicate(req string) bool {
 	u.mutex.RLock()
 	defer u.mutex.RUnlock()

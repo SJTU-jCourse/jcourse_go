@@ -15,13 +15,13 @@ import (
 var (
 	taskRegistry = map[string]base.TaskHandler{
 		statistic.TypeSaveDailyStatistic: statistic.HandleSaveStatisticTask,
-		statistic.TypeRefreshPVDupJudge:  statistic.HandleRefreshPVDupJudgeTask,
+		// statistic.TypeRefreshPVDupJudge:  statistic.HandleRefreshPVDupJudgeTask,
 		// ping.TypePing:                    ping.TaskPingHandler,
 	}
 
 	taskSchedules = map[time.Duration]string{
 		statistic.IntervalSaveDailyStatistic: statistic.TypeSaveDailyStatistic,
-		statistic.IntervalRefreshPVDupJudge:  statistic.TypeRefreshPVDupJudge,
+		// statistic.IntervalRefreshPVDupJudge:  statistic.TypeRefreshPVDupJudge,
 		// ping.IntervalPing:                    ping.TypePing,
 	}
 

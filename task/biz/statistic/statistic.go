@@ -55,7 +55,9 @@ func SaveStatistic(ctx context.Context, pvm middleware.IPVMiddleware, uvm middle
 	return nil
 }
 
+/*
 func HandleRefreshPVDupJudgeTask(ctx context.Context, t base.Task) error {
 	middleware.UpdateDuplicateJudgeDuration(ctx)
 	return nil
 }
+*/

@@ -1,11 +1,12 @@
 package task
 
 import (
-	"jcourse_go/task/base"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+
+	"jcourse_go/task/base"
 )
 
 func TestInitTaskManager(t *testing.T) {

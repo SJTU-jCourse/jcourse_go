@@ -108,12 +108,13 @@ func ChangeUserPoints(ctx context.Context, userID int64, eventType types.PointEv
 }
 
 func calcHandlingFee(ctx context.Context, value int64) int64 {
-	siteSetting, err := GetSetting(ctx, constant.HandleFeeRateKey)
+	/*siteSetting, err := GetSetting(ctx, constant.HandleFeeRateKey)
 	if err != nil || siteSetting == nil {
 		return int64(float64(value) * (1 - constant.DefaultHandleFeeRate))
 	}
 	handlerFeeRate := siteSetting.GetValue().(float64)
-	return int64(float64(value) * (1 - handlerFeeRate))
+	return int64(float64(value) * (1 - handlerFeeRate))*/
+	return int64(float64(value) * (1 - constant.DefaultHandleFeeRate))
 }
 
 const (
