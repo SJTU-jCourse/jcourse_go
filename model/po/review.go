@@ -19,8 +19,8 @@ type ReviewPO struct {
 	IsAnonymous bool
 	Grade       string // 成绩
 
-	Revivisions []ReviewRevisionPO `gorm:"foreignKey:ReviewID"`
-	Reaction    []ReviewReactionPO `gorm:"foreignKey:ReviewID"`
+	Revisions []ReviewRevisionPO `gorm:"foreignKey:ReviewID"`
+	Reaction  []ReviewReactionPO `gorm:"foreignKey:ReviewID"`
 
 	SearchIndex SearchIndex `gorm:"->:false;<-"`
 }

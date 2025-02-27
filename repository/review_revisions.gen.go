@@ -205,7 +205,7 @@ func newReviewRevisionPO(db *gorm.DB, opts ...gen.DOOption) reviewRevisionPO {
 				},
 			},
 		},
-		Revivisions: struct {
+		Revisions: struct {
 			field.RelationField
 			Review struct {
 				field.RelationField
@@ -214,16 +214,16 @@ func newReviewRevisionPO(db *gorm.DB, opts ...gen.DOOption) reviewRevisionPO {
 				field.RelationField
 			}
 		}{
-			RelationField: field.NewRelation("Review.Revivisions", "po.ReviewRevisionPO"),
+			RelationField: field.NewRelation("Review.Revisions", "po.ReviewRevisionPO"),
 			Review: struct {
 				field.RelationField
 			}{
-				RelationField: field.NewRelation("Review.Revivisions.Review", "po.ReviewPO"),
+				RelationField: field.NewRelation("Review.Revisions.Review", "po.ReviewPO"),
 			},
 			User: struct {
 				field.RelationField
 			}{
-				RelationField: field.NewRelation("Review.Revivisions.User", "po.UserPO"),
+				RelationField: field.NewRelation("Review.Revisions.User", "po.UserPO"),
 			},
 		},
 		Reaction: struct {
@@ -396,7 +396,7 @@ type reviewRevisionPOBelongsToReview struct {
 			}
 		}
 	}
-	Revivisions struct {
+	Revisions struct {
 		field.RelationField
 		Review struct {
 			field.RelationField

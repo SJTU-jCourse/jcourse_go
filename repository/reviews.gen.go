@@ -38,10 +38,10 @@ func newReviewPO(db *gorm.DB, opts ...gen.DOOption) reviewPO {
 	_reviewPO.IsAnonymous = field.NewBool(tableName, "is_anonymous")
 	_reviewPO.Grade = field.NewString(tableName, "grade")
 	_reviewPO.SearchIndex = field.NewField(tableName, "search_index")
-	_reviewPO.Revivisions = reviewPOHasManyRevivisions{
+	_reviewPO.Revisions = reviewPOHasManyRevisions{
 		db: db.Session(&gorm.Session{}),
 
-		RelationField: field.NewRelation("Revivisions", "po.ReviewRevisionPO"),
+		RelationField: field.NewRelation("Revisions", "po.ReviewRevisionPO"),
 		Review: struct {
 			field.RelationField
 			Course struct {
@@ -92,7 +92,7 @@ func newReviewPO(db *gorm.DB, opts ...gen.DOOption) reviewPO {
 					}
 				}
 			}
-			Revivisions struct {
+			Revisions struct {
 				field.RelationField
 			}
 			Reaction struct {
@@ -105,7 +105,7 @@ func newReviewPO(db *gorm.DB, opts ...gen.DOOption) reviewPO {
 				}
 			}
 		}{
-			RelationField: field.NewRelation("Revivisions.Review", "po.ReviewPO"),
+			RelationField: field.NewRelation("Revisions.Review", "po.ReviewPO"),
 			Course: struct {
 				field.RelationField
 				MainTeacher struct {
@@ -145,18 +145,18 @@ func newReviewPO(db *gorm.DB, opts ...gen.DOOption) reviewPO {
 					}
 				}
 			}{
-				RelationField: field.NewRelation("Revivisions.Review.Course", "po.CoursePO"),
+				RelationField: field.NewRelation("Revisions.Review.Course", "po.CoursePO"),
 				MainTeacher: struct {
 					field.RelationField
 					Courses struct {
 						field.RelationField
 					}
 				}{
-					RelationField: field.NewRelation("Revivisions.Review.Course.MainTeacher", "po.TeacherPO"),
+					RelationField: field.NewRelation("Revisions.Review.Course.MainTeacher", "po.TeacherPO"),
 					Courses: struct {
 						field.RelationField
 					}{
-						RelationField: field.NewRelation("Revivisions.Review.Course.MainTeacher.Courses", "po.CoursePO"),
+						RelationField: field.NewRelation("Revisions.Review.Course.MainTeacher.Courses", "po.CoursePO"),
 					},
 				},
 				Categories: struct {
@@ -165,11 +165,11 @@ func newReviewPO(db *gorm.DB, opts ...gen.DOOption) reviewPO {
 						field.RelationField
 					}
 				}{
-					RelationField: field.NewRelation("Revivisions.Review.Course.Categories", "po.CourseCategoryPO"),
+					RelationField: field.NewRelation("Revisions.Review.Course.Categories", "po.CourseCategoryPO"),
 					Course: struct {
 						field.RelationField
 					}{
-						RelationField: field.NewRelation("Revivisions.Review.Course.Categories.Course", "po.CoursePO"),
+						RelationField: field.NewRelation("Revisions.Review.Course.Categories.Course", "po.CoursePO"),
 					},
 				},
 				OfferedCourses: struct {
@@ -196,16 +196,16 @@ func newReviewPO(db *gorm.DB, opts ...gen.DOOption) reviewPO {
 						}
 					}
 				}{
-					RelationField: field.NewRelation("Revivisions.Review.Course.OfferedCourses", "po.OfferedCoursePO"),
+					RelationField: field.NewRelation("Revisions.Review.Course.OfferedCourses", "po.OfferedCoursePO"),
 					Course: struct {
 						field.RelationField
 					}{
-						RelationField: field.NewRelation("Revivisions.Review.Course.OfferedCourses.Course", "po.CoursePO"),
+						RelationField: field.NewRelation("Revisions.Review.Course.OfferedCourses.Course", "po.CoursePO"),
 					},
 					MainTeacher: struct {
 						field.RelationField
 					}{
-						RelationField: field.NewRelation("Revivisions.Review.Course.OfferedCourses.MainTeacher", "po.TeacherPO"),
+						RelationField: field.NewRelation("Revisions.Review.Course.OfferedCourses.MainTeacher", "po.TeacherPO"),
 					},
 					OfferedCourseTeacher: struct {
 						field.RelationField
@@ -222,26 +222,26 @@ func newReviewPO(db *gorm.DB, opts ...gen.DOOption) reviewPO {
 							field.RelationField
 						}
 					}{
-						RelationField: field.NewRelation("Revivisions.Review.Course.OfferedCourses.OfferedCourseTeacher", "po.OfferedCourseTeacherPO"),
+						RelationField: field.NewRelation("Revisions.Review.Course.OfferedCourses.OfferedCourseTeacher", "po.OfferedCourseTeacherPO"),
 						Course: struct {
 							field.RelationField
 						}{
-							RelationField: field.NewRelation("Revivisions.Review.Course.OfferedCourses.OfferedCourseTeacher.Course", "po.CoursePO"),
+							RelationField: field.NewRelation("Revisions.Review.Course.OfferedCourses.OfferedCourseTeacher.Course", "po.CoursePO"),
 						},
 						OfferedCourse: struct {
 							field.RelationField
 						}{
-							RelationField: field.NewRelation("Revivisions.Review.Course.OfferedCourses.OfferedCourseTeacher.OfferedCourse", "po.OfferedCoursePO"),
+							RelationField: field.NewRelation("Revisions.Review.Course.OfferedCourses.OfferedCourseTeacher.OfferedCourse", "po.OfferedCoursePO"),
 						},
 						MainTeacher: struct {
 							field.RelationField
 						}{
-							RelationField: field.NewRelation("Revivisions.Review.Course.OfferedCourses.OfferedCourseTeacher.MainTeacher", "po.TeacherPO"),
+							RelationField: field.NewRelation("Revisions.Review.Course.OfferedCourses.OfferedCourseTeacher.MainTeacher", "po.TeacherPO"),
 						},
 						Teacher: struct {
 							field.RelationField
 						}{
-							RelationField: field.NewRelation("Revivisions.Review.Course.OfferedCourses.OfferedCourseTeacher.Teacher", "po.TeacherPO"),
+							RelationField: field.NewRelation("Revisions.Review.Course.OfferedCourses.OfferedCourseTeacher.Teacher", "po.TeacherPO"),
 						},
 					},
 				},
@@ -255,25 +255,25 @@ func newReviewPO(db *gorm.DB, opts ...gen.DOOption) reviewPO {
 					}
 				}
 			}{
-				RelationField: field.NewRelation("Revivisions.Review.User", "po.UserPO"),
+				RelationField: field.NewRelation("Revisions.Review.User", "po.UserPO"),
 				UserPointDetails: struct {
 					field.RelationField
 					User struct {
 						field.RelationField
 					}
 				}{
-					RelationField: field.NewRelation("Revivisions.Review.User.UserPointDetails", "po.UserPointDetailPO"),
+					RelationField: field.NewRelation("Revisions.Review.User.UserPointDetails", "po.UserPointDetailPO"),
 					User: struct {
 						field.RelationField
 					}{
-						RelationField: field.NewRelation("Revivisions.Review.User.UserPointDetails.User", "po.UserPO"),
+						RelationField: field.NewRelation("Revisions.Review.User.UserPointDetails.User", "po.UserPO"),
 					},
 				},
 			},
-			Revivisions: struct {
+			Revisions: struct {
 				field.RelationField
 			}{
-				RelationField: field.NewRelation("Revivisions.Review.Revivisions", "po.ReviewRevisionPO"),
+				RelationField: field.NewRelation("Revisions.Review.Revisions", "po.ReviewRevisionPO"),
 			},
 			Reaction: struct {
 				field.RelationField
@@ -284,23 +284,23 @@ func newReviewPO(db *gorm.DB, opts ...gen.DOOption) reviewPO {
 					field.RelationField
 				}
 			}{
-				RelationField: field.NewRelation("Revivisions.Review.Reaction", "po.ReviewReactionPO"),
+				RelationField: field.NewRelation("Revisions.Review.Reaction", "po.ReviewReactionPO"),
 				Review: struct {
 					field.RelationField
 				}{
-					RelationField: field.NewRelation("Revivisions.Review.Reaction.Review", "po.ReviewPO"),
+					RelationField: field.NewRelation("Revisions.Review.Reaction.Review", "po.ReviewPO"),
 				},
 				User: struct {
 					field.RelationField
 				}{
-					RelationField: field.NewRelation("Revivisions.Review.Reaction.User", "po.UserPO"),
+					RelationField: field.NewRelation("Revisions.Review.Reaction.User", "po.UserPO"),
 				},
 			},
 		},
 		User: struct {
 			field.RelationField
 		}{
-			RelationField: field.NewRelation("Revivisions.User", "po.UserPO"),
+			RelationField: field.NewRelation("Revisions.User", "po.UserPO"),
 		},
 	}
 
@@ -342,7 +342,7 @@ type reviewPO struct {
 	IsAnonymous field.Bool
 	Grade       field.String
 	SearchIndex field.Field
-	Revivisions reviewPOHasManyRevivisions
+	Revisions   reviewPOHasManyRevisions
 
 	Reaction reviewPOHasManyReaction
 
@@ -417,7 +417,7 @@ func (r reviewPO) replaceDB(db *gorm.DB) reviewPO {
 	return r
 }
 
-type reviewPOHasManyRevivisions struct {
+type reviewPOHasManyRevisions struct {
 	db *gorm.DB
 
 	field.RelationField
@@ -472,7 +472,7 @@ type reviewPOHasManyRevivisions struct {
 				}
 			}
 		}
-		Revivisions struct {
+		Revisions struct {
 			field.RelationField
 		}
 		Reaction struct {
@@ -490,7 +490,7 @@ type reviewPOHasManyRevivisions struct {
 	}
 }
 
-func (a reviewPOHasManyRevivisions) Where(conds ...field.Expr) *reviewPOHasManyRevivisions {
+func (a reviewPOHasManyRevisions) Where(conds ...field.Expr) *reviewPOHasManyRevisions {
 	if len(conds) == 0 {
 		return &a
 	}
@@ -503,27 +503,27 @@ func (a reviewPOHasManyRevivisions) Where(conds ...field.Expr) *reviewPOHasManyR
 	return &a
 }
 
-func (a reviewPOHasManyRevivisions) WithContext(ctx context.Context) *reviewPOHasManyRevivisions {
+func (a reviewPOHasManyRevisions) WithContext(ctx context.Context) *reviewPOHasManyRevisions {
 	a.db = a.db.WithContext(ctx)
 	return &a
 }
 
-func (a reviewPOHasManyRevivisions) Session(session *gorm.Session) *reviewPOHasManyRevivisions {
+func (a reviewPOHasManyRevisions) Session(session *gorm.Session) *reviewPOHasManyRevisions {
 	a.db = a.db.Session(session)
 	return &a
 }
 
-func (a reviewPOHasManyRevivisions) Model(m *po.ReviewPO) *reviewPOHasManyRevivisionsTx {
-	return &reviewPOHasManyRevivisionsTx{a.db.Model(m).Association(a.Name())}
+func (a reviewPOHasManyRevisions) Model(m *po.ReviewPO) *reviewPOHasManyRevisionsTx {
+	return &reviewPOHasManyRevisionsTx{a.db.Model(m).Association(a.Name())}
 }
 
-type reviewPOHasManyRevivisionsTx struct{ tx *gorm.Association }
+type reviewPOHasManyRevisionsTx struct{ tx *gorm.Association }
 
-func (a reviewPOHasManyRevivisionsTx) Find() (result []*po.ReviewRevisionPO, err error) {
+func (a reviewPOHasManyRevisionsTx) Find() (result []*po.ReviewRevisionPO, err error) {
 	return result, a.tx.Find(&result)
 }
 
-func (a reviewPOHasManyRevivisionsTx) Append(values ...*po.ReviewRevisionPO) (err error) {
+func (a reviewPOHasManyRevisionsTx) Append(values ...*po.ReviewRevisionPO) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -531,7 +531,7 @@ func (a reviewPOHasManyRevivisionsTx) Append(values ...*po.ReviewRevisionPO) (er
 	return a.tx.Append(targetValues...)
 }
 
-func (a reviewPOHasManyRevivisionsTx) Replace(values ...*po.ReviewRevisionPO) (err error) {
+func (a reviewPOHasManyRevisionsTx) Replace(values ...*po.ReviewRevisionPO) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -539,7 +539,7 @@ func (a reviewPOHasManyRevivisionsTx) Replace(values ...*po.ReviewRevisionPO) (e
 	return a.tx.Replace(targetValues...)
 }
 
-func (a reviewPOHasManyRevivisionsTx) Delete(values ...*po.ReviewRevisionPO) (err error) {
+func (a reviewPOHasManyRevisionsTx) Delete(values ...*po.ReviewRevisionPO) (err error) {
 	targetValues := make([]interface{}, len(values))
 	for i, v := range values {
 		targetValues[i] = v
@@ -547,11 +547,11 @@ func (a reviewPOHasManyRevivisionsTx) Delete(values ...*po.ReviewRevisionPO) (er
 	return a.tx.Delete(targetValues...)
 }
 
-func (a reviewPOHasManyRevivisionsTx) Clear() error {
+func (a reviewPOHasManyRevisionsTx) Clear() error {
 	return a.tx.Clear()
 }
 
-func (a reviewPOHasManyRevivisionsTx) Count() int64 {
+func (a reviewPOHasManyRevisionsTx) Count() int64 {
 	return a.tx.Count()
 }
 
