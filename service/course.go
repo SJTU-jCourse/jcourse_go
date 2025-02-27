@@ -127,24 +127,24 @@ func GetCourseFilter(ctx context.Context) (model.CourseFilter, error) {
 
 	c := repository.Q.CoursePO
 
-	err := c.WithContext(ctx).Group(c.Credit.As("value"), c.ID.Count().As("count")).Scan(&filter.Credits)
+	err := c.WithContext(ctx).Select(c.Credit.As("value"), c.ID.Count().As("count")).Group(c.Credit).Scan(&filter.Credits)
 	if err != nil {
 		return filter, err
 	}
 
-	err = c.WithContext(ctx).Group(c.Department.As("value"), c.ID.Count().As("count")).Scan(&filter.Departments)
+	err = c.WithContext(ctx).Select(c.Department.As("value"), c.ID.Count().As("count")).Group(c.Department).Scan(&filter.Departments)
 	if err != nil {
 		return filter, err
 	}
 
 	oc := repository.Q.OfferedCoursePO
-	err = oc.WithContext(ctx).Group(oc.Semester.As("value"), oc.CourseID.Count().As("count")).Scan(&filter.Semesters)
+	err = oc.WithContext(ctx).Select(oc.Semester.As("value"), oc.CourseID.Count().As("count")).Group(oc.Semester).Scan(&filter.Semesters)
 	if err != nil {
 		return filter, err
 	}
 
 	cc := repository.Q.CourseCategoryPO
-	err = cc.WithContext(ctx).Group(cc.Category.As("value"), cc.CourseID.Count().As("count")).Scan(&filter.Categories)
+	err = cc.WithContext(ctx).Select(cc.Category.As("value"), cc.CourseID.Count().As("count")).Group(cc.Category).Scan(&filter.Categories)
 	if err != nil {
 		return filter, err
 	}

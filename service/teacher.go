@@ -120,12 +120,12 @@ func GetTeacherFilter(ctx context.Context) (model.TeacherFilter, error) {
 	}
 
 	t := repository.Q.TeacherPO
-	err := t.WithContext(ctx).Group(t.Title.As("value"), t.ID.Count().As("count")).Scan(&filter.Titles)
+	err := t.WithContext(ctx).Select(t.Title.As("value"), t.ID.Count().As("count")).Group(t.Title).Scan(&filter.Titles)
 	if err != nil {
 		return filter, err
 	}
 
-	err = t.WithContext(ctx).Group(t.Department.As("value"), t.ID.Count().As("count")).Scan(&filter.Departments)
+	err = t.WithContext(ctx).Select(t.Department.As("value"), t.ID.Count().As("count")).Group(t.Department).Scan(&filter.Departments)
 	if err != nil {
 		return filter, err
 	}

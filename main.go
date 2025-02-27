@@ -20,7 +20,7 @@ func Init() {
 	_ = godotenv.Load()
 	dal.InitRedisClient()
 	dal.InitDBClient()
-	repository.Use(dal.GetDBClient())
+	repository.SetDefault(dal.GetDBClient())
 
 	task.InitTaskManager(base.RedisConfig{
 		DSN:      dal.GetRedisDSN(),

@@ -117,17 +117,17 @@ func GetTrainingPlanFilter(ctx context.Context) (model.TrainingPlanFilter, error
 	}
 
 	t := repository.Q.TrainingPlanPO
-	err := t.WithContext(ctx).Group(t.Major.As("value"), t.ID.Count().As("count")).Scan(&filter.Degrees)
+	err := t.WithContext(ctx).Select(t.Major.As("value"), t.ID.Count().As("count")).Group(t.Major).Scan(&filter.Degrees)
 	if err != nil {
 		return filter, err
 	}
 
-	err = t.WithContext(ctx).Group(t.Department.As("value"), t.ID.Count().As("count")).Scan(&filter.Departments)
+	err = t.WithContext(ctx).Select(t.Department.As("value"), t.ID.Count().As("count")).Group(t.Department).Scan(&filter.Departments)
 	if err != nil {
 		return filter, err
 	}
 
-	err = t.WithContext(ctx).Group(t.EntryYear.As("value"), t.ID.Count().As("count")).Scan(&filter.EntryYears)
+	err = t.WithContext(ctx).Select(t.EntryYear.As("value"), t.ID.Count().As("count")).Group(t.EntryYear).Scan(&filter.EntryYears)
 	if err != nil {
 		return filter, err
 	}
