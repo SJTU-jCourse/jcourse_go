@@ -56,15 +56,25 @@ func PackReviewWithReaction(review *model.Review, currentUserID int64, reactions
 		return
 	}
 	if review.Reaction.TotalReactions == nil {
-		review.Reaction.TotalReactions = make(map[string]int64)
+		review.Reaction.TotalReactions = make([]model.ReactionItem, 0)
 	}
 	if review.Reaction.MyReactions == nil {
 		review.Reaction.MyReactions = make(map[string]int64)
 	}
+
+	reactionMap := make(map[string]int64)
+
 	for _, reaction := range reactions {
 		if reaction.UserID == currentUserID {
-			review.Reaction.MyReactions[reaction.Reaction] = int64(reaction.ID)
+			review.Reaction.MyReactions[reaction.Reaction] = reaction.ID
 		}
-		review.Reaction.TotalReactions[reaction.Reaction] += 1
+		reactionMap[reaction.Reaction] += 1
+	}
+
+	for reaction, count := range reactionMap {
+		review.Reaction.TotalReactions = append(review.Reaction.TotalReactions, model.ReactionItem{
+			Reaction: reaction,
+			Count:    count,
+		})
 	}
 }

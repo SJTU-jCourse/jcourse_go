@@ -10,5 +10,5 @@ type CreateReviewReactionResponse struct {
 }
 
 type DeleteReviewReactionRequest struct {
-	ReactionID int64 `json:"reaction_id" binding:"required"`
+	ReactionID int64 `json:"reaction_id" uri:"reactionID" binding:"required"`
 }

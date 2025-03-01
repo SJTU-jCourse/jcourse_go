@@ -27,6 +27,11 @@ type Review struct {
 }
 
 type ReviewReaction struct {
-	TotalReactions map[string]int64 `json:"total_reactions"` // reaction -> count
-	MyReactions    map[string]int64 `json:"my_reactions"`    // reaction -> id
+	TotalReactions []ReactionItem   `json:"total_reactions"`
+	MyReactions    map[string]int64 `json:"my_reactions"` // reaction -> id
+}
+
+type ReactionItem struct {
+	Reaction string `json:"reaction"`
+	Count    int64  `json:"count"`
 }

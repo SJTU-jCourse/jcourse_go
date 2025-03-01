@@ -53,11 +53,11 @@ type ReviewReactionPO struct {
 	ID        int64     `gorm:"primarykey"`
 	CreatedAt time.Time `gorm:"index"`
 
-	ReviewID int64     `gorm:"index"`
+	ReviewID int64     `gorm:"index;index:uniq_review_reaction,unique"`
 	Review   *ReviewPO `gorm:"constraint:OnDelete:CASCADE;"`
-	UserID   int64     `gorm:"index"`
+	UserID   int64     `gorm:"index;index:uniq_review_reaction,unique"`
 	User     *UserPO   `gorm:"constraint:OnDelete:CASCADE;"`
-	Reaction string    `gorm:"index"`
+	Reaction string    `gorm:"index;index:uniq_review_reaction,unique"`
 }
 
 func (po *ReviewReactionPO) TableName() string {

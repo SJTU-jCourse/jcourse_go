@@ -310,8 +310,8 @@ func BuildUserPointFromOld(point UserPointV1) po.UserPointDetailPO {
 
 func BuildNewReviewReactionFromOld(reaction ReviewReactionV1) po.ReviewReactionPO {
 	reactionMapping := map[int64]string{
-		1:  "like",
-		-1: "dislike",
+		1:  "+1",
+		-1: "-1",
 	}
 	return po.ReviewReactionPO{
 		ID:       reaction.ID,
