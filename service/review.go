@@ -7,6 +7,7 @@ import (
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
+	"jcourse_go/model/types"
 	"jcourse_go/repository"
 	"jcourse_go/util"
 )
@@ -87,10 +88,31 @@ func CreateReview(ctx context.Context, review dto.UpdateReviewDTO, user *model.U
 	}
 
 	reviewPO := converter.ConvertReviewDTOToPO(review, user.ID)
+	ratingPO := converter.BuildRatingFromReview(reviewPO)
 
-	r := repository.Q.ReviewPO
+	q := repository.Q
 
-	err := r.WithContext(ctx).Create(&reviewPO)
+	err := q.Transaction(func(tx *repository.Query) error {
+		r := tx.ReviewPO
+		ratingQuery := tx.RatingPO
+
+		err := r.WithContext(ctx).Create(&reviewPO)
+		if err != nil {
+			return err
+		}
+
+		err = ratingQuery.WithContext(ctx).Create(&ratingPO)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	err = SyncRating(ctx, types.RelatedTypeCourse, reviewPO.CourseID)
 	if err != nil {
 		return 0, err
 	}
@@ -106,31 +128,73 @@ func UpdateReview(ctx context.Context, review dto.UpdateReviewDTO, user *model.U
 	}
 	reviewPO := converter.ConvertReviewDTOToPO(review, user.ID)
 
-	r := repository.Q.ReviewPO
+	q := repository.Q
 
-	err := r.WithContext(ctx).Save(&reviewPO)
+	err := q.Transaction(func(tx *repository.Query) error {
+		r := tx.ReviewPO
+		ratingQuery := tx.RatingPO
+		err := r.WithContext(ctx).Save(&reviewPO)
+		if err != nil {
+			return err
+		}
+
+		existRating, err := ratingQuery.WithContext(ctx).Where(
+			ratingQuery.RelatedType.Eq(string(types.RelatedTypeCourse)),
+			ratingQuery.RelatedID.Eq(reviewPO.CourseID),
+			ratingQuery.UserID.Eq(reviewPO.UserID),
+		).Take()
+
+		if existRating == nil || err != nil {
+			ratingPO := converter.BuildRatingFromReview(reviewPO)
+			err = ratingQuery.WithContext(ctx).Create(&ratingPO)
+			return err
+		}
+
+		existRating.Rating = reviewPO.Rating
+		err = ratingQuery.WithContext(ctx).Save(existRating)
+
+		return err
+	})
 	if err != nil {
 		return err
 	}
-	return nil
+	err = SyncRating(ctx, types.RelatedTypeCourse, reviewPO.CourseID)
+	return err
 }
 
 func DeleteReview(ctx context.Context, reviewID int64, user *model.UserDetail) error {
-	r := repository.Q.ReviewPO
+	q := repository.Q
+	r := q.ReviewPO
 
-	review, err := r.WithContext(ctx).Where(r.ID.Eq(reviewID)).Take()
+	reviewPO, err := r.WithContext(ctx).Where(r.ID.Eq(reviewID)).Take()
 	if err != nil {
 		return err
 	}
-	if user != nil && review.UserID != user.ID {
+	if user != nil && reviewPO.UserID != user.ID {
 		return errors.New("no permission to delete review")
 	}
 
-	_, err = r.WithContext(ctx).Delete(review)
+	err = q.Transaction(func(tx *repository.Query) error {
+		_, err := tx.ReviewPO.WithContext(ctx).Delete(reviewPO)
+		if err != nil {
+			return err
+		}
+
+		ratingQuery := tx.RatingPO
+		_, err = ratingQuery.WithContext(ctx).Where(
+			ratingQuery.RelatedType.Eq(string(types.RelatedTypeCourse)),
+			ratingQuery.RelatedID.Eq(reviewPO.CourseID),
+			ratingQuery.UserID.Eq(reviewPO.UserID)).Delete()
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		return err
 	}
-	return nil
+	err = SyncRating(ctx, types.RelatedTypeCourse, reviewPO.CourseID)
+	return err
 }
 
 func validateReview(ctx context.Context, review dto.UpdateReviewDTO, user *model.UserDetail) bool {

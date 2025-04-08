@@ -6,14 +6,15 @@ import (
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
+	"jcourse_go/model/po"
 	"jcourse_go/model/types"
 	"jcourse_go/repository"
 )
 
 func CreateRating(ctx context.Context, userID int64, dto dto.RatingDTO) error {
-	po := converter.ConvertRatingDTOToPO(userID, dto)
+	ratingPO := converter.ConvertRatingDTOToPO(userID, dto)
 	r := repository.Q.RatingPO
-	err := r.WithContext(ctx).Create(&po)
+	err := r.WithContext(ctx).Create(&ratingPO)
 	if err != nil {
 		return err
 	}
@@ -76,4 +77,42 @@ func GetUserRating(ctx context.Context, relatedType types.RatingRelatedType, rel
 		return 0, err
 	}
 	return rating.Rating, nil
+}
+
+func SyncRating(ctx context.Context, relatedType types.RatingRelatedType, relatedID int64) error {
+	ratingInfo, err := GetRating(ctx, relatedType, relatedID)
+	if err != nil {
+		return err
+	}
+
+	if relatedType == types.RelatedTypeCourse {
+		return SyncCourseRating(ctx, relatedID, ratingInfo)
+	} else if relatedType == types.RelatedTypeTeacher {
+		return SyncTeacherRating(ctx, relatedID, ratingInfo)
+	} else if relatedType == types.RelatedTypeTrainingPlan {
+		return SyncTrainingPlanRating(ctx, relatedID, ratingInfo)
+	}
+
+	return nil
+}
+
+func SyncCourseRating(ctx context.Context, courseID int64, ratingInfo model.RatingInfo) error {
+	c := repository.Q.CoursePO
+	_, err := c.WithContext(ctx).Select(c.RatingCount, c.RatingAvg).Where(c.ID.Eq(courseID)).
+		Updates(po.CoursePO{RatingCount: ratingInfo.Count, RatingAvg: ratingInfo.Average})
+	return err
+}
+
+func SyncTeacherRating(ctx context.Context, teacherID int64, ratingInfo model.RatingInfo) error {
+	t := repository.Q.TeacherPO
+	_, err := t.WithContext(ctx).Select(t.RatingCount, t.RatingAvg).Where(t.ID.Eq(teacherID)).
+		Updates(po.CoursePO{RatingCount: ratingInfo.Count, RatingAvg: ratingInfo.Average})
+	return err
+}
+
+func SyncTrainingPlanRating(ctx context.Context, trainingPlanID int64, ratingInfo model.RatingInfo) error {
+	tp := repository.Q.TrainingPlanPO
+	_, err := tp.WithContext(ctx).Select(tp.RatingCount, tp.RatingAvg).Where(tp.ID.Eq(trainingPlanID)).
+		Updates(po.CoursePO{RatingCount: ratingInfo.Count, RatingAvg: ratingInfo.Average})
+	return err
 }

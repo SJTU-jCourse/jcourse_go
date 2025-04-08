@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"testing"
 
 	"gorm.io/gorm"
 
@@ -271,21 +270,16 @@ func CreateTestEnv(ctx context.Context, db *gorm.DB) error {
 	return nil
 }
 
-func setup() {
+func SetupTestEnv() {
 	ctx := context.Background()
 	dal.InitTestMemDBClient()
 	db := dal.GetDBClient()
 	_ = Migrate(db)
 	_ = CreateTestEnv(ctx, db)
+	SetDefault(db)
 }
 
-func tearDown() {
+func TearDownTestEnv() {
 	db, _ := dal.GetDBClient().DB()
 	_ = db.Close()
-}
-
-func TestMain(m *testing.M) {
-	setup()
-	m.Run()
-	tearDown()
 }
