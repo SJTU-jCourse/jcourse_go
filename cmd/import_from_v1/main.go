@@ -368,6 +368,9 @@ func main() {
 			oldToNewTeacherMap[teacher.ID] = newTeacherMap[newTeacher.Code]
 		}
 	}
+
+	newDB.Exec("SELECT setval('teachers_id_seq', (SELECT MAX(id) FROM teachers));")
+
 	println("importing course")
 	oldToNewCourseMap = make(map[int64]po.CoursePO)
 	for _, course := range courseMap {
@@ -395,6 +398,8 @@ func main() {
 		}
 	}
 
+	newDB.Exec("SELECT setval('courses_id_seq', (SELECT MAX(id) FROM courses));")
+
 	// user 导入
 	println("importing user")
 	for _, user := range userMap {
@@ -409,6 +414,8 @@ func main() {
 			newUserMap[int64(newUser.ID)] = newUser
 		}
 	}
+
+	newDB.Exec("SELECT setval('users_id_seq', (SELECT MAX(id) FROM users));")
 
 	// user point 导入
 	println("importing user point")
@@ -425,6 +432,8 @@ func main() {
 		}
 	}
 
+	newDB.Exec("SELECT setval('user_points_id_seq', (SELECT MAX(id) FROM user_points));")
+
 	// review 导入
 	println("importing review")
 	for _, review := range reviewMap {
@@ -439,6 +448,8 @@ func main() {
 			newReviewMap[int64(newReview.ID)] = newReview
 		}
 	}
+
+	newDB.Exec("SELECT setval('reviews_id_seq', (SELECT MAX(id) FROM reviews));")
 
 	// review revision 导入
 	println("importing review revision")
@@ -455,6 +466,8 @@ func main() {
 		}
 	}
 
+	newDB.Exec("SELECT setval('review_revisions_id_seq', (SELECT MAX(id) FROM review_revisions));")
+
 	// review reaction 导入
 	println("importing review reaction")
 	for _, reviewReaction := range reviewReactionMap {
@@ -469,4 +482,6 @@ func main() {
 			newReviewReactionMap[int64(newReviewReaction.ID)] = newReviewReaction
 		}
 	}
+
+	newDB.Exec("SELECT setval('review_reactions_id_seq', (SELECT MAX(id) FROM review_reactions));")
 }
