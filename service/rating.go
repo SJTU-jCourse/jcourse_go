@@ -2,6 +2,9 @@ package service
 
 import (
 	"context"
+	"errors"
+
+	"gorm.io/gorm/clause"
 
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
@@ -12,9 +15,26 @@ import (
 )
 
 func CreateRating(ctx context.Context, userID int64, dto dto.RatingDTO) error {
+
+	if !types.IsARatingRelatedType(dto.RelatedType) {
+		return errors.New("invalid related type")
+	}
+
 	ratingPO := converter.ConvertRatingDTOToPO(userID, dto)
 	r := repository.Q.RatingPO
-	err := r.WithContext(ctx).Create(&ratingPO)
+	err := r.WithContext(ctx).
+		Clauses(clause.OnConflict{
+			UpdateAll: true,
+			Columns: []clause.Column{
+				{Name: string(r.UserID.ColumnName())},
+				{Name: string(r.RelatedID.ColumnName())},
+				{Name: string(r.RelatedType.ColumnName())},
+			}}).
+		Create(&ratingPO)
+	if err != nil {
+		return err
+	}
+	err = SyncRating(ctx, types.RatingRelatedType(ratingPO.RelatedType), ratingPO.RelatedID)
 	if err != nil {
 		return err
 	}
@@ -23,6 +43,10 @@ func CreateRating(ctx context.Context, userID int64, dto dto.RatingDTO) error {
 
 func GetRating(ctx context.Context, relatedType types.RatingRelatedType, relatedID int64) (model.RatingInfo, error) {
 	res := model.RatingInfo{}
+	if !types.IsARatingRelatedType(string(relatedType)) {
+		return res, errors.New("invalid related type")
+	}
+
 	dist := make([]model.RatingInfoDistItem, 0)
 
 	r := repository.Q.RatingPO
@@ -40,6 +64,9 @@ func GetRating(ctx context.Context, relatedType types.RatingRelatedType, related
 func GetMultipleRating(ctx context.Context, relatedType types.RatingRelatedType, relatedIDs []int64) (map[int64]model.RatingInfo, error) {
 	res := make(map[int64]model.RatingInfo)
 	dist := make(map[int64][]model.RatingInfoDistItem)
+	if !types.IsARatingRelatedType(string(relatedType)) {
+		return res, errors.New("invalid related type")
+	}
 
 	r := repository.Q.RatingPO
 	rows := make([]struct {
@@ -71,6 +98,10 @@ func GetMultipleRating(ctx context.Context, relatedType types.RatingRelatedType,
 }
 
 func GetUserRating(ctx context.Context, relatedType types.RatingRelatedType, relatedID int64, userID int64) (int64, error) {
+	if !types.IsARatingRelatedType(string(relatedType)) {
+		return 0, errors.New("invalid related type")
+	}
+
 	r := repository.Q.RatingPO
 	rating, err := r.WithContext(ctx).Select(r.Rating).Where(r.RelatedID.Eq(relatedID), r.RelatedType.Eq(string(relatedType)), r.UserID.Eq(userID)).Take()
 	if err != nil {
@@ -80,6 +111,10 @@ func GetUserRating(ctx context.Context, relatedType types.RatingRelatedType, rel
 }
 
 func SyncRating(ctx context.Context, relatedType types.RatingRelatedType, relatedID int64) error {
+	if !types.IsARatingRelatedType(string(relatedType)) {
+		return errors.New("invalid related type")
+	}
+
 	ratingInfo, err := GetRating(ctx, relatedType, relatedID)
 	if err != nil {
 		return err

@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"jcourse_go/model/dto"
 	"jcourse_go/model/types"
 	"jcourse_go/repository"
 )
@@ -45,4 +46,75 @@ func TestSyncRating(t *testing.T) {
 		assert.Equal(t, 5.0, teacherPO.RatingAvg)
 	})
 	repository.TearDownTestEnv()
+}
+
+func TestCreateRating(t *testing.T) {
+	repository.SetupTestEnv()
+	defer repository.TearDownTestEnv()
+
+	tests := []struct {
+		name          string
+		userID        int64
+		ratingDTO     dto.RatingDTO
+		expectedError bool
+		verify        func(*testing.T)
+	}{
+		{
+			name:   "create new course rating",
+			userID: 1,
+			ratingDTO: dto.RatingDTO{
+				RelatedType: string(types.RelatedTypeCourse),
+				RelatedID:   1,
+				Rating:      5,
+			},
+			expectedError: false,
+			verify: func(t *testing.T) {
+				coursePO, err := repository.Q.CoursePO.WithContext(context.Background()).Where(repository.Q.CoursePO.ID.Eq(1)).Take()
+				assert.Nil(t, err)
+				assert.Equal(t, 1, int(coursePO.RatingCount))
+				assert.Equal(t, 5.0, coursePO.RatingAvg)
+			},
+		},
+		{
+			name:   "update existing course rating",
+			userID: 1,
+			ratingDTO: dto.RatingDTO{
+				RelatedType: string(types.RelatedTypeCourse),
+				RelatedID:   1,
+				Rating:      3,
+			},
+			expectedError: false,
+			verify: func(t *testing.T) {
+				coursePO, err := repository.Q.CoursePO.WithContext(context.Background()).Where(repository.Q.CoursePO.ID.Eq(1)).Take()
+				assert.Nil(t, err)
+				assert.Equal(t, 1, int(coursePO.RatingCount))
+				assert.Equal(t, 3.0, coursePO.RatingAvg)
+			},
+		},
+		{
+			name:   "invalid type",
+			userID: 1,
+			ratingDTO: dto.RatingDTO{
+				RelatedType: "invalid",
+				RelatedID:   1,
+				Rating:      4,
+			},
+			expectedError: true,
+			verify:        func(t *testing.T) {},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			err := CreateRating(context.Background(), test.userID, test.ratingDTO)
+			if test.expectedError {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+			if test.verify != nil {
+				test.verify(t)
+			}
+		})
+	}
 }
