@@ -5,6 +5,11 @@ import (
 	"encoding/json"
 	"strings"
 
+	"github.com/tmc/langchaingo/llms"
+	"github.com/tmc/langchaingo/llms/openai"
+	"github.com/tmc/langchaingo/schema"
+	"github.com/tmc/langchaingo/vectorstores"
+
 	"jcourse_go/constant"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
@@ -12,12 +17,18 @@ import (
 	"jcourse_go/model/types"
 	"jcourse_go/repository"
 	"jcourse_go/rpc"
-
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/openai"
-	"github.com/tmc/langchaingo/schema"
-	"github.com/tmc/langchaingo/vectorstores"
 )
+
+var llm *openai.LLM
+
+func InitLLM() error {
+	var err error
+	llm, err = openai.New()
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 // OptCourseReview使用LLM提示词对课程评价内容进行优化。
 // courseName为课程名称，
@@ -26,11 +37,6 @@ import (
 // Suggestion为修改建议，
 // Result为根据修改建议给出的一种修改结果。
 func OptCourseReview(ctx context.Context, courseName string, reviewContent string) (dto.OptCourseReviewResponse, error) {
-	llm, err := openai.New()
-	if err != nil {
-
-		return dto.OptCourseReviewResponse{}, err
-	}
 	inputJson, _ := json.Marshal(map[string]string{
 		"course": courseName,
 		"review": reviewContent,
@@ -47,7 +53,6 @@ func OptCourseReview(ctx context.Context, courseName string, reviewContent strin
 	)
 
 	if err != nil {
-
 		return dto.OptCourseReviewResponse{}, err
 	}
 	var response dto.OptCourseReviewResponse
@@ -77,11 +82,6 @@ func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummar
 	}
 
 	reviews, err := GetReviewList(ctx, nil, filter)
-	if err != nil {
-		return nil, err
-	}
-
-	llm, err := openai.New()
 	if err != nil {
 		return nil, err
 	}

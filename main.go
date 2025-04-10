@@ -8,6 +8,7 @@ import (
 
 	"jcourse_go/dal"
 	"jcourse_go/repository"
+	"jcourse_go/service"
 	"jcourse_go/task"
 	"jcourse_go/task/base"
 	"jcourse_go/util"
@@ -28,6 +29,11 @@ func Init() {
 	})
 
 	if err := util.InitSegWord(); err != nil {
+		panic(err)
+	}
+
+	err := service.InitLLM()
+	if err != nil {
 		panic(err)
 	}
 }

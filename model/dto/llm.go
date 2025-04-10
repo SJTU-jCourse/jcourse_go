@@ -1,8 +1,8 @@
 package dto
 
 type OptCourseReviewRequest struct {
-	CourseName    string `json:"courseName" binding:"required"`
-	ReviewContent string `json:"reviewContent" binding:"required"`
+	CourseName    string `json:"course_name" binding:"required"`
+	ReviewContent string `json:"review_content" binding:"required"`
 }
 
 type OptCourseReviewResponse struct {
