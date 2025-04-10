@@ -56,9 +56,48 @@ func OptCourseReview(ctx context.Context, courseName string, reviewContent strin
 		return dto.OptCourseReviewResponse{}, err
 	}
 	var response dto.OptCourseReviewResponse
-	err = json.Unmarshal([]byte(completion.Choices[0].Content), &response)
+	responseStr := trimLLMJSON(completion.Choices[0].Content)
+	err = json.Unmarshal([]byte(responseStr), &response)
 
 	return response, err
+}
+
+func trimLLMJSON(raw string) string {
+	s := strings.TrimPrefix(raw, "```json")
+	s = strings.TrimSuffix(s, "```")
+	return s
+}
+
+func buildCourseSummaryPrompt(course *model.CourseDetail, reviews []model.Review) string {
+	type tinyReview struct {
+		Rating  int64  `json:"rating,omitempty"`
+		Comment string `json:"comment,omitempty"`
+	}
+	tinyReviews := make([]tinyReview, 0)
+
+	for _, r := range reviews {
+		tinyReviews = append(tinyReviews, tinyReview{
+			Rating:  r.Rating,
+			Comment: r.Comment,
+		})
+	}
+
+	coursePrompt := struct {
+		CourseName    string       `json:"course_name,omitempty"`
+		TeacherName   string       `json:"teacher_name,omitempty"`
+		RatingAverage float64      `json:"rating_average,omitempty"`
+		RatingCount   int64        `json:"rating_count,omitempty"`
+		RecentReviews []tinyReview `json:"recent_reviews,omitempty"`
+	}{
+		CourseName:    course.Name,
+		TeacherName:   course.MainTeacher.Name,
+		RatingAverage: course.RatingInfo.Average,
+		RatingCount:   course.RatingInfo.Count,
+		RecentReviews: tinyReviews,
+	}
+
+	p, _ := json.Marshal(coursePrompt)
+	return string(p)
 }
 
 // GetCourseSummary使用LLM提示词基于课程评价生成课程总结。
@@ -67,8 +106,7 @@ func OptCourseReview(ctx context.Context, courseName string, reviewContent strin
 // TODO: 此处基于课程最近的100条评价内容生成课程总结，后续可
 // 以进一步调整和优化。
 func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummaryResponse, error) {
-	c := repository.Q.CoursePO
-	coursePO, err := c.WithContext(ctx).Preload(c.OfferedCourses).Where(c.ID.Eq(courseID)).Take()
+	courseDetail, err := GetCourseDetail(ctx, courseID, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -86,17 +124,11 @@ func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummar
 		return nil, err
 	}
 
-	inputJson, _ := json.Marshal(map[string]any{
-		"courseName":    coursePO.Name,
-		"teacherGroup":  coursePO.OfferedCourses,
-		"ratingAverage": coursePO.RatingAvg,
-		"ratingCount":   coursePO.RatingCount,
-		"recentReviews": reviews,
-	})
+	inputJson := buildCourseSummaryPrompt(courseDetail, reviews)
 
 	content := []llms.MessageContent{
 		llms.TextParts(llms.ChatMessageTypeSystem, constant.GetCourseSummaryPrompt),
-		llms.TextParts(llms.ChatMessageTypeHuman, string(inputJson)),
+		llms.TextParts(llms.ChatMessageTypeHuman, inputJson),
 	}
 
 	completion, err := llm.GenerateContent(
@@ -105,12 +137,12 @@ func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummar
 	)
 
 	if err != nil {
-
 		return nil, err
 	}
 
 	var response dto.GetCourseSummaryResponse
-	err = json.Unmarshal([]byte(completion.Choices[0].Content), &response)
+	responseStr := trimLLMJSON(completion.Choices[0].Content)
+	err = json.Unmarshal([]byte(responseStr), &response)
 
 	return &response, err
 

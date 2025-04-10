@@ -56,11 +56,11 @@ const GetCourseSummaryPrompt string = `
 
 
 { 
-"courseName": "计算机系统基础", 
-"teacherGroup": "臧斌宇",
-"ratingAverage": 4.9,
-"ratingCount": 112
-"recentReviews": [
+"course_name": "计算机系统基础", 
+"teacher_name": "臧斌宇",
+"rating_average": 4.9,
+"rating_count": 112
+"recent_reviews": [
 {
 "comment": "这是一条评论内容",
 "rating": 5
