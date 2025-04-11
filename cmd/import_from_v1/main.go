@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/joho/godotenv"
@@ -9,7 +10,11 @@ import (
 	"gorm.io/gorm/clause"
 
 	"jcourse_go/dal"
+	"jcourse_go/model/converter"
 	"jcourse_go/model/po"
+	"jcourse_go/model/types"
+	"jcourse_go/repository"
+	"jcourse_go/service"
 	"jcourse_go/util"
 )
 
@@ -52,6 +57,7 @@ var (
 	newReviewRevisionMap map[int64]po.ReviewRevisionPO  // uid -> new
 	newUserPointMap      map[int64]po.UserPointDetailPO // uid -> new
 	newReviewReactionMap map[int64]po.ReviewReactionPO  // uid -> new
+	newRatingMap         map[string]po.RatingPO         // uid & course_id -> new rating
 )
 
 func makeCourseKey(course po.CoursePO) string {
@@ -148,6 +154,10 @@ func loadOldReviewReaction() {
 	}
 }
 
+func makeRatingKey(userID int64, courseID int64) string {
+	return fmt.Sprintf("%d:%d", userID, courseID)
+}
+
 func loadNewBaseCourse() {
 	baseCourses := make([]po.BaseCoursePO, 0)
 	newDB.Model(&po.BaseCoursePO{}).Find(&baseCourses)
@@ -217,6 +227,15 @@ func loadNewReviewReaction() {
 	newReviewReactionMap = make(map[int64]po.ReviewReactionPO)
 	for _, reviewReaction := range reviewReactions {
 		newReviewReactionMap[int64(reviewReaction.ID)] = reviewReaction
+	}
+}
+
+func loadNewRating() {
+	ratings := make([]po.RatingPO, 0)
+	newDB.Model(&po.RatingPO{}).Where("related_type = ?", "course").Find(&ratings)
+	newRatingMap = make(map[string]po.RatingPO)
+	for _, rating := range ratings {
+		newRatingMap[makeRatingKey(rating.UserID, rating.RelatedID)] = rating
 	}
 }
 
@@ -326,6 +345,7 @@ func main() {
 	oldDB = InitOldDB()
 	dal.InitDBClient()
 	newDB = dal.GetDBClient()
+	repository.SetDefault(newDB)
 
 	println("loading old")
 	loadOldSemester()
@@ -484,4 +504,31 @@ func main() {
 	}
 
 	newDB.Exec("SELECT setval('review_reactions_id_seq', (SELECT MAX(id) FROM review_reactions));")
+
+	loadNewRating()
+	for _, review := range newReviewMap {
+		ratingKey := makeRatingKey(review.UserID, review.CourseID)
+		if _, ok := newRatingMap[ratingKey]; !ok {
+			rating := converter.BuildRatingFromReview(review)
+			err := newDB.Model(&po.RatingPO{}).Clauses(clause.OnConflict{DoNothing: true}).Create(&rating).Error
+			if err != nil {
+				println("create rating error", rating.RelatedID, rating.UserID, err.Error())
+				continue
+			}
+			newRatingMap[ratingKey] = rating
+		}
+	}
+
+	needToSyncCourseID := make(map[int64]struct{})
+	for _, rating := range newRatingMap {
+		needToSyncCourseID[rating.RelatedID] = struct{}{}
+	}
+
+	for courseID, _ := range needToSyncCourseID {
+		err := service.SyncRating(context.Background(), types.RelatedTypeCourse, courseID)
+		if err != nil {
+			println("sync rating error for course id = ", courseID, err.Error())
+			continue
+		}
+	}
 }
