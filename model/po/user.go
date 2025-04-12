@@ -14,15 +14,16 @@ type UserPO struct {
 	Password string `gorm:"index:idx_auth"`
 	UserRole string `gorm:"index"` // 用户在选课社区的身份
 
-	Avatar     string // 头像
-	Department string // 院系
-	Type       string // 用户在学校的身份
-	Major      string // 专业
-	Degree     string // 学位
-	Grade      string // 年级
-	Bio        string // 个人介绍
-	Points     int64  // 积分
+	Type string // 用户在学校的身份
+	// Department string // 院系
+	// Major      string // 专业
+	// Degree     string // 学位
+	// Grade      string // 年级
 
+	Avatar string // 头像
+	Bio    string // 个人介绍
+
+	Points           int64                // 积分
 	UserPointDetails []*UserPointDetailPO `gorm:"foreignkey:UserID"`
 
 	LastSeenAt time.Time

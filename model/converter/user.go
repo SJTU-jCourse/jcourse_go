@@ -13,10 +13,10 @@ func ConvertUserDetailFromPO(po *po.UserPO) model.UserDetail {
 		Email:       po.Email,
 		Type:        po.Type,
 		Role:        po.UserRole,
-		Department:  po.Department,
-		Major:       po.Major,
-		Grade:       po.Grade,
-		Points:      po.Points,
+		// Department:  po.Department,
+		// Major:       po.Major,
+		// Grade:       po.Grade,
+		Points: po.Points,
 	}
 }
 
@@ -30,14 +30,14 @@ func ConvertUserMinimalFromPO(po *po.UserPO) model.UserMinimal {
 
 func ConvertUserProfileToPO(dto dto.UserProfileDTO) po.UserPO {
 	return po.UserPO{
-		Username:   dto.Username,
-		Type:       dto.Type,
-		Avatar:     dto.Avatar,
-		Department: dto.Department,
-		Major:      dto.Major,
-		Degree:     dto.Degree,
-		Grade:      dto.Grade,
-		Bio:        dto.Bio,
+		Username: dto.Username,
+		Type:     dto.Type,
+		Avatar:   dto.Avatar,
+		// Department: dto.Department,
+		// Major:      dto.Major,
+		// Degree:     dto.Degree,
+		// Grade:      dto.Grade,
+		Bio: dto.Bio,
 	}
 }
 
