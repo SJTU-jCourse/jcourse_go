@@ -11,6 +11,42 @@ import (
 	"jcourse_go/util"
 )
 
+func GetRelatedCourses(ctx context.Context, course *model.CourseDetail) (*model.RelatedCourse, error) {
+	if course == nil {
+		return nil, errors.New("course is nil")
+	}
+	coursesUnderSameTeacher, err := GetCourseList(ctx, model.CourseListFilterForQuery{MainTeacherID: course.MainTeacher.ID})
+	if err != nil {
+		return nil, err
+	}
+
+	coursesWithOtherTeacher, err := GetCourseList(ctx, model.CourseListFilterForQuery{Code: course.Code})
+	if err != nil {
+		return nil, err
+	}
+
+	relatedCourse := &model.RelatedCourse{
+		CoursesUnderSameTeacher:  make([]model.CourseSummary, 0),
+		CoursesWithOtherTeachers: make([]model.CourseSummary, 0),
+	}
+
+	for _, c := range coursesUnderSameTeacher {
+		if c.ID == course.ID {
+			continue
+		}
+		relatedCourse.CoursesUnderSameTeacher = append(relatedCourse.CoursesUnderSameTeacher, c)
+	}
+
+	for _, c := range coursesWithOtherTeacher {
+		if c.ID == course.ID {
+			continue
+		}
+		relatedCourse.CoursesWithOtherTeachers = append(relatedCourse.CoursesWithOtherTeachers, c)
+	}
+
+	return relatedCourse, nil
+}
+
 func GetCourseDetail(ctx context.Context, courseID int64, userID int64) (*model.CourseDetail, error) {
 	if courseID == 0 {
 		return nil, errors.New("course id is 0")
@@ -33,6 +69,10 @@ func GetCourseDetail(ctx context.Context, courseID int64, userID int64) (*model.
 
 	course := converter.ConvertCourseDetailFromPO(coursePO)
 	converter.PackCourseWithRatingInfo(&course.CourseSummary, info)
+	course.RelatedCourses, err = GetRelatedCourses(ctx, &course)
+	if err != nil {
+		return nil, err
+	}
 	return &course, nil
 }
 

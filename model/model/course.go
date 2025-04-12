@@ -40,6 +40,13 @@ type CourseSummary struct {
 type CourseDetail struct {
 	CourseSummary
 	OfferedCourse []OfferedCourse `json:"offered_courses"`
+
+	RelatedCourses *RelatedCourse `json:"related_courses"`
+}
+
+type RelatedCourse struct {
+	CoursesUnderSameTeacher  []CourseSummary `json:"courses_under_same_teacher"`
+	CoursesWithOtherTeachers []CourseSummary `json:"courses_with_other_teachers"`
 }
 
 type FilterItem struct {
