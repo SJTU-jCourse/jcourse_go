@@ -51,7 +51,7 @@ func GetUserPointDetailList(ctx context.Context, filter model.UserPointDetailFil
 	total := struct {
 		Value int64 `json:"value"`
 	}{}
-	err = repository.Q.UserPointDetailPO.WithContext(ctx).Select(p.Value.Sum().As("total")).Where(p.UserID.Eq(filter.UserID)).Scan(&total)
+	err = repository.Q.UserPointDetailPO.WithContext(ctx).Select(p.Value.Sum().As("value")).Where(p.UserID.Eq(filter.UserID)).Scan(&total)
 	if err != nil {
 		return 0, nil, err
 	}
