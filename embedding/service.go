@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/tmc/langchaingo/schema"
+	"github.com/tmc/langchaingo/vectorstores"
 )
 
 func VectorizeCourse(ctx context.Context, courseID int64) error {
@@ -43,7 +44,10 @@ func VectorizeCourse(ctx context.Context, courseID int64) error {
 		comments = append(comments, review.Comment)
 	}
 
-	vectorStore := GetStore()
+	vectorStore, err := GetStore()
+	if err != nil {
+		return err
+	}
 
 	targetStr := courseName
 	if len(comments) > 0 {
@@ -58,7 +62,11 @@ func VectorizeCourse(ctx context.Context, courseID int64) error {
 	}
 	log.Printf("Vectorizing course %d using OpenAI", courseID)
 
-	_, err = vectorStore.AddDocuments(ctx, []schema.Document{doc})
+	_, err = vectorStore.AddDocuments(
+		ctx,
+		[]schema.Document{doc},
+		vectorstores.WithReplacement(true),
+	)
 	if err != nil {
 		log.Printf("Error adding document for course %d to vector store: %v", courseID, err)
 		return fmt.Errorf("failed to vectorize course %d: %w", courseID, err)
@@ -69,7 +77,10 @@ func VectorizeCourse(ctx context.Context, courseID int64) error {
 }
 
 func GetMatchCourses(ctx context.Context, description string) ([]model.CourseSummary, error) {
-	vectorStore := GetStore()
+	vectorStore, err := GetStore()
+	if err != nil {
+		return nil, err
+	}
 
 	log.Printf("Performing similarity search using OpenAI for: %q", description)
 	docs, err := vectorStore.SimilaritySearch(ctx, description, 5) // Top 5 results
