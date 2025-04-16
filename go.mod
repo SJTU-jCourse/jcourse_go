@@ -1,6 +1,7 @@
 module jcourse_go
 
 go 1.23
+toolchain go1.24.1
 
 require (
 	github.com/RoaringBitmap/roaring v1.9.4
@@ -25,6 +26,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.9.0
 	github.com/tmc/langchaingo v0.1.12
+	golang.org/x/crypto v0.35.0
 	golang.org/x/sync v0.11.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gorm.io/driver/postgres v1.5.9
@@ -83,7 +85,6 @@ require (
 	github.com/vcaesar/cedar v0.20.2 // indirect
 	go.starlark.net v0.0.0-20241226192728-8dfa5b98479f // indirect
 	golang.org/x/arch v0.13.0 // indirect
-	golang.org/x/crypto v0.33.0 // indirect
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
 	golang.org/x/mod v0.23.0 // indirect
 	golang.org/x/net v0.35.0 // indirect
