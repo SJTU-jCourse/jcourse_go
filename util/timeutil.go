@@ -10,28 +10,12 @@ const (
 )
 
 func GetLocation() *time.Location {
-	name := GetTimeLocationStr() // "Asia/Shanghai" by default
+	name := "Asia/Shanghai" // by default
 	loc, err := time.LoadLocation(name)
 	if err != nil {
 		panic(err)
 	}
 	return loc
-}
-
-// ParseTime 解析时间字符串(以环境变量时区为准)
-func ParseTime(timeStr string) (time.Time, error) {
-	return time.ParseInLocation(GoTimeLayout, timeStr, GetLocation())
-}
-
-// ParseDate 解析日期字符串(以环境变量时区为准)
-func ParseDate(dateStr string) (time.Time, error) {
-	return time.ParseInLocation(GoDateLayout, dateStr, GetLocation())
-}
-
-// FormatTime 格式化时间(以环境变量时区为准)
-func FormatTime(t time.Time) string {
-	dateTime := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, GetLocation())
-	return dateTime.Format(GoTimeLayout)
 }
 
 // FormatDate 格式化日期(以环境变量时区为准)
@@ -49,38 +33,6 @@ func GetDayTimeRange(datetime time.Time) (time.Time, time.Time) {
 	end := time.Date(year, month, day, 23, 59, 59, int(time.Second-time.Nanosecond), location)
 
 	return start, end
-}
-
-// GetLocalDayStart 获取当天的开始时间(以Server时区为准)
-func GetLocalDayStart() time.Time {
-	now := time.Now()
-	return time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.Local)
-}
-
-// GetLocalDayEnd 获取当天的结束时间(以Server时区为准)
-func GetLocalDayEnd() time.Time {
-	now := time.Now()
-	return time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, int(time.Second-time.Nanosecond), time.Local)
-}
-
-// GetYesterdayTimeRange 获取昨天的时间范围(以环境变量时区为准)
-func GetYesterdayTimeRange(datetime time.Time) (time.Time, time.Time) {
-	return GetDayTimeRange(GetTimeSubDay(datetime, 1))
-}
-
-// GetTimeSubDay 获取减去指定天数的时间
-func GetTimeSubDay(datetime time.Time, subDay int) time.Time {
-	return datetime.AddDate(0, 0, -subDay)
-}
-
-// GetTimeSubMonth 获取减去指定月数的时间
-func GetTimeSubMonth(datetime time.Time, subMonth int) time.Time {
-	return datetime.AddDate(0, -subMonth, 0)
-}
-
-// GetTimeSubWeek 获取减去指定周数的时间
-func GetTimeSubWeek(datetime time.Time, subWeek int) time.Time {
-	return datetime.AddDate(0, 0, -7*subWeek)
 }
 
 // GetMidTime 获取当天中午12点的时间, 以环境变量指定的时区为准

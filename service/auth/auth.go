@@ -120,7 +120,9 @@ func SendRegisterCodeEmail(ctx context.Context, email string) error {
 		fmt.Printf("StoreVerifyCode error: %v\n", err)
 		return err
 	}
-	err = rpc.SendMail(ctx, email, constant.EmailTitleVerifyCode, body)
+
+	sender := rpc.SMTPSender{}
+	err = sender.SendMail(ctx, email, constant.EmailTitleVerifyCode, body)
 	if err != nil {
 		fmt.Printf("SendMail error: %v\n", err)
 		return err

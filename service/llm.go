@@ -10,6 +10,7 @@ import (
 	"github.com/tmc/langchaingo/schema"
 	"github.com/tmc/langchaingo/vectorstores"
 
+	"jcourse_go/config"
 	"jcourse_go/constant"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
@@ -21,9 +22,9 @@ import (
 
 var llm *openai.LLM
 
-func InitLLM() error {
+func InitLLM(conf *config.LLM) error {
 	var err error
-	llm, err = openai.New()
+	llm, err = openai.New(openai.WithBaseURL(conf.BaseUrl), openai.WithModel(conf.Model), openai.WithToken(conf.Token))
 	if err != nil {
 		return err
 	}

@@ -1,15 +1,15 @@
-package main
+package app
 
 import (
+	"github.com/gin-gonic/gin"
+
+	"jcourse_go/config"
 	"jcourse_go/handler"
 	"jcourse_go/middleware"
-	"jcourse_go/util"
-
-	"github.com/gin-gonic/gin"
 )
 
-func registerRouter(r *gin.Engine) {
-	middleware.InitSession(r)
+func registerRouter(conf *config.Config, r *gin.Engine) {
+	middleware.InitSession(conf, r)
 	r.Use(middleware.UV.UVStatistic())
 	r.Use(middleware.PV.PVStatistic())
 	api := r.Group("/api")
@@ -21,7 +21,7 @@ func registerRouter(r *gin.Engine) {
 	authGroup.POST("/reset-password", handler.ResetPasswordHandler)
 
 	needAuthGroup := api.Group("")
-	if !util.IsNoLoginMode() {
+	if !conf.Server.NoLoginMode {
 		needAuthGroup.Use(middleware.RequireAuth())
 	}
 	needAuthGroup.GET("/common", handler.GetCommonInfo)
@@ -90,7 +90,7 @@ func registerRouter(r *gin.Engine) {
 	llmGroup.GET("/course/summary/:courseID", handler.GetCourseSummaryHandler)
 	llmGroup.POST("/course/match", handler.GetMatchCoursesHandler)
 
-	if util.IsDebug() {
+	if conf.Server.Debug {
 		llmGroup.GET("/vectorize/:courseID", handler.VectorizeCourseHandler)
 	}
 

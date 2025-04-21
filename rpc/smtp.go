@@ -2,39 +2,38 @@ package rpc
 
 import (
 	"context"
-	"log"
-	"strconv"
 
 	"gopkg.in/gomail.v2"
 
-	"jcourse_go/util"
+	"jcourse_go/config"
 )
 
-func SendMail(ctx context.Context, recipient string, subject string, body string) error {
-	if util.IsDebug() {
-		return nil
-	}
-	host := util.GetSMTPHost()
-	portStr := util.GetSMTPPort()
-	port, err := strconv.ParseInt(portStr, 10, 64)
-	if err != nil {
-		log.Fatal(err)
-	}
+type EmailSender interface {
+	SendMail(ctx context.Context, recipient string, subject string, body string) error
+}
 
-	smtpSender := util.GetSMTPSender()
-	username := util.GetSMTPUser()
-	password := util.GetSMTPPassword()
+type NilSender struct {
+}
 
+func (s *NilSender) SendMail(ctx context.Context, recipient string, subject string, body string) error {
+	return nil
+}
+
+type SMTPSender struct {
+	config config.SMTP
+}
+
+func (s *SMTPSender) SendMail(ctx context.Context, recipient string, subject string, body string) error {
 	msg := gomail.NewMessage()
-	msg.SetHeader("From", smtpSender)
+	msg.SetHeader("From", s.config.Sender)
 	msg.SetHeader("To", recipient)
 	msg.SetHeader("Subject", subject)
 	// text/html for a html email
 	msg.SetBody("text/plain", body)
 
-	n := gomail.NewDialer(host, int(port), username, password)
+	n := gomail.NewDialer(s.config.Host, s.config.Port, s.config.Username, s.config.Password)
 
 	// Send the email
-	err = n.DialAndSend(msg)
+	err := n.DialAndSend(msg)
 	return err
 }

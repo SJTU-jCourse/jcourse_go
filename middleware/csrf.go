@@ -1,19 +1,6 @@
 package middleware
 
-import (
-	"net/http"
-	"time"
-
-	"github.com/bytedance/sonic"
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/csrf"
-	adapter "github.com/gwatts/gin-adapter"
-
-	"jcourse_go/constant"
-	"jcourse_go/model/dto"
-	"jcourse_go/util"
-)
-
+/*
 func CSRF() gin.HandlerFunc {
 	key := util.GetCSRFSecret()
 	csrfMd := csrf.Protect([]byte(key),
@@ -33,3 +20,4 @@ func CSRFToken() gin.HandlerFunc {
 		c.SetCookie(constant.CSRFCookieKey, token, int((time.Hour * 24).Seconds()), "/", "", !util.IsDebug(), true)
 	}
 }
+*/

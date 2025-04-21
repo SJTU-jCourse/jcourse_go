@@ -6,23 +6,19 @@ import (
 	"github.com/go-redis/redismock/v9"
 	"github.com/redis/go-redis/v9"
 
-	"jcourse_go/util"
+	"jcourse_go/config"
 )
 
 var rdb *redis.Client
 
-func GetRedisDSN() string {
-	host := util.GetRedisHost()
-	port := util.GetRedisPort()
-	return fmt.Sprintf("%s:%s", host, port)
+func GetRedisDSN(host string, port int) string {
+	return fmt.Sprintf("%s:%d", host, port)
 }
-func GetRedisPassWord() string {
-	return util.GetRedisPassword()
-}
-func InitRedisClient() {
+
+func InitRedisClient(conf *config.Redis) {
 	rdb = redis.NewClient(&redis.Options{
-		Addr:     GetRedisDSN(),
-		Password: GetRedisPassWord(),
+		Addr:     GetRedisDSN(conf.Host, conf.Port),
+		Password: conf.Password,
 		DB:       0,
 	})
 }
