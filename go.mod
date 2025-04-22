@@ -6,7 +6,7 @@ require (
 	github.com/RoaringBitmap/roaring v1.9.4
 	github.com/SJTU-jCourse/password_hasher v0.0.0-20240731144855-1f64f055ff5c
 	github.com/XQ-Gang/gg v0.2.0
-	github.com/bytedance/sonic v1.12.3
+	github.com/caarlos0/env/v11 v11.3.1
 	github.com/duke-git/lancet/v2 v2.3.3
 	github.com/gin-gonic/contrib v0.0.0-20240508051311-c1c6bf0061b0
 	github.com/gin-gonic/gin v1.10.0
@@ -14,8 +14,6 @@ require (
 	github.com/go-ego/gse v0.80.3
 	github.com/go-redis/redismock/v9 v9.2.0
 	github.com/google/uuid v1.6.0
-	github.com/gorilla/csrf v1.7.2
-	github.com/gwatts/gin-adapter v1.0.0
 	github.com/hibiken/asynq v0.24.1
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.9
@@ -25,6 +23,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/stretchr/testify v1.9.0
 	github.com/tmc/langchaingo v0.1.12
+	golang.org/x/crypto v0.33.0
 	golang.org/x/sync v0.11.0
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 	gorm.io/driver/postgres v1.5.9
@@ -37,8 +36,8 @@ require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/bits-and-blooms/bitset v1.12.0 // indirect
 	github.com/boj/redistore v0.0.0-20180917114910-cd5dcc76aeff // indirect
+	github.com/bytedance/sonic v1.12.3 // indirect
 	github.com/bytedance/sonic/loader v0.2.1 // indirect
-	github.com/caarlos0/env/v11 v11.3.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
@@ -79,12 +78,12 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/spf13/cast v1.7.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/vcaesar/cedar v0.20.2 // indirect
 	go.starlark.net v0.0.0-20241226192728-8dfa5b98479f // indirect
 	golang.org/x/arch v0.13.0 // indirect
-	golang.org/x/crypto v0.33.0 // indirect
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
 	golang.org/x/mod v0.23.0 // indirect
 	golang.org/x/net v0.35.0 // indirect

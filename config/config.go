@@ -1,14 +1,17 @@
 package config
 
-import "github.com/caarlos0/env/v11"
+import (
+	"github.com/caarlos0/env/v11"
+)
 
 type Config struct {
-	Server Server
-	DB     DB
-	Redis  Redis
-	LLM    LLM
-	SMTP   SMTP
-	Auth   Auth
+	Server     Server
+	DB         DB
+	Redis      Redis
+	LLM        LLM
+	SMTP       SMTP
+	Auth       Auth
+	VerifyCode VerifyCode
 }
 
 type DB struct {
@@ -49,6 +52,13 @@ type Auth struct {
 	SessionSecret string `env:"SESSION_SECRET"`
 	CSRFSecret    string `env:"CSRF_SECRET"`
 	HashSalt      string `env:"HASH_SALT"`
+}
+
+type VerifyCode struct {
+	TTL       int    `env:"VERIFY_CODE_TTL"`
+	Length    int    `env:"VERIFY_CODE_LENGTH"`
+	Charset   string `env:"VERIFY_CODE_CHARSET"`
+	RateLimit int    `env:"VERIFY_CODE_RATE_LIMIT"`
 }
 
 func NewConfig() (*Config, error) {

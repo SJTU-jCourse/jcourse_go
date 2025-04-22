@@ -10,8 +10,8 @@ import (
 	"jcourse_go/constant"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
+	"jcourse_go/pkg/mail"
 	"jcourse_go/repository"
-	"jcourse_go/rpc"
 )
 
 func Login(ctx context.Context, email string, password string) (*model.UserDetail, error) {
@@ -121,7 +121,7 @@ func SendRegisterCodeEmail(ctx context.Context, email string) error {
 		return err
 	}
 
-	sender := rpc.SMTPSender{}
+	sender := mail.NewSMTPSender(nil)
 	err = sender.SendMail(ctx, email, constant.EmailTitleVerifyCode, body)
 	if err != nil {
 		fmt.Printf("SendMail error: %v\n", err)

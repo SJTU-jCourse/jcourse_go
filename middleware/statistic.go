@@ -24,7 +24,7 @@ const (
 var LastQuerySiteSettingDuration time.Duration = DefaultDuplicateJudgeDuration
 
 /*
-func UpdateDuplicateJudgeDuration(ctx context.Context) time.Duration {
+func UpdateDuplicateJudgeDuration(ctx context.Context) time.TTL {
 	LastQuerySiteSettingTime = time.Now()
 	siteSetting, err := service.GetSetting(ctx, DuplicateJudgeDurationKey)
 	if err != nil {
