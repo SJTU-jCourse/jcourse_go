@@ -2,17 +2,117 @@ package service
 
 import (
 	"context"
+	"errors"
 
 	"jcourse_go/internal/domain/auth/model"
 	"jcourse_go/internal/domain/auth/repository"
+	"jcourse_go/pkg/password_hash"
+	"jcourse_go/pkg/validator"
 )
 
 type AuthService interface {
 	Login(ctx context.Context, email string, password string) (*model.UserDomain, error)
-	Register(ctx context.Context, email string, password string) (*model.UserDomain, error)
-	ResetPassword(ctx context.Context, email string, password string) error
+	Register(ctx context.Context, email string, password string, code string) (*model.UserDomain, error)
+	ResetPassword(ctx context.Context, email string, password string, code string) error
+	SendVerificationCode(ctx context.Context, email string) error
 }
 
 type authService struct {
-	userRepo repository.UserRepository
+	verificationCodeService VerificationCodeService
+	emailValidator          validator.EmailValidator
+	userRepo                repository.UserRepository
+	passwordHasher          password_hash.Hasher
+}
+
+func (s *authService) SendVerificationCode(ctx context.Context, email string) error {
+	if !s.emailValidator.Validate(email) {
+		return errors.New("email is invalid")
+	}
+
+	err := s.verificationCodeService.SendCode(ctx, email)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *authService) Login(ctx context.Context, email string, password string) (*model.UserDomain, error) {
+	user, err := s.userRepo.FindUserByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+
+	if !user.ValidatePassword(password) {
+		return nil, errors.New("password is invalid")
+	}
+
+	if !user.CanLogin() {
+		return nil, errors.New("user is not active")
+	}
+
+	return user, nil
+}
+
+func (s *authService) Register(ctx context.Context, email string, password string, code string) (*model.UserDomain, error) {
+	if !s.emailValidator.Validate(email) {
+		return nil, errors.New("email is invalid")
+	}
+
+	err := s.verificationCodeService.VerifyCode(ctx, email, code)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := s.userRepo.FindUserByEmail(email)
+	if err != nil {
+		return nil, err
+	}
+
+	if user != nil {
+		return nil, errors.New("email is already registered")
+	}
+
+	newPassword := model.NewPassword(password, s.passwordHasher)
+	user = model.NewUser(email, newPassword)
+
+	err = s.userRepo.Save(user)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (s *authService) ResetPassword(ctx context.Context, email string, password string, code string) error {
+	if !s.emailValidator.Validate(email) {
+		return errors.New("email is invalid")
+	}
+
+	err := s.verificationCodeService.VerifyCode(ctx, email, code)
+	if err != nil {
+		return err
+	}
+
+	user, err := s.userRepo.FindUserByEmail(email)
+	if err != nil {
+		return err
+	}
+
+	newPassword := model.NewPassword(password, s.passwordHasher)
+	user.SetPassword(newPassword)
+
+	err = s.userRepo.Save(user)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func NewAuthService() AuthService {
+	return &authService{
+		verificationCodeService: nil,
+		emailValidator:          nil,
+		userRepo:                nil,
+	}
 }

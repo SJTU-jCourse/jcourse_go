@@ -9,9 +9,8 @@ import (
 	"jcourse_go/constant"
 	"jcourse_go/internal/domain/auth/model"
 	"jcourse_go/internal/domain/auth/service"
-	"jcourse_go/internal/httputil"
+	"jcourse_go/internal/util"
 	"jcourse_go/model/dto"
-	"jcourse_go/pkg/validator"
 )
 
 const (
@@ -34,110 +33,88 @@ func RegisterAuthController(r *gin.RouterGroup, controller *AuthController) {
 }
 
 type AuthController struct {
-	verificationCodeService service.VerificationCodeService
-	authService             service.AuthService
-	emailValidator          validator.EmailValidator
+	authService service.AuthService
 }
 
 func (c *AuthController) Login(ctx *gin.Context) {
 	var request dto.LoginRequest
 	err := ctx.ShouldBind(&request)
 	if err != nil {
-		httputil.WrongParamResponse(ctx)
+		util.WrongParamResponse(ctx)
 		return
 	}
 	user, err := c.authService.Login(ctx, request.Email, request.Password)
 	if err != nil {
-		httputil.ErrorResponse(ctx, ResponseMessageLoginErr)
+		util.ErrorResponse(ctx, ResponseMessageLoginErr)
 		return
 	}
 	err = c.storeSession(ctx, user)
 	if err != nil {
-		httputil.ErrorResponse(ctx, ResponseMessageLoginErr)
+		util.ErrorResponse(ctx, ResponseMessageLoginErr)
 		return
 	}
-	httputil.SuccessResponse(ctx, user)
+	util.SuccessResponse(ctx, user)
 }
 
 func (c *AuthController) Logout(ctx *gin.Context) {
 	c.clearSession(ctx)
-	httputil.SuccessSimpleResponse(ctx, ResponseMessageLogout)
+	util.SuccessSimpleResponse(ctx, ResponseMessageLogout)
 }
 
 func (c *AuthController) Register(ctx *gin.Context) {
 	var request dto.RegisterUserRequest
 	err := ctx.ShouldBind(&request)
 	if err != nil {
-		httputil.WrongParamResponse(ctx)
+		util.WrongParamResponse(ctx)
 		return
 	}
 
-	if !c.emailValidator.Validate(request.Email) {
-		httputil.WrongParamResponse(ctx)
-		return
-	}
-
-	err = c.verificationCodeService.VerifyCode(ctx, request.Email, request.Code)
+	user, err := c.authService.Register(ctx, request.Email, request.Password, request.Code)
 	if err != nil {
-		httputil.WrongParamResponse(ctx)
-		return
-	}
-
-	user, err := c.authService.Register(ctx, request.Email, request.Password)
-	if err != nil {
-		httputil.ErrorResponse(ctx, ResponseMessageRegisterErr)
+		util.ErrorResponse(ctx, ResponseMessageRegisterErr)
 		return
 	}
 
 	err = c.storeSession(ctx, user)
 	if err != nil {
-		httputil.ErrorResponse(ctx, ResponseMessageRegisterErr)
+		util.ErrorResponse(ctx, ResponseMessageRegisterErr)
 		return
 	}
-	httputil.SuccessResponse(ctx, user)
+	util.SuccessResponse(ctx, user)
 }
 
 func (c *AuthController) SendVerificationCode(ctx *gin.Context) {
 	var request dto.SendEmailCodeRequest
 	err := ctx.ShouldBind(&request)
 	if err != nil {
-		httputil.WrongParamResponse(ctx)
+		util.WrongParamResponse(ctx)
 		return
 	}
 
-	if !c.emailValidator.Validate(request.Email) {
-		httputil.WrongParamResponse(ctx)
-		return
-	}
-
-	err = c.verificationCodeService.SendCode(ctx, request.Email)
+	err = c.authService.SendVerificationCode(ctx, request.Email)
 	if err != nil {
-		httputil.ErrorResponse(ctx, ResponseMessageSendCodeErr)
+		util.ErrorResponse(ctx, ResponseMessageSendCodeErr)
 		return
 	}
-	httputil.SuccessSimpleResponse(ctx, ResponseMessageSendCode)
+
+	util.SuccessSimpleResponse(ctx, ResponseMessageSendCode)
 }
 
 func (c *AuthController) ResetPassword(ctx *gin.Context) {
 	var request dto.ResetPasswordRequest
 	err := ctx.ShouldBind(&request)
 	if err != nil {
-		httputil.WrongParamResponse(ctx)
+		util.WrongParamResponse(ctx)
 		return
 	}
 
-	if !c.emailValidator.Validate(request.Email) {
-		httputil.WrongParamResponse(ctx)
-		return
-	}
-
-	err = c.authService.ResetPassword(ctx, request.Email, request.Password)
+	err = c.authService.ResetPassword(ctx, request.Email, request.Password, request.Code)
 	if err != nil {
-		httputil.ErrorResponse(ctx, ResponseMessageResetPwdErr)
+		util.ErrorResponse(ctx, ResponseMessageResetPwdErr)
 		return
 	}
 	c.clearSession(ctx)
-	httputil.SuccessSimpleResponse(ctx, ResponseMessageResetPwd)
+	util.SuccessSimpleResponse(ctx, ResponseMessageResetPwd)
 }
 
 func (c *AuthController) clearSession(ctx *gin.Context) {
