@@ -12,6 +12,10 @@ const storeFormat = "%s$%d$%s$%s"
 
 type Password string
 
+func (p Password) String() string {
+	return string(p)
+}
+
 func (p Password) ValidatePassword(password string) bool {
 	parts := strings.Split(string(p), "$")
 	if len(parts) != 4 {

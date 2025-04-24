@@ -14,6 +14,9 @@ type UserPO struct {
 	Password string `gorm:"index:idx_auth"`
 	UserRole string `gorm:"index"` // 用户在选课社区的身份
 
+	SuspendedAt   *time.Time
+	SuspendedTill *time.Time
+
 	Type string // 用户在学校的身份
 	// Department string // 院系
 	// Major      string // 专业

@@ -44,7 +44,7 @@ func (s *authService) SendVerificationCode(ctx context.Context, email string) er
 }
 
 func (s *authService) Login(ctx context.Context, email string, password string) (*model.UserDomain, error) {
-	user, err := s.userRepo.FindUserByEmail(email)
+	user, err := s.userRepo.FindUserByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (s *authService) Register(ctx context.Context, email string, password strin
 		return nil, err
 	}
 
-	user, err := s.userRepo.FindUserByEmail(email)
+	user, err := s.userRepo.FindUserByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (s *authService) Register(ctx context.Context, email string, password strin
 	newPassword := model.NewPassword(password, s.passwordHasher)
 	user = model.NewUser(email, newPassword)
 
-	err = s.userRepo.Save(user)
+	err = s.userRepo.Save(ctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func (s *authService) ResetPassword(ctx context.Context, email string, password 
 		return err
 	}
 
-	user, err := s.userRepo.FindUserByEmail(email)
+	user, err := s.userRepo.FindUserByEmail(ctx, email)
 	if err != nil {
 		return err
 	}
@@ -108,7 +108,7 @@ func (s *authService) ResetPassword(ctx context.Context, email string, password 
 	newPassword := model.NewPassword(password, s.passwordHasher)
 	user.SetPassword(newPassword)
 
-	err = s.userRepo.Save(user)
+	err = s.userRepo.Save(ctx, user)
 	if err != nil {
 		return err
 	}
