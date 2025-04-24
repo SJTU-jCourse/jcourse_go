@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
+	"jcourse_go/internal/infra/query"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
 	"jcourse_go/model/types"
-	"jcourse_go/repository"
 	"jcourse_go/util"
 )
 
@@ -15,7 +15,7 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*model.TeacherDetai
 	if teacherID == 0 {
 		return nil, errors.New("teacher id is 0")
 	}
-	t := repository.Q.TeacherPO
+	t := query.Q.TeacherPO
 	teacherPO, err := t.WithContext(ctx).Where(t.ID.Eq(teacherID)).Take()
 	if err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*model.TeacherDetai
 	return &teacher, nil
 }
 
-func buildTeacherDBOptionFromFilter(ctx context.Context, q *repository.Query, filter model.TeacherFilterForQuery) repository.ITeacherPODo {
+func buildTeacherDBOptionFromFilter(ctx context.Context, q *query.Query, filter model.TeacherFilterForQuery) query.ITeacherPODo {
 	builder := q.TeacherPO.WithContext(ctx)
 	t := q.TeacherPO
 
@@ -80,7 +80,7 @@ func buildTeacherDBOptionFromFilter(ctx context.Context, q *repository.Query, fi
 }
 
 func SearchTeacherList(ctx context.Context, filter model.TeacherFilterForQuery) ([]model.TeacherSummary, error) {
-	q := buildTeacherDBOptionFromFilter(ctx, repository.Q, filter)
+	q := buildTeacherDBOptionFromFilter(ctx, query.Q, filter)
 
 	teachers, err := q.Find()
 	if err != nil {
@@ -109,7 +109,7 @@ func SearchTeacherList(ctx context.Context, filter model.TeacherFilterForQuery) 
 func GetTeacherCount(ctx context.Context, filter model.TeacherFilterForQuery) (int64, error) {
 
 	filter.Page, filter.PageSize = 0, 0
-	q := buildTeacherDBOptionFromFilter(ctx, repository.Q, filter)
+	q := buildTeacherDBOptionFromFilter(ctx, query.Q, filter)
 	return q.Count()
 }
 
@@ -119,7 +119,7 @@ func GetTeacherFilter(ctx context.Context) (model.TeacherFilter, error) {
 		Titles:      make([]model.FilterItem, 0),
 	}
 
-	t := repository.Q.TeacherPO
+	t := query.Q.TeacherPO
 	err := t.WithContext(ctx).Select(t.Title.As("value"), t.ID.Count().As("count")).Group(t.Title).Scan(&filter.Titles)
 	if err != nil {
 		return filter, err

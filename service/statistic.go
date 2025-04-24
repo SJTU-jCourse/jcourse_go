@@ -8,10 +8,10 @@ import (
 	"github.com/RoaringBitmap/roaring"
 	"github.com/pkg/errors"
 
+	"jcourse_go/internal/infra/query"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
 	"jcourse_go/model/po"
-	"jcourse_go/repository"
 	"jcourse_go/util"
 )
 
@@ -38,8 +38,8 @@ func updateDailyInfoCache(ctx context.Context, detail model.DailyInfo) error {
 
 // CalDailyInfo 计算某一天0-24点的日活、新增课程数、新增点评数
 func CalDailyInfo(ctx context.Context, datetime time.Time) (model.DailyInfo, error) {
-	u := repository.Q.UserPO
-	r := repository.Q.ReviewPO
+	u := query.Q.UserPO
+	r := query.Q.ReviewPO
 
 	dayStart, dayEnd := util.GetDayTimeRange(datetime)
 
@@ -58,7 +58,7 @@ func CalDailyInfo(ctx context.Context, datetime time.Time) (model.DailyInfo, err
 }
 
 // buildStatisticDBOptionsFromFilter filter保证传入str要么是空字符串, 要么是合法的日期字符串
-func buildStatisticDBOptionsFromFilter(ctx context.Context, q *repository.Query, filter model.StatisticFilter) repository.IStatisticPODo {
+func buildStatisticDBOptionsFromFilter(ctx context.Context, q *query.Query, filter model.StatisticFilter) query.IStatisticPODo {
 	builder := q.StatisticPO.WithContext(ctx)
 	s := q.StatisticPO
 	if filter.StartDate != "" && filter.EndDate != "" {
@@ -73,7 +73,7 @@ func buildStatisticDBOptionsFromFilter(ctx context.Context, q *repository.Query,
 func GetStatistics(ctx context.Context, filter model.StatisticFilter) ([]model.DailyInfo, []model.PeriodInfo, error) {
 	// TODO: cache
 
-	q := buildStatisticDBOptionsFromFilter(ctx, repository.Q, filter)
+	q := buildStatisticDBOptionsFromFilter(ctx, query.Q, filter)
 	statistics, err := q.Find()
 	if err != nil {
 		return []model.DailyInfo{}, []model.PeriodInfo{}, err
@@ -101,7 +101,7 @@ func GetStatistics(ctx context.Context, filter model.StatisticFilter) ([]model.D
 }
 
 func GetDailyUVData(ctx context.Context, datetime time.Time) (model.UVData, error) {
-	s := repository.Q.StatisticDataPO
+	s := query.Q.StatisticDataPO
 	date := util.FormatDate(datetime)
 	data, err := s.WithContext(ctx).Where(s.Date.Eq(date)).Find()
 	if err != nil {
@@ -118,8 +118,8 @@ func GetDailyUVData(ctx context.Context, datetime time.Time) (model.UVData, erro
 }
 
 func CreateStatistic(ctx context.Context, datetime time.Time, uvCount, pvCount int64, uvData *roaring.Bitmap) error {
-	u := repository.Q.UserPO
-	r := repository.Q.ReviewPO
+	u := query.Q.UserPO
+	r := query.Q.ReviewPO
 
 	// get counts
 	dayStart, dayEnd := util.GetDayTimeRange(datetime)
@@ -158,7 +158,7 @@ func CreateStatistic(ctx context.Context, datetime time.Time, uvCount, pvCount i
 		TotalUsers:   totalUserCount,
 	}
 
-	err = repository.Q.StatisticPO.WithContext(ctx).Create(&newStatisticItem)
+	err = query.Q.StatisticPO.WithContext(ctx).Create(&newStatisticItem)
 	if err != nil {
 		log.Fatalf("failed to save statistic: %v", err)
 		return err
@@ -172,7 +172,7 @@ func CreateStatistic(ctx context.Context, datetime time.Time, uvCount, pvCount i
 	if newStatisticItem.ID <= 0 {
 		return errors.Errorf("failed to save statistic: Not write ID back")
 	}
-	err = repository.Q.StatisticDataPO.WithContext(ctx).Create(&po.StatisticDataPO{
+	err = query.Q.StatisticDataPO.WithContext(ctx).Create(&po.StatisticDataPO{
 		Date:        util.FormatDate(datetime),
 		UVData:      uvDataBytes,
 		StatisticID: newStatisticItem.ID,

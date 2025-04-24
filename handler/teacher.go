@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"jcourse_go/constant"
+	"jcourse_go/internal/constant"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 

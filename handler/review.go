@@ -5,7 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"jcourse_go/constant"
+	"jcourse_go/internal/constant"
 	"jcourse_go/middleware"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"

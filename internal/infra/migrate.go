@@ -1,4 +1,4 @@
-package repository
+package infra
 
 import (
 	"gorm.io/gorm"

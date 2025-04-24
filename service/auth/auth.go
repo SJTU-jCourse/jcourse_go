@@ -7,7 +7,8 @@ import (
 
 	"github.com/SJTU-jCourse/password_hasher"
 
-	"jcourse_go/constant"
+	"jcourse_go/internal/constant"
+	"jcourse_go/internal/infra/query"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
 	"jcourse_go/pkg/mail"
@@ -17,7 +18,7 @@ import (
 func Login(ctx context.Context, email string, password string) (*model.UserDetail, error) {
 	emailToQuery := convertEmailToQuery(email)
 
-	u := repository.Q.UserPO
+	u := query.Q.UserPO
 	userPO, err := u.WithContext(ctx).Where(u.Email.Eq(emailToQuery)).Limit(1).Take()
 	if err != nil {
 		return nil, err
@@ -47,7 +48,7 @@ func Register(ctx context.Context, email string, password string, code string) (
 
 	emailToQuery := convertEmailToQuery(email)
 
-	u := repository.Q.UserPO
+	u := query.Q.UserPO
 	userPO, err := u.WithContext(ctx).Where(u.Email.Eq(emailToQuery)).Limit(1).Take()
 	if err != nil {
 		return nil, err
@@ -83,7 +84,7 @@ func ResetPassword(ctx context.Context, email string, password string, code stri
 
 	emailToQuery := convertEmailToQuery(email)
 
-	u := repository.Q.UserPO
+	u := query.Q.UserPO
 	userPO, err := u.WithContext(ctx).Where(u.Email.Eq(emailToQuery)).Limit(1).Take()
 	if err != nil {
 		return err

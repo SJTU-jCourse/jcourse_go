@@ -10,8 +10,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"jcourse_go/config"
-	"jcourse_go/dal"
-	"jcourse_go/repository"
+	"jcourse_go/internal/infra"
+	"jcourse_go/internal/infra/query"
 	"jcourse_go/service"
 	"jcourse_go/task"
 	"jcourse_go/task/base"
@@ -19,12 +19,12 @@ import (
 )
 
 func Init(conf *config.Config) {
-	dal.InitRedisClient(&conf.Redis)
-	dal.InitDBClient(&conf.DB)
-	repository.SetDefault(dal.GetDBClient())
+	infra.InitRedisClient(&conf.Redis)
+	infra.InitDBClient(&conf.DB)
+	query.SetDefault(infra.GetDBClient())
 
 	task.InitTaskManager(base.RedisConfig{
-		DSN:      dal.GetRedisDSN(conf.Redis.Host, conf.Redis.Port),
+		DSN:      infra.GetRedisDSN(conf.Redis.Host, conf.Redis.Port),
 		Password: conf.Redis.Password,
 	})
 

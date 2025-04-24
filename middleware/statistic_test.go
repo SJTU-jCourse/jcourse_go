@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"jcourse_go/constant"
+	"jcourse_go/internal/constant"
 	"jcourse_go/model/model"
 
 	"github.com/gin-gonic/gin"

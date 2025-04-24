@@ -3,15 +3,14 @@ package main
 import (
 	"github.com/joho/godotenv"
 
-	"jcourse_go/dal"
-	"jcourse_go/repository"
+	"jcourse_go/internal/infra"
 )
 
 func main() {
 	_ = godotenv.Load()
-	dal.InitDBClient()
-	db := dal.GetDBClient()
-	err := repository.Migrate(db)
+	infra.InitDBClient()
+	db := infra.GetDBClient()
+	err := infra.Migrate(db)
 	if err != nil {
 		panic(err)
 	}

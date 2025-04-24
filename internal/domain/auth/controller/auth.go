@@ -6,11 +6,11 @@ import (
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 
-	"jcourse_go/constant"
+	"jcourse_go/internal/constant"
 	"jcourse_go/internal/domain/auth/model"
 	"jcourse_go/internal/domain/auth/service"
-	"jcourse_go/internal/util"
 	"jcourse_go/model/dto"
+	"jcourse_go/pkg/util"
 )
 
 const (

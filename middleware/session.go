@@ -7,14 +7,14 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"jcourse_go/config"
-	"jcourse_go/constant"
-	"jcourse_go/dal"
+	"jcourse_go/internal/constant"
+	"jcourse_go/internal/infra"
 	"jcourse_go/model/model"
 )
 
 func InitSession(conf *config.Config, r *gin.Engine) {
 	secret := conf.Auth.SessionSecret
-	store, err := sessions.NewRedisStore(10, "tcp", dal.GetRedisDSN(conf.Redis.Host, conf.Redis.Port), conf.Redis.Password, []byte(secret))
+	store, err := sessions.NewRedisStore(10, "tcp", infra.GetRedisDSN(conf.Redis.Host, conf.Redis.Port), conf.Redis.Password, []byte(secret))
 	if err != nil {
 		panic(err)
 	}

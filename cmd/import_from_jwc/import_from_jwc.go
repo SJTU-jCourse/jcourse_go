@@ -12,7 +12,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"jcourse_go/dal"
+	"jcourse_go/internal/infra"
 	"jcourse_go/model/po"
 	"jcourse_go/util"
 )
@@ -35,8 +35,8 @@ var (
 
 func initDB() {
 	_ = godotenv.Load()
-	dal.InitDBClient()
-	db = dal.GetDBClient()
+	infra.InitDBClient()
+	db = infra.GetDBClient()
 	_ = util.InitSegWord()
 }
 

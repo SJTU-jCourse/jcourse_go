@@ -9,11 +9,11 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"jcourse_go/dal"
+	"jcourse_go/internal/infra"
+	"jcourse_go/internal/infra/query"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/po"
 	"jcourse_go/model/types"
-	"jcourse_go/repository"
 	"jcourse_go/service"
 	"jcourse_go/util"
 )
@@ -343,9 +343,9 @@ func BuildNewReviewReactionFromOld(reaction ReviewReactionV1) po.ReviewReactionP
 func main() {
 	_ = godotenv.Load()
 	oldDB = InitOldDB()
-	dal.InitDBClient()
-	newDB = dal.GetDBClient()
-	repository.SetDefault(newDB)
+	infra.InitDBClient()
+	newDB = infra.GetDBClient()
+	query.SetDefault(newDB)
 
 	println("loading old")
 	loadOldSemester()

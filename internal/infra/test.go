@@ -1,11 +1,11 @@
-package repository
+package infra
 
 import (
 	"context"
 
 	"gorm.io/gorm"
 
-	"jcourse_go/dal"
+	"jcourse_go/internal/infra/query"
 	"jcourse_go/model/po"
 	"jcourse_go/model/types"
 )
@@ -272,14 +272,14 @@ func CreateTestEnv(ctx context.Context, db *gorm.DB) error {
 
 func SetupTestEnv() {
 	ctx := context.Background()
-	dal.InitTestMemDBClient()
-	db := dal.GetDBClient()
+	InitTestMemDBClient()
+	db := GetDBClient()
 	_ = Migrate(db)
 	_ = CreateTestEnv(ctx, db)
-	SetDefault(db)
+	query.SetDefault(db)
 }
 
 func TearDownTestEnv() {
-	db, _ := dal.GetDBClient().DB()
+	db, _ := GetDBClient().DB()
 	_ = db.Close()
 }

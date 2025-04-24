@@ -4,14 +4,14 @@ import (
 	"github.com/joho/godotenv"
 	"gorm.io/gen"
 
-	"jcourse_go/dal"
+	"jcourse_go/internal/infra"
 	"jcourse_go/model/po"
 )
 
 func main() {
 	_ = godotenv.Load()
-	dal.InitDBClient()
-	db := dal.GetDBClient()
+	infra.InitDBClient()
+	db := infra.GetDBClient()
 
 	g := gen.NewGenerator(gen.Config{
 		OutPath: "./repository",

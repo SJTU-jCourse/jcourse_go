@@ -3,10 +3,10 @@ package service
 import (
 	"context"
 
+	"jcourse_go/internal/infra/query"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
-	"jcourse_go/repository"
 	"jcourse_go/util"
 )
 
@@ -28,7 +28,7 @@ func GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]model.UserMin
 	if len(userIDs) == 0 {
 		return result, nil
 	}
-	u := repository.Q.UserPO
+	u := query.Q.UserPO
 	userPOs, err := u.WithContext(ctx).Where(u.ID.In(userIDs...)).Find()
 	if err != nil {
 		return result, err
@@ -42,7 +42,7 @@ func GetUserByIDs(ctx context.Context, userIDs []int64) (map[int64]model.UserMin
 
 // 共用函数，用于获取用户基本信息和详细资料并组装成domain.User
 func GetUserDetailByID(ctx context.Context, userID int64) (*model.UserDetail, error) {
-	u := repository.Q.UserPO
+	u := query.Q.UserPO
 	userPO, err := u.WithContext(ctx).Where(u.ID.Eq(userID)).Take()
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func GetUserDetailByID(ctx context.Context, userID int64) (*model.UserDetail, er
 	return &user, nil
 }
 
-func buildUserDBOptionFromFilter(ctx context.Context, q *repository.Query, filter model.UserFilterForQuery) repository.IUserPODo {
+func buildUserDBOptionFromFilter(ctx context.Context, q *query.Query, filter model.UserFilterForQuery) query.IUserPODo {
 	builder := q.UserPO.WithContext(ctx)
 	u := q.UserPO
 	if filter.Page > 0 || filter.PageSize > 0 {
@@ -71,7 +71,7 @@ func buildUserDBOptionFromFilter(ctx context.Context, q *repository.Query, filte
 }
 
 func GetUserList(ctx context.Context, filter model.UserFilterForQuery) ([]model.UserMinimal, error) {
-	q := buildUserDBOptionFromFilter(ctx, repository.Q, filter)
+	q := buildUserDBOptionFromFilter(ctx, query.Q, filter)
 	userPOs, err := q.Find()
 	if err != nil {
 		return nil, err
@@ -86,12 +86,12 @@ func GetUserList(ctx context.Context, filter model.UserFilterForQuery) ([]model.
 
 func GetUserCount(ctx context.Context, filter model.UserFilterForQuery) (int64, error) {
 	filter.Page, filter.PageSize = 0, 0
-	q := buildUserDBOptionFromFilter(ctx, repository.Q, filter)
+	q := buildUserDBOptionFromFilter(ctx, query.Q, filter)
 	return q.Count()
 }
 
 func UpdateUserProfileByID(ctx context.Context, userProfileDTO dto.UserProfileDTO, userID int64) error {
-	u := repository.Q.UserPO
+	u := query.Q.UserPO
 	newUserPO := converter.ConvertUserProfileToPO(userProfileDTO)
 	newUserPO.ID = userID
 	err := u.WithContext(ctx).Save(&newUserPO)

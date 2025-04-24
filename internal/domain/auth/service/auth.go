@@ -17,6 +17,13 @@ type AuthService interface {
 	SendVerificationCode(ctx context.Context, email string) error
 }
 
+var (
+	ErrorInvalidEmail    = errors.New("invalid email")
+	ErrorInvalidPassword = errors.New("invalid email or password")
+	ErrorSuspendedUser   = errors.New("suspended user")
+	ErrorExistingEmail   = errors.New("existing email")
+)
+
 type authService struct {
 	verificationCodeService VerificationCodeService
 	emailValidator          validator.EmailValidator
@@ -26,7 +33,7 @@ type authService struct {
 
 func (s *authService) SendVerificationCode(ctx context.Context, email string) error {
 	if !s.emailValidator.Validate(email) {
-		return errors.New("email is invalid")
+		return ErrorInvalidEmail
 	}
 
 	err := s.verificationCodeService.SendCode(ctx, email)
@@ -43,11 +50,11 @@ func (s *authService) Login(ctx context.Context, email string, password string) 
 	}
 
 	if !user.ValidatePassword(password) {
-		return nil, errors.New("password is invalid")
+		return nil, ErrorInvalidPassword
 	}
 
 	if !user.CanLogin() {
-		return nil, errors.New("user is not active")
+		return nil, ErrorSuspendedUser
 	}
 
 	return user, nil
@@ -55,7 +62,7 @@ func (s *authService) Login(ctx context.Context, email string, password string) 
 
 func (s *authService) Register(ctx context.Context, email string, password string, code string) (*model.UserDomain, error) {
 	if !s.emailValidator.Validate(email) {
-		return nil, errors.New("email is invalid")
+		return nil, ErrorInvalidEmail
 	}
 
 	err := s.verificationCodeService.VerifyCode(ctx, email, code)
@@ -69,7 +76,7 @@ func (s *authService) Register(ctx context.Context, email string, password strin
 	}
 
 	if user != nil {
-		return nil, errors.New("email is already registered")
+		return nil, ErrorExistingEmail
 	}
 
 	newPassword := model.NewPassword(password, s.passwordHasher)
@@ -85,7 +92,7 @@ func (s *authService) Register(ctx context.Context, email string, password strin
 
 func (s *authService) ResetPassword(ctx context.Context, email string, password string, code string) error {
 	if !s.emailValidator.Validate(email) {
-		return errors.New("email is invalid")
+		return ErrorInvalidEmail
 	}
 
 	err := s.verificationCodeService.VerifyCode(ctx, email, code)

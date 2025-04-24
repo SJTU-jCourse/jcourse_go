@@ -6,12 +6,12 @@ import (
 
 	"gorm.io/gorm/clause"
 
+	"jcourse_go/internal/infra/query"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/model/po"
 	"jcourse_go/model/types"
-	"jcourse_go/repository"
 )
 
 func CreateRating(ctx context.Context, userID int64, dto dto.RatingDTO) error {
@@ -21,7 +21,7 @@ func CreateRating(ctx context.Context, userID int64, dto dto.RatingDTO) error {
 	}
 
 	ratingPO := converter.ConvertRatingDTOToPO(userID, dto)
-	r := repository.Q.RatingPO
+	r := query.Q.RatingPO
 	err := r.WithContext(ctx).
 		Clauses(clause.OnConflict{
 			UpdateAll: true,
@@ -49,7 +49,7 @@ func GetRating(ctx context.Context, relatedType types.RatingRelatedType, related
 
 	dist := make([]model.RatingInfoDistItem, 0)
 
-	r := repository.Q.RatingPO
+	r := query.Q.RatingPO
 	err := r.WithContext(ctx).Select(r.Rating, r.ID.Count().As("count")).
 		Where(r.RelatedID.Eq(relatedID), r.RelatedType.Eq(string(relatedType))).
 		Group(r.Rating).Scan(&dist)
@@ -68,7 +68,7 @@ func GetMultipleRating(ctx context.Context, relatedType types.RatingRelatedType,
 		return res, errors.New("invalid related type")
 	}
 
-	r := repository.Q.RatingPO
+	r := query.Q.RatingPO
 	rows := make([]struct {
 		RelatedID int64 `json:"related_id"`
 		Rating    int64 `json:"rating"`
@@ -102,7 +102,7 @@ func GetUserRating(ctx context.Context, relatedType types.RatingRelatedType, rel
 		return 0, errors.New("invalid related type")
 	}
 
-	r := repository.Q.RatingPO
+	r := query.Q.RatingPO
 	rating, err := r.WithContext(ctx).Select(r.Rating).Where(r.RelatedID.Eq(relatedID), r.RelatedType.Eq(string(relatedType)), r.UserID.Eq(userID)).Take()
 	if err != nil {
 		return 0, err
@@ -132,21 +132,21 @@ func SyncRating(ctx context.Context, relatedType types.RatingRelatedType, relate
 }
 
 func SyncCourseRating(ctx context.Context, courseID int64, ratingInfo model.RatingInfo) error {
-	c := repository.Q.CoursePO
+	c := query.Q.CoursePO
 	_, err := c.WithContext(ctx).Select(c.RatingCount, c.RatingAvg).Where(c.ID.Eq(courseID)).
 		Updates(po.CoursePO{RatingCount: ratingInfo.Count, RatingAvg: ratingInfo.Average})
 	return err
 }
 
 func SyncTeacherRating(ctx context.Context, teacherID int64, ratingInfo model.RatingInfo) error {
-	t := repository.Q.TeacherPO
+	t := query.Q.TeacherPO
 	_, err := t.WithContext(ctx).Select(t.RatingCount, t.RatingAvg).Where(t.ID.Eq(teacherID)).
 		Updates(po.CoursePO{RatingCount: ratingInfo.Count, RatingAvg: ratingInfo.Average})
 	return err
 }
 
 func SyncTrainingPlanRating(ctx context.Context, trainingPlanID int64, ratingInfo model.RatingInfo) error {
-	tp := repository.Q.TrainingPlanPO
+	tp := query.Q.TrainingPlanPO
 	_, err := tp.WithContext(ctx).Select(tp.RatingCount, tp.RatingAvg).Where(tp.ID.Eq(trainingPlanID)).
 		Updates(po.CoursePO{RatingCount: ratingInfo.Count, RatingAvg: ratingInfo.Average})
 	return err

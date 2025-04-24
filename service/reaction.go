@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
+	"jcourse_go/internal/infra/query"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/model/po"
-	"jcourse_go/repository"
 )
 
 func CreateReviewReaction(ctx context.Context, request dto.CreateReviewReactionRequest, user *model.UserDetail) (int64, error) {
@@ -16,13 +16,13 @@ func CreateReviewReaction(ctx context.Context, request dto.CreateReviewReactionR
 		return 0, errors.New("user not login")
 	}
 
-	r := repository.Q.ReviewPO
+	r := query.Q.ReviewPO
 	_, err := r.WithContext(ctx).Where(r.ID.Eq(request.ReviewID)).Take()
 	if err != nil {
 		return 0, err
 	}
 
-	rq := repository.Q.ReviewReactionPO
+	rq := query.Q.ReviewReactionPO
 	reactionModel := po.ReviewReactionPO{
 		ReviewID: request.ReviewID,
 		UserID:   user.ID,
@@ -37,7 +37,7 @@ func CreateReviewReaction(ctx context.Context, request dto.CreateReviewReactionR
 }
 
 func DeleteReviewReaction(ctx context.Context, user *model.UserDetail, reactionID int64) error {
-	r := repository.Q.ReviewReactionPO
+	r := query.Q.ReviewReactionPO
 	reaction, err := r.WithContext(ctx).Where(r.ID.Eq(reactionID)).Take()
 	if err != nil {
 		return err

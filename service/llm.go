@@ -11,12 +11,12 @@ import (
 	"github.com/tmc/langchaingo/vectorstores"
 
 	"jcourse_go/config"
-	"jcourse_go/constant"
+	"jcourse_go/internal/constant"
+	"jcourse_go/internal/infra/query"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/model/types"
-	"jcourse_go/repository"
 	"jcourse_go/rpc"
 )
 
@@ -155,7 +155,7 @@ func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummar
 // TODO: 此处使用课程最近100条评论和课程名进行向量化，后续可以
 // 优化和调整；
 func VectorizeCourse(ctx context.Context, courseID int64) error {
-	c := repository.Q.CoursePO
+	c := query.Q.CoursePO
 	coursePO, err := c.WithContext(ctx).Where(c.ID.Eq(courseID)).Take()
 	if err != nil {
 		return err
@@ -245,7 +245,7 @@ func GetMatchCourses(ctx context.Context, description string) ([]model.CourseSum
 		courseIDs = append(courseIDs, int64(courseID))
 	}
 
-	c := repository.Q.CoursePO
+	c := query.Q.CoursePO
 	coursePOs, err := c.WithContext(ctx).Preload(c.Categories).Where(c.ID.In(courseIDs...)).Find()
 	if err != nil {
 		return nil, err

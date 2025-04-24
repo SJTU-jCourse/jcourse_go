@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/crypto/blake2b"
 
-	"jcourse_go/constant"
+	"jcourse_go/internal/constant"
 	"jcourse_go/model/po"
 	"jcourse_go/model/types"
 	"jcourse_go/util"

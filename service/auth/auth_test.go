@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"jcourse_go/constant"
+	"jcourse_go/internal/constant"
 )
 
 func TestGenerateVerifyCode(t *testing.T) {

@@ -5,13 +5,13 @@ import (
 	"reflect"
 	"testing"
 
-	"jcourse_go/dal"
+	"jcourse_go/internal/infra"
 	"jcourse_go/model/po"
 	"jcourse_go/util"
 )
 
 func migrate() {
-	db := dal.GetDBClient()
+	db := infra.GetDBClient()
 	err := db.AutoMigrate(&po.UserPO{},
 		&po.BaseCoursePO{}, &po.CoursePO{}, &po.TeacherPO{}, &po.CourseCategoryPO{},
 		&po.OfferedCoursePO{}, &po.OfferedCourseTeacherPO{},
@@ -26,10 +26,10 @@ func TestLoadTrainingPlan2DB(t *testing.T) {
 		LoadTrainingPlan2DB("../../data/trainingPlan.txt", nil)
 	})
 	t.Run("mem db", func(t *testing.T) {
-		dal.InitTestMemDBClient()
+		infra.InitTestMemDBClient()
 		_ = util.InitSegWord()
 		migrate()
-		db := dal.GetDBClient()
+		db := infra.GetDBClient()
 		LoadTrainingPlan2DB("../../data/trainingPlan.txt", db)
 	})
 }
@@ -51,10 +51,10 @@ func TestLoadTeacherProfile2DB(t *testing.T) {
 	})
 
 	t.Run("mem db", func(t *testing.T) {
-		dal.InitTestMemDBClient()
+		infra.InitTestMemDBClient()
 		_ = util.InitSegWord()
 		migrate()
-		db := dal.GetDBClient()
+		db := infra.GetDBClient()
 		LoadTeacherProfile2DB("../../data/teachers.json", db)
 	})
 }

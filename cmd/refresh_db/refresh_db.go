@@ -3,16 +3,16 @@ package main
 import (
 	"github.com/joho/godotenv"
 
-	"jcourse_go/dal"
+	"jcourse_go/internal/infra"
 	"jcourse_go/model/po"
 	"jcourse_go/util"
 )
 
 func main() {
 	_ = godotenv.Load()
-	dal.InitDBClient()
+	infra.InitDBClient()
 	_ = util.InitSegWord()
-	db := dal.GetDBClient()
+	db := infra.GetDBClient()
 
 	println("refreshing course...")
 	courses := make([]po.CoursePO, 0)

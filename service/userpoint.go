@@ -5,18 +5,18 @@ import (
 	"fmt"
 	"time"
 
-	"jcourse_go/constant"
+	"jcourse_go/internal/constant"
+	"jcourse_go/internal/infra/query"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
 	"jcourse_go/model/po"
 	"jcourse_go/model/types"
-	"jcourse_go/repository"
 	"jcourse_go/util"
 
 	"github.com/pkg/errors"
 )
 
-func buildUserPointDetailDBOptionFromFilter(ctx context.Context, q *repository.Query, filter model.UserPointDetailFilter) repository.IUserPointDetailPODo {
+func buildUserPointDetailDBOptionFromFilter(ctx context.Context, q *query.Query, filter model.UserPointDetailFilter) query.IUserPointDetailPODo {
 	builder := q.UserPointDetailPO.WithContext(ctx)
 	p := q.UserPointDetailPO
 
@@ -41,8 +41,8 @@ func buildUserPointDetailDBOptionFromFilter(ctx context.Context, q *repository.Q
 
 func GetUserPointDetailList(ctx context.Context, filter model.UserPointDetailFilter) (int64, []model.UserPointDetailItem, error) {
 
-	p := repository.Q.UserPointDetailPO
-	q := buildUserPointDetailDBOptionFromFilter(ctx, repository.Q, filter)
+	p := query.Q.UserPointDetailPO
+	q := buildUserPointDetailDBOptionFromFilter(ctx, query.Q, filter)
 	userPointDetailPOs, err := q.Find()
 	if err != nil {
 		return 0, nil, err
@@ -51,7 +51,7 @@ func GetUserPointDetailList(ctx context.Context, filter model.UserPointDetailFil
 	total := struct {
 		Value int64 `json:"value"`
 	}{}
-	err = repository.Q.UserPointDetailPO.WithContext(ctx).Select(p.Value.Sum().As("value")).Where(p.UserID.Eq(filter.UserID)).Scan(&total)
+	err = query.Q.UserPointDetailPO.WithContext(ctx).Select(p.Value.Sum().As("value")).Where(p.UserID.Eq(filter.UserID)).Scan(&total)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -65,13 +65,13 @@ func GetUserPointDetailList(ctx context.Context, filter model.UserPointDetailFil
 
 func GetUserPointDetailCount(ctx context.Context, filter model.UserPointDetailFilter) (int64, error) {
 	filter.Page, filter.PageSize = 0, 0
-	q := buildUserPointDetailDBOptionFromFilter(ctx, repository.Q, filter)
+	q := buildUserPointDetailDBOptionFromFilter(ctx, query.Q, filter)
 	return q.Count()
 }
 
 // HINT: 以下的几个UserPoint相关函数都是并发安全的, 但不保证成功，事务失败时需要上层自行处理
 func ChangeUserPoints(ctx context.Context, userID int64, eventType types.PointEventType, value int64, description string) error {
-	u := repository.Q.UserPO
+	u := query.Q.UserPO
 	user, err := u.WithContext(ctx).Where(u.ID.Eq(userID)).Take()
 	if err != nil {
 		return err
@@ -90,7 +90,7 @@ func ChangeUserPoints(ctx context.Context, userID int64, eventType types.PointEv
 		EventType:   string(eventType),
 	}
 
-	err = repository.Q.Transaction(func(tx *repository.Query) error {
+	err = query.Q.Transaction(func(tx *query.Query) error {
 		_, err := tx.UserPO.WithContext(ctx).Where(u.ID.Eq(user.ID), u.Points.Eq(originalPoints)).Update(u.Points, user.Points)
 		if err != nil {
 			return err
@@ -122,7 +122,7 @@ const (
 )
 
 func TransferUserPoints(ctx context.Context, senderID int64, receiverID int64, value int64) error {
-	u := repository.Q.UserPO
+	u := query.Q.UserPO
 
 	// 合并到一次查询
 	ids := []int64{senderID, receiverID}
@@ -168,7 +168,7 @@ func TransferUserPoints(ctx context.Context, senderID int64, receiverID int64, v
 		Description: description,
 		EventType:   string(types.PointEventTransfer),
 	}
-	err = repository.Q.Transaction(func(tx *repository.Query) error {
+	err = query.Q.Transaction(func(tx *query.Query) error {
 		_, err := tx.UserPO.WithContext(ctx).Where(u.ID.Eq(senderID), u.Points.Eq(senderOriginalPoints)).Update(u.Points, senderPO.Points)
 		if err != nil {
 			return err

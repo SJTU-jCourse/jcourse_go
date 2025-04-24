@@ -6,16 +6,17 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"jcourse_go/internal/infra"
+	"jcourse_go/internal/infra/query"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/types"
-	"jcourse_go/repository"
 )
 
 func TestSyncRating(t *testing.T) {
-	repository.SetupTestEnv()
+	infra.SetupTestEnv()
 	ctx := context.Background()
 	t.Run("sync course", func(t *testing.T) {
-		c := repository.Q.CoursePO
+		c := query.Q.CoursePO
 
 		coursePO, err := c.WithContext(ctx).Where(c.ID.Eq(1)).Take()
 		assert.Nil(t, err)
@@ -31,7 +32,7 @@ func TestSyncRating(t *testing.T) {
 	})
 
 	t.Run("sync teacher", func(t *testing.T) {
-		te := repository.Q.TeacherPO
+		te := query.Q.TeacherPO
 
 		teacherPO, err := te.WithContext(ctx).Where(te.ID.Eq(2)).Take()
 		assert.Nil(t, err)
@@ -45,12 +46,12 @@ func TestSyncRating(t *testing.T) {
 		assert.Equal(t, 1, int(teacherPO.RatingCount))
 		assert.Equal(t, 5.0, teacherPO.RatingAvg)
 	})
-	repository.TearDownTestEnv()
+	infra.TearDownTestEnv()
 }
 
 func TestCreateRating(t *testing.T) {
-	repository.SetupTestEnv()
-	defer repository.TearDownTestEnv()
+	infra.SetupTestEnv()
+	defer infra.TearDownTestEnv()
 
 	tests := []struct {
 		name          string
@@ -69,7 +70,7 @@ func TestCreateRating(t *testing.T) {
 			},
 			expectedError: false,
 			verify: func(t *testing.T) {
-				coursePO, err := repository.Q.CoursePO.WithContext(context.Background()).Where(repository.Q.CoursePO.ID.Eq(1)).Take()
+				coursePO, err := query.Q.CoursePO.WithContext(context.Background()).Where(query.Q.CoursePO.ID.Eq(1)).Take()
 				assert.Nil(t, err)
 				assert.Equal(t, 1, int(coursePO.RatingCount))
 				assert.Equal(t, 5.0, coursePO.RatingAvg)
@@ -85,7 +86,7 @@ func TestCreateRating(t *testing.T) {
 			},
 			expectedError: false,
 			verify: func(t *testing.T) {
-				coursePO, err := repository.Q.CoursePO.WithContext(context.Background()).Where(repository.Q.CoursePO.ID.Eq(1)).Take()
+				coursePO, err := query.Q.CoursePO.WithContext(context.Background()).Where(query.Q.CoursePO.ID.Eq(1)).Take()
 				assert.Nil(t, err)
 				assert.Equal(t, 1, int(coursePO.RatingCount))
 				assert.Equal(t, 3.0, coursePO.RatingAvg)

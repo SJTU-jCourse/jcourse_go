@@ -10,7 +10,7 @@ import (
 
 	"github.com/joho/godotenv"
 
-	"jcourse_go/dal"
+	"jcourse_go/internal/infra"
 	"jcourse_go/model/po"
 	seleniumget "jcourse_go/util/selenium-get"
 
@@ -19,8 +19,8 @@ import (
 
 func main() {
 	_ = godotenv.Load()
-	dal.InitDBClient()
-	db := dal.GetDBClient()
+	infra.InitDBClient()
+	db := infra.GetDBClient()
 	data_path := "./data/trainingPlan.txt"
 	log_file, err := os.OpenFile("./data/logfile.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {

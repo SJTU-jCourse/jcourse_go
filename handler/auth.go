@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 
-	"jcourse_go/constant"
+	"jcourse_go/internal/constant"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/service/auth"

@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
+	"jcourse_go/internal/infra/query"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/model"
 	"jcourse_go/model/types"
-	"jcourse_go/repository"
 	"jcourse_go/util"
 )
 
@@ -16,7 +16,7 @@ func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*model.Tr
 		return nil, errors.New("training-plan id is 0")
 	}
 
-	tp := repository.Q.TrainingPlanPO
+	tp := query.Q.TrainingPlanPO
 	trainingPlanPO, err := tp.WithContext(ctx).Preload(tp.BaseCourses, tp.BaseCourses.BaseCourse).Where(tp.ID.Eq(trainingPlanID)).Take()
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*model.Tr
 	return &trainingPlan, nil
 }
 
-func buildTrainingPlanDBOptionFromFilter(ctx context.Context, q *repository.Query, filter model.TrainingPlanFilterForQuery) repository.ITrainingPlanPODo {
+func buildTrainingPlanDBOptionFromFilter(ctx context.Context, q *query.Query, filter model.TrainingPlanFilterForQuery) query.ITrainingPlanPODo {
 	builder := q.TrainingPlanPO.WithContext(ctx)
 	tp := q.TrainingPlanPO
 
@@ -68,13 +68,13 @@ func buildTrainingPlanDBOptionFromFilter(ctx context.Context, q *repository.Quer
 
 func GetTrainingPlanCount(ctx context.Context, filter model.TrainingPlanFilterForQuery) (int64, error) {
 	filter.PageSize, filter.Page = 0, 0
-	q := buildTrainingPlanDBOptionFromFilter(ctx, repository.Q, filter)
+	q := buildTrainingPlanDBOptionFromFilter(ctx, query.Q, filter)
 	return q.Count()
 }
 
 func SearchTrainingPlanList(ctx context.Context, filter model.TrainingPlanFilterForQuery) ([]model.TrainingPlanSummary, error) {
 
-	q := buildTrainingPlanDBOptionFromFilter(ctx, repository.Q, filter)
+	q := buildTrainingPlanDBOptionFromFilter(ctx, query.Q, filter)
 	/*
 		trainingPlanCourseQuery := repository.NewTrainingPlanCourseQuery(dal.GetDBClient())
 		if len(filter.ContainCourseIDs) != 0 {
@@ -116,7 +116,7 @@ func GetTrainingPlanFilter(ctx context.Context) (model.TrainingPlanFilter, error
 		Degrees:     make([]model.FilterItem, 0),
 	}
 
-	t := repository.Q.TrainingPlanPO
+	t := query.Q.TrainingPlanPO
 	err := t.WithContext(ctx).Select(t.Major.As("value"), t.ID.Count().As("count")).Group(t.Major).Scan(&filter.Degrees)
 	if err != nil {
 		return filter, err

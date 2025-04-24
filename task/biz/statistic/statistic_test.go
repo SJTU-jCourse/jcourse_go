@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"jcourse_go/dal"
+	"jcourse_go/internal/infra"
+	"jcourse_go/internal/infra/query"
 	"jcourse_go/middleware"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/po"
-	"jcourse_go/repository"
 	"jcourse_go/util"
 
 	"github.com/stretchr/testify/assert"
@@ -18,13 +18,13 @@ import (
 func TestSaveStatistic(t *testing.T) {
 	t.Run("TestSaveOneWithData", func(t *testing.T) {
 		ctx := context.Background()
-		dal.InitTestMemDBClient()
-		db := dal.GetDBClient()
-		err := repository.Migrate(db)
+		infra.InitTestMemDBClient()
+		db := infra.GetDBClient()
+		err := infra.Migrate(db)
 		if err != nil {
 			t.Errorf("Migrate() error = %v", err)
 		}
-		repository.SetDefault(db)
+		query.SetDefault(db)
 		// uv, pv data
 		userNum := 10000
 		uvm := middleware.NewUVMiddleware()
@@ -40,7 +40,7 @@ func TestSaveStatistic(t *testing.T) {
 			pvm.AddPageView(int64(i), uris[i%len(uris)])
 		}
 		// count data
-		u := repository.Q.UserPO
+		u := query.Q.UserPO
 		userPO := po.UserPO{
 			Email:    "test@example.com",
 			Password: "password",
@@ -53,8 +53,8 @@ func TestSaveStatistic(t *testing.T) {
 		if err != nil {
 			t.Errorf("SaveStatistic() error = %v", err)
 		}
-		s := repository.Q.StatisticPO
-		d := repository.Q.StatisticDataPO
+		s := query.Q.StatisticPO
+		d := query.Q.StatisticDataPO
 
 		item, err := s.WithContext(ctx).Where(s.Date.Eq(util.FormatDate(time.Now()))).Take()
 		if err != nil {

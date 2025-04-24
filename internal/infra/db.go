@@ -1,4 +1,4 @@
-package dal
+package infra
 
 import (
 	"fmt"

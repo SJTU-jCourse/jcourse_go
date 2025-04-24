@@ -4,15 +4,15 @@ import (
 	"context"
 	"errors"
 
+	"jcourse_go/internal/infra/query"
 	"jcourse_go/model/converter"
 	"jcourse_go/model/dto"
 	"jcourse_go/model/model"
 	"jcourse_go/model/types"
-	"jcourse_go/repository"
 	"jcourse_go/util"
 )
 
-func buildReviewDBOptionFromFilter(ctx context.Context, q *repository.Query, filter model.ReviewFilterForQuery) repository.IReviewPODo {
+func buildReviewDBOptionFromFilter(ctx context.Context, q *query.Query, filter model.ReviewFilterForQuery) query.IReviewPODo {
 
 	builder := q.ReviewPO.WithContext(ctx)
 	r := q.ReviewPO
@@ -53,8 +53,8 @@ func buildReviewDBOptionFromFilter(ctx context.Context, q *repository.Query, fil
 }
 
 func GetReviewList(ctx context.Context, currentUser *model.UserDetail, filter model.ReviewFilterForQuery) ([]model.Review, error) {
-	r := repository.Q.ReviewPO
-	q := buildReviewDBOptionFromFilter(ctx, repository.Q, filter)
+	r := query.Q.ReviewPO
+	q := buildReviewDBOptionFromFilter(ctx, query.Q, filter)
 
 	reviewPOs, err := q.Preload(r.Course, r.User, r.Reaction).Find()
 	if err != nil {
@@ -78,7 +78,7 @@ func GetReviewList(ctx context.Context, currentUser *model.UserDetail, filter mo
 
 func GetReviewCount(ctx context.Context, filter model.ReviewFilterForQuery) (int64, error) {
 	filter.Page, filter.PageSize = 0, 0
-	q := buildReviewDBOptionFromFilter(ctx, repository.Q, filter)
+	q := buildReviewDBOptionFromFilter(ctx, query.Q, filter)
 	return q.Count()
 }
 
@@ -90,9 +90,9 @@ func CreateReview(ctx context.Context, review dto.UpdateReviewDTO, user *model.U
 	reviewPO := converter.ConvertReviewDTOToPO(review, user.ID)
 	ratingPO := converter.BuildRatingFromReview(reviewPO)
 
-	q := repository.Q
+	q := query.Q
 
-	err := q.Transaction(func(tx *repository.Query) error {
+	err := q.Transaction(func(tx *query.Query) error {
 		r := tx.ReviewPO
 		ratingQuery := tx.RatingPO
 
@@ -128,9 +128,9 @@ func UpdateReview(ctx context.Context, review dto.UpdateReviewDTO, user *model.U
 	}
 	reviewPO := converter.ConvertReviewDTOToPO(review, user.ID)
 
-	q := repository.Q
+	q := query.Q
 
-	err := q.Transaction(func(tx *repository.Query) error {
+	err := q.Transaction(func(tx *query.Query) error {
 		r := tx.ReviewPO
 		ratingQuery := tx.RatingPO
 		err := r.WithContext(ctx).Save(&reviewPO)
@@ -163,7 +163,7 @@ func UpdateReview(ctx context.Context, review dto.UpdateReviewDTO, user *model.U
 }
 
 func DeleteReview(ctx context.Context, reviewID int64, user *model.UserDetail) error {
-	q := repository.Q
+	q := query.Q
 	r := q.ReviewPO
 
 	reviewPO, err := r.WithContext(ctx).Where(r.ID.Eq(reviewID)).Take()
@@ -174,7 +174,7 @@ func DeleteReview(ctx context.Context, reviewID int64, user *model.UserDetail) e
 		return errors.New("no permission to delete review")
 	}
 
-	err = q.Transaction(func(tx *repository.Query) error {
+	err = q.Transaction(func(tx *query.Query) error {
 		_, err := tx.ReviewPO.WithContext(ctx).Delete(reviewPO)
 		if err != nil {
 			return err
@@ -200,7 +200,7 @@ func DeleteReview(ctx context.Context, reviewID int64, user *model.UserDetail) e
 func validateReview(ctx context.Context, review dto.UpdateReviewDTO, user *model.UserDetail) bool {
 	// 1. validate course and semester exists
 
-	oc := repository.Q.OfferedCoursePO
+	oc := query.Q.OfferedCoursePO
 	offeredCourse, err := oc.WithContext(ctx).Where(oc.CourseID.Eq(review.CourseID), oc.Semester.Eq(review.Semester)).Take()
 	if err != nil || offeredCourse == nil {
 		return false
