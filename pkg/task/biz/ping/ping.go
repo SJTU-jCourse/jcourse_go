@@ -2,14 +2,15 @@ package ping
 
 import (
 	"context"
-	"jcourse_go/task/base"
 	"log"
 	"time"
+
+	"jcourse_go/pkg/task/base"
 )
 
 const (
 	TypePing     = "test:ping"
-	IntervalPing = 2 * time.Second //"@every 2s"
+	IntervalPing = 2 * time.Second // "@every 2s"
 )
 
 func TaskPingHandler(ctx context.Context, t base.Task) error {

@@ -1,7 +1,7 @@
 package task
 
 import (
-	"jcourse_go/task/base"
+	"jcourse_go/pkg/task/base"
 )
 
 type IAsyncTaskManager interface {

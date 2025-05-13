@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"jcourse_go/task/base"
+	"jcourse_go/pkg/task/base"
 )
 
 func TestInitTaskManager(t *testing.T) {

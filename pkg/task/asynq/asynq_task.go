@@ -10,7 +10,7 @@ import (
 
 	"github.com/hibiken/asynq"
 
-	"jcourse_go/task/base"
+	"jcourse_go/pkg/task/base"
 )
 
 const (

@@ -12,9 +12,9 @@ import (
 	"jcourse_go/config"
 	"jcourse_go/internal/infra"
 	"jcourse_go/internal/infra/query"
+	"jcourse_go/pkg/task"
+	"jcourse_go/pkg/task/base"
 	"jcourse_go/service"
-	"jcourse_go/task"
-	"jcourse_go/task/base"
 	"jcourse_go/util"
 )
 

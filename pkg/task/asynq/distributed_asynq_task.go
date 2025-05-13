@@ -8,12 +8,12 @@ import (
 	"sync"
 	"time"
 
-	"jcourse_go/task/base"
-	"jcourse_go/task/lock"
-
 	"github.com/XQ-Gang/gg/gptr"
 	"github.com/redis/go-redis/v9"
 	"github.com/robfig/cron/v3"
+
+	"jcourse_go/pkg/task/base"
+	"jcourse_go/pkg/task/lock"
 )
 
 type distributedScheduler struct {

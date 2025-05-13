@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"jcourse_go/middleware"
+	"jcourse_go/pkg/task/base"
 	"jcourse_go/service"
-	"jcourse_go/task/base"
 	"jcourse_go/util"
 
 	"github.com/RoaringBitmap/roaring"

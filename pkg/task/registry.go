@@ -7,9 +7,9 @@ import (
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/sync/errgroup"
 
-	"jcourse_go/task/asynq"
-	"jcourse_go/task/base"
-	"jcourse_go/task/biz/statistic"
+	asynq2 "jcourse_go/pkg/task/asynq"
+	"jcourse_go/pkg/task/base"
+	"jcourse_go/pkg/task/biz/statistic"
 )
 
 var (
@@ -29,7 +29,7 @@ var (
 )
 
 func InitTaskManager(redisConfig base.RedisConfig) {
-	taskManager := asynq.NewAsynqTaskManager(redisConfig)
+	taskManager := asynq2.NewAsynqTaskManager(redisConfig)
 
 	// 1. Register task handlers
 	for taskType, handler := range taskRegistry {
@@ -44,7 +44,7 @@ func InitTaskManager(redisConfig base.RedisConfig) {
 	}
 
 	// 3. Create scheduler and submit periodic tasks using errgroup
-	GlobalTaskManager = asynq.NewDistributedAsynqTaskManager(taskManager, redis.NewClient(&redis.Options{
+	GlobalTaskManager = asynq2.NewDistributedAsynqTaskManager(taskManager, redis.NewClient(&redis.Options{
 		Addr:     redisConfig.DSN,
 		Password: redisConfig.Password,
 	}))
