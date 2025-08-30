@@ -3,43 +3,18 @@ package dal
 import (
 	"fmt"
 
-	"github.com/glebarez/sqlite"
 	_ "github.com/lib/pq"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	"jcourse_go/pkg/util"
+	"jcourse_go/internal/config"
 )
 
-var dbClient *gorm.DB
-
-func GetDBClient() *gorm.DB {
-	return dbClient
-}
-
-func initPostgresql() error {
-	host := util.GetPostgresHost()
-	port := util.GetPostgresPort()
-	user := util.GetPostgresUser()
-	password := util.GetPostgresPassword()
-	dbname := util.GetPostgresDBName()
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Shanghai", host, user, password, dbname, port)
-	var err error
-	dbClient, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	return err
-}
-
-func InitDBClient() {
-	err := initPostgresql()
+func NewPostgresSQL(c *config.DBConfig) (*gorm.DB, error) {
+	dsn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", c.Host, c.Port, c.User, c.Password, c.DBName)
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-}
-
-func InitTestMemDBClient() {
-	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
-	if err != nil {
-		panic(err)
-	}
-	dbClient = db
+	return db, nil
 }

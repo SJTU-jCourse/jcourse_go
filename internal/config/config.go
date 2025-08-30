@@ -1,0 +1,66 @@
+package config
+
+import (
+	"io"
+	"os"
+
+	"gopkg.in/yaml.v3"
+)
+
+type AppConfig struct {
+	Server ServerConfig `yaml:"server"`
+	DB     DBConfig     `yaml:"db"`
+	Redis  RedisConfig  `yaml:"redis"`
+	SMTP   SMTPConfig   `yaml:"smtp"`
+}
+
+type ServerConfig struct {
+	Debug bool `yaml:"debug"`
+	Port  int  `yaml:"port"`
+}
+
+type SecurityConfig struct {
+	SessionSecret string `yaml:"session_secret"`
+	CSRFSecret    string `yaml:"csrf_secret"`
+}
+
+type DBConfig struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	DBName   string `yaml:"db_name"`
+}
+
+type RedisConfig struct {
+	Addr     string `yaml:"addr"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+	DB       int    `yaml:"db"`
+}
+
+type SMTPConfig struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
+	Sender   string `yaml:"sender"`
+}
+
+var global *AppConfig
+
+func GetAppConfig() *AppConfig {
+	return global
+}
+
+func InitConfig(path string) *AppConfig {
+	file, err := os.Open(path)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	configBytes, err := io.ReadAll(file)
+	global = new(AppConfig)
+	err = yaml.Unmarshal(configBytes, global)
+	return global
+}

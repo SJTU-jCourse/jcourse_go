@@ -1,6 +1,7 @@
 package router
 
 import (
+	"jcourse_go/internal/app"
 	"jcourse_go/internal/handler"
 	"jcourse_go/internal/middleware"
 	"jcourse_go/pkg/util"
@@ -8,17 +9,22 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RegisterRouter(r *gin.Engine) {
+func RegisterRouter(s *app.ServiceContainer) *gin.Engine {
+	r := gin.Default()
+
 	middleware.InitSession(r)
 	r.Use(middleware.UV.UVStatistic())
 	r.Use(middleware.PV.PVStatistic())
+
+	authController := handler.NewAuthController(&s.Auth)
+
 	api := r.Group("/api")
 	authGroup := api.Group("/auth")
-	authGroup.POST("/login", handler.LoginHandler)
-	authGroup.POST("/logout", handler.LogoutHandler)
-	authGroup.POST("/register", handler.RegisterHandler)
-	authGroup.POST("/send-verify-code", handler.SendVerifyCodeHandler)
-	authGroup.POST("/reset-password", handler.ResetPasswordHandler)
+	authGroup.POST("/login", authController.LoginHandler)
+	authGroup.POST("/logout", authController.LogoutHandler)
+	authGroup.POST("/register", authController.RegisterHandler)
+	authGroup.POST("/send-verify-code", authController.SendVerifyCodeHandler)
+	authGroup.POST("/reset-password", authController.ResetPasswordHandler)
 
 	needAuthGroup := api.Group("")
 	if !util.IsNoLoginMode() {
@@ -94,4 +100,5 @@ func RegisterRouter(r *gin.Engine) {
 		llmGroup.GET("/vectorize/:courseID", handler.VectorizeCourseHandler)
 	}
 
+	return r
 }

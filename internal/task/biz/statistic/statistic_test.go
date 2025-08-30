@@ -20,7 +20,7 @@ func TestSaveStatistic(t *testing.T) {
 		ctx := context.Background()
 		dal.InitTestMemDBClient()
 		db := dal.GetDBClient()
-		err := repository2.Migrate(db)
+		err := dal.Migrate(db)
 		if err != nil {
 			t.Errorf("Migrate() error = %v", err)
 		}

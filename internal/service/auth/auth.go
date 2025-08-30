@@ -10,14 +10,26 @@ import (
 	"jcourse_go/internal/constant"
 	"jcourse_go/internal/model/converter"
 	"jcourse_go/internal/model/model"
-	repository2 "jcourse_go/internal/repository"
+	"jcourse_go/internal/repository"
 	"jcourse_go/internal/rpc"
 )
 
-func Login(ctx context.Context, email string, password string) (*model.UserDetail, error) {
+type AuthService struct {
+	query    *repository.Query
+	codeRepo *repository.VerifyCodeRepository
+}
+
+func NewAuthService(query *repository.Query, codeRepo *repository.VerifyCodeRepository) *AuthService {
+	return &AuthService{
+		query:    query,
+		codeRepo: codeRepo,
+	}
+}
+
+func (s *AuthService) Login(ctx context.Context, email string, password string) (*model.UserDetail, error) {
 	emailToQuery := convertEmailToQuery(email)
 
-	u := repository2.Q.UserPO
+	u := repository.Q.UserPO
 	userPO, err := u.WithContext(ctx).Where(u.Email.Eq(emailToQuery)).Limit(1).Take()
 	if err != nil {
 		return nil, err
@@ -36,8 +48,8 @@ func Login(ctx context.Context, email string, password string) (*model.UserDetai
 	return &user, nil
 }
 
-func Register(ctx context.Context, email string, password string, code string) (*model.UserDetail, error) {
-	storedCode, err := repository2.GetVerifyCode(ctx, email)
+func (s *AuthService) Register(ctx context.Context, email string, password string, code string) (*model.UserDetail, error) {
+	storedCode, err := s.codeRepo.GetVerifyCode(ctx, email)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +59,7 @@ func Register(ctx context.Context, email string, password string, code string) (
 
 	emailToQuery := convertEmailToQuery(email)
 
-	u := repository2.Q.UserPO
+	u := repository.Q.UserPO
 	userPO, err := u.WithContext(ctx).Where(u.Email.Eq(emailToQuery)).Limit(1).Take()
 	if err != nil {
 		return nil, err
@@ -66,14 +78,14 @@ func Register(ctx context.Context, email string, password string, code string) (
 		return nil, err
 	}
 
-	_ = repository2.ClearVerifyCodeHistory(ctx, email)
+	_ = s.codeRepo.ClearVerifyCodeHistory(ctx, email)
 
 	userDetail := converter.ConvertUserDetailFromPO(&user)
 	return &userDetail, nil
 }
 
-func ResetPassword(ctx context.Context, email string, password string, code string) error {
-	storedCode, err := repository2.GetVerifyCode(ctx, email)
+func (s *AuthService) ResetPassword(ctx context.Context, email string, password string, code string) error {
+	storedCode, err := s.codeRepo.GetVerifyCode(ctx, email)
 	if err != nil {
 		return err
 	}
@@ -83,7 +95,7 @@ func ResetPassword(ctx context.Context, email string, password string, code stri
 
 	emailToQuery := convertEmailToQuery(email)
 
-	u := repository2.Q.UserPO
+	u := repository.Q.UserPO
 	userPO, err := u.WithContext(ctx).Where(u.Email.Eq(emailToQuery)).Limit(1).Take()
 	if err != nil {
 		return err
@@ -101,12 +113,12 @@ func ResetPassword(ctx context.Context, email string, password string, code stri
 	if err != nil {
 		return err
 	}
-	_ = repository2.ClearVerifyCodeHistory(ctx, email)
+	_ = s.codeRepo.ClearVerifyCodeHistory(ctx, email)
 	return nil
 }
 
-func SendRegisterCodeEmail(ctx context.Context, email string) error {
-	recentSent := repository2.GetSendVerifyCodeHistory(ctx, email)
+func (s *AuthService) SendRegisterCodeEmail(ctx context.Context, email string) error {
+	recentSent := s.codeRepo.GetSendVerifyCodeHistory(ctx, email)
 	if recentSent {
 		return errors.New("recently sent code")
 	}
@@ -115,7 +127,7 @@ func SendRegisterCodeEmail(ctx context.Context, email string) error {
 		return err
 	}
 	body := fmt.Sprintf(constant.EmailBodyVerifyCode, code) // nolint: gosimple
-	err = repository2.StoreVerifyCode(ctx, email, code)
+	err = s.codeRepo.StoreVerifyCode(ctx, email, code)
 	if err != nil {
 		fmt.Printf("StoreVerifyCode error: %v\n", err)
 		return err
@@ -125,26 +137,6 @@ func SendRegisterCodeEmail(ctx context.Context, email string) error {
 		fmt.Printf("SendMail error: %v\n", err)
 		return err
 	}
-	err = repository2.StoreSendVerifyCodeHistory(ctx, email)
-	return err
-}
-
-func SendRegisterCodeEmailMock(ctx context.Context, email string) error {
-	recentSent := repository2.GetSendVerifyCodeHistory(ctx, email)
-	if recentSent {
-		return errors.New("recently sent code")
-	}
-	code, err := generateVerifyCode()
-	if err != nil {
-		return err
-	}
-	body := fmt.Sprintf(constant.EmailBodyVerifyCode, code) // nolint: gosimple
-	err = repository2.StoreVerifyCode(ctx, email, code)
-	if err != nil {
-		fmt.Printf("StoreVerifyCode error: %v\n", err)
-		return err
-	}
-	fmt.Printf("[HINT] Send email to %s, title: %s, body: %s\n", email, constant.EmailTitleVerifyCode, body)
-	err = repository2.StoreSendVerifyCodeHistory(ctx, email)
+	err = s.codeRepo.StoreSendVerifyCodeHistory(ctx, email)
 	return err
 }

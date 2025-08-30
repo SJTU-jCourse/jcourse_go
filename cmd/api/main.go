@@ -1,25 +1,20 @@
 package main
 
 import (
-	"os"
-	"os/signal"
-	"syscall"
+	flag "github.com/spf13/pflag"
 
-	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
-
-	"jcourse_go/internal/dal"
-	"jcourse_go/internal/repository"
+	"jcourse_go/internal/app"
+	"jcourse_go/internal/config"
 	"jcourse_go/internal/router"
 	"jcourse_go/internal/service"
 	"jcourse_go/pkg/util"
 )
 
-func Init() {
-	_ = godotenv.Load()
-	dal.InitRedisClient()
-	dal.InitDBClient()
-	repository.SetDefault(dal.GetDBClient())
+func main() {
+	configPath := flag.StringP("config", "c", "config/config.yaml", "config file path")
+	flag.Parse()
+
+	c := config.InitConfig(*configPath)
 
 	if err := util.InitSegWord(); err != nil {
 		panic(err)
@@ -29,18 +24,13 @@ func Init() {
 	if err != nil {
 		panic(err)
 	}
-}
 
-func main() {
-	// 1. Initialize all components
-	Init()
-
-	// 2. Listen for signals to gracefully shut down
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
+	s, err := app.NewServiceContainer(c)
+	if err != nil {
+		panic(err)
+	}
 
 	// 3. Start serving
-	r := gin.Default()
-	router.RegisterRouter(r)
+	r := router.RegisterRouter(s)
 	_ = r.Run()
 }

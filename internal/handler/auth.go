@@ -11,17 +11,26 @@ import (
 	dto2 "jcourse_go/internal/model/dto"
 	"jcourse_go/internal/model/model"
 	auth2 "jcourse_go/internal/service/auth"
-	"jcourse_go/pkg/util"
 )
 
-func LoginHandler(c *gin.Context) {
+type AuthController struct {
+	authService *auth2.AuthService
+}
+
+func NewAuthController(authService *auth2.AuthService) *AuthController {
+	return &AuthController{
+		authService: authService,
+	}
+}
+
+func (a *AuthController) LoginHandler(c *gin.Context) {
 	var request dto2.LoginRequest
 	err := c.ShouldBind(&request)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, dto2.BaseResponse{Message: "参数错误"})
 		return
 	}
-	user, err := auth2.Login(c, request.Email, request.Password)
+	user, err := a.authService.Login(c, request.Email, request.Password)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, dto2.BaseResponse{Message: "登录失败，请重试。"})
 		return
@@ -34,19 +43,19 @@ func LoginHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-func LogoutHandler(c *gin.Context) {
+func (a *AuthController) LogoutHandler(c *gin.Context) {
 	clearAuthSession(c)
 	c.JSON(http.StatusOK, dto2.BaseResponse{Message: "已登出"})
 }
 
-func ResetPasswordHandler(c *gin.Context) {
+func (a *AuthController) ResetPasswordHandler(c *gin.Context) {
 	var request dto2.ResetPasswordRequest
 	err := c.ShouldBind(&request)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, dto2.BaseResponse{Message: "参数错误"})
 		return
 	}
-	err = auth2.ResetPassword(c, request.Email, request.Password, request.Code)
+	err = a.authService.ResetPassword(c, request.Email, request.Password, request.Code)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto2.BaseResponse{Message: "重置密码失败，请重试。"})
 		return
@@ -55,14 +64,14 @@ func ResetPasswordHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, dto2.BaseResponse{Message: "重置密码成功"})
 }
 
-func RegisterHandler(c *gin.Context) {
+func (a *AuthController) RegisterHandler(c *gin.Context) {
 	var request dto2.RegisterUserRequest
 	err := c.ShouldBind(&request)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, dto2.BaseResponse{Message: "参数错误"})
 		return
 	}
-	user, err := auth2.Register(c, request.Email, request.Password, request.Code)
+	user, err := a.authService.Register(c, request.Email, request.Password, request.Code)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto2.BaseResponse{Message: "注册失败，请重试。"})
 		return
@@ -75,7 +84,7 @@ func RegisterHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
-func SendVerifyCodeHandler(c *gin.Context) {
+func (a *AuthController) SendVerifyCodeHandler(c *gin.Context) {
 	var request dto2.SendEmailCodeRequest
 	err := c.ShouldBind(&request)
 	if err != nil || !auth2.ValidateEmail(request.Email) {
@@ -83,11 +92,7 @@ func SendVerifyCodeHandler(c *gin.Context) {
 		return
 	}
 
-	if util.IsDebug() {
-		err = auth2.SendRegisterCodeEmailMock(c, request.Email)
-	} else {
-		err = auth2.SendRegisterCodeEmail(c, request.Email)
-	}
+	err = a.authService.SendRegisterCodeEmail(c, request.Email)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, dto2.BaseResponse{Message: "验证码发送失败，请稍后重试。"})
