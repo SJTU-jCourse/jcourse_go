@@ -52,9 +52,9 @@ docker compose up -d
 执行以下命令以初始化数据库：
 ```sh
 # 创建数据库表
-go run cmd/migrate/migrate.go
+go run script/migrate/migrate.go
 # 从data/2024-2025-1.csv 导入课程数据
-go run cmd/import_from_jwc/import_from_jwc.go
+go run script/import_from_jwc/import_from_jwc.go
 ```
 注：`data/2024-2024-1.csv`中为虚拟的测试数据，可以参考格式进行修改，但是请不要将真实的课程信息加入Git仓库。
 
@@ -67,19 +67,28 @@ go run cmd/import_from_jwc/import_from_jwc.go
 ## 代码结构
 
 * `\cmd`：可编译成单独执行文件的部分
-* `\constant`：常量定义
-* `\dal`：数据库链接
-* `\handler`：后端接口承载，调用业务函数，但是不执行具体业务逻辑
-* `\middleware`：HTTP 服务的中间件
-* `\model`：模型定义
-  - `\dto`：前后端交互模型
-  - `\po`：DB 存储模型
-  - `\domain`：业务领域模型
-  - `\converter`：转换函数
+  * `\api`：API 服务主程序
+* `\internal`：内部代码
+  * `\constant`：常量定义
+  * `\dal`：数据库链接
+  * `\handler`：后端接口承载，调用业务函数，但是不执行具体业务逻辑
+  * `\middleware`：HTTP 服务的中间件
+  * `\model`：模型定义
+    * `\dto`：前后端交互模型
+    * `\po`：DB 存储模型
+    * `\converter`：转换函数
+  * `\repository`：存储层查询，屏蔽存储细节，供业务调用
+  * `\rpc`：外部调用
+  * `\service`：执行具体的业务逻辑
+  * `\task`：异步任务
+    * `\asynq`：基于 Asynq 的任务队列
+    * `\lock`：分布式锁
+    * `\biz`：业务相关的异步任务
 * `\pkg`：与业务无关的通用库
-* `\repository`：存储层查询，屏蔽存储细节，供业务调用
-* `\rpc`：外部调用
-* `\service`：执行具体的业务逻辑
-* `\task`：异步任务
-  * `\server`：异步任务单独的可执行文件
-* `\util`：与业务无关的工具方法
+* `\script`：脚本文件
+  * `\codegen`：代码生成
+  * `\gormgen`：GORM 模型生成
+  * `\migrate`：数据库迁移
+  * `\import_from_jwc`：从教务系统导入数据
+  * `\import_from_v1`：从 v1 版本导入数据
+  * `\refresh_db`：刷新数据库
