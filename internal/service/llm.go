@@ -8,7 +8,6 @@ import (
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
 	"github.com/tmc/langchaingo/schema"
-	"github.com/tmc/langchaingo/vectorstores"
 
 	"jcourse_go/internal/constant"
 	"jcourse_go/internal/model/converter"
@@ -200,7 +199,6 @@ func VectorizeCourse(ctx context.Context, courseID int64) error {
 	_, err = vectorStore.AddDocuments(
 		ctx,
 		[]schema.Document{doc},
-		vectorstores.WithReplacement(true),
 	)
 
 	if err != nil {

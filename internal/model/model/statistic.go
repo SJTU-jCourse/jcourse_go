@@ -18,7 +18,7 @@ type PeriodInfo struct {
 	StartDate string `json:"start_time"` // yyyy-mm-dd
 	EndDate   string `json:"end_time"`
 	Key       string `json:"key"`
-	Value     int64  `json:"value"`
+	Value     any    `json:"value"`
 }
 type PeriodInfoKey = string
 
