@@ -7,12 +7,12 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 
-	"jcourse_go/internal/model/model"
-	"jcourse_go/internal/model/po"
+	"jcourse_go/internal/domain/statistic"
+	entity2 "jcourse_go/internal/infrastructure/entity"
 )
 
-func ConvertDailyInfoFromPO(po *po.StatisticPO) model.DailyInfo {
-	return model.DailyInfo{
+func ConvertDailyInfoFromPO(po *entity2.StatisticPO) statistic.DailyInfo {
+	return statistic.DailyInfo{
 		ID:               po.ID,
 		Date:             po.Date,
 		UVCount:          po.UVCount,
@@ -25,15 +25,15 @@ func ConvertDailyInfoFromPO(po *po.StatisticPO) model.DailyInfo {
 }
 
 // GetPeriodInfoFromPOs 从统计数据中获取指定的周期信息, 调用者保证pos中的数据是按时间增序排列的, 保证返回的数据是按时间增序排列的
-func GetPeriodInfoFromPOs(pos []*po.StatisticPO, keys []model.PeriodInfoKey) (map[model.PeriodInfoKey][]model.PeriodInfo, error) {
+func GetPeriodInfoFromPOs(pos []*entity2.StatisticPO, keys []statistic.PeriodInfoKey) (map[statistic.PeriodInfoKey][]statistic.PeriodInfo, error) {
 	const week = 7
 	const month = 30
-	periodInfoMap := make(map[model.PeriodInfoKey][]model.PeriodInfo)
+	periodInfoMap := make(map[statistic.PeriodInfoKey][]statistic.PeriodInfo)
 	total := len(pos)
 	for _, key := range keys {
-		periodInfoMap[key] = make([]model.PeriodInfo, 0)
+		periodInfoMap[key] = make([]statistic.PeriodInfo, 0)
 		switch key {
-		case model.PeriodInfoKeyMAU:
+		case statistic.PeriodInfoKeyMAU:
 			months := total / month
 			// 这里反向遍历, 保证返回的数据是按时间增序排列的
 			for i := months - 1; i >= 0; i-- {
@@ -43,7 +43,7 @@ func GetPeriodInfoFromPOs(pos []*po.StatisticPO, keys []model.PeriodInfoKey) (ma
 				for j := start; j <= end; j++ {
 					monthWindow[j-start] = pos[j].UVCount
 				}
-				newInfo := model.PeriodInfo{
+				newInfo := statistic.PeriodInfo{
 					StartDate: pos[start].Date,
 					EndDate:   pos[end].Date,
 					Value:     mathutil.Average(monthWindow...),
@@ -51,7 +51,7 @@ func GetPeriodInfoFromPOs(pos []*po.StatisticPO, keys []model.PeriodInfoKey) (ma
 				}
 				periodInfoMap[key] = append(periodInfoMap[key], newInfo)
 			}
-		case model.PeriodInfoKeyWAU:
+		case statistic.PeriodInfoKeyWAU:
 			weeks := total / week
 			for i := weeks - 1; i >= 0; i-- {
 				end := total - 1 - i*week
@@ -60,7 +60,7 @@ func GetPeriodInfoFromPOs(pos []*po.StatisticPO, keys []model.PeriodInfoKey) (ma
 				for j := start; j <= end; j++ {
 					weekWindow[j-start] = pos[j].UVCount
 				}
-				newInfo := model.PeriodInfo{
+				newInfo := statistic.PeriodInfo{
 					StartDate: pos[start].Date,
 					EndDate:   pos[end].Date,
 					Value:     mathutil.Average(weekWindow...),
@@ -69,13 +69,13 @@ func GetPeriodInfoFromPOs(pos []*po.StatisticPO, keys []model.PeriodInfoKey) (ma
 				periodInfoMap[key] = append(periodInfoMap[key], newInfo)
 			}
 		default:
-			return nil, fmt.Errorf(model.ErrInvalidPeriodInfoKey, key)
+			return nil, fmt.Errorf(statistic.ErrInvalidPeriodInfoKey, key)
 		}
 	}
 	return periodInfoMap, nil
 }
 
-func ConvertUVDataFromPO(data []byte) (model.UVData, error) {
+func ConvertUVDataFromPO(data []byte) (statistic.UVData, error) {
 	uv := roaring.New()
 	err := uv.UnmarshalBinary(data)
 	if err != nil {
@@ -84,12 +84,12 @@ func ConvertUVDataFromPO(data []byte) (model.UVData, error) {
 	return uv, nil
 }
 
-func ConvertStatisticDataFromPO(po *po.StatisticDataPO) (model.StatisticData, error) {
+func ConvertStatisticDataFromPO(po *entity.StatisticDataPO) (statistic.StatisticData, error) {
 	uv, err := ConvertUVDataFromPO(po.UVData)
 	if err != nil {
-		return model.StatisticData{}, err
+		return statistic.StatisticData{}, err
 	}
-	return model.StatisticData{
+	return statistic.StatisticData{
 		ID:          int64(po.ID),
 		StatisticID: po.StatisticID,
 		Date:        po.Date,

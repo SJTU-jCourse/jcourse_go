@@ -5,7 +5,7 @@ import (
 
 	"jcourse_go/internal/app"
 	"jcourse_go/internal/config"
-	"jcourse_go/internal/router"
+	"jcourse_go/internal/interface/router"
 	"jcourse_go/internal/service"
 	"jcourse_go/pkg/util"
 )

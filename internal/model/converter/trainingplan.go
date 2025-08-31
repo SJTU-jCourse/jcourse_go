@@ -1,12 +1,13 @@
 package converter
 
 import (
-	model2 "jcourse_go/internal/model/model"
-	"jcourse_go/internal/model/po"
+	"jcourse_go/internal/domain/course"
+	"jcourse_go/internal/domain/rating"
+	"jcourse_go/internal/infrastructure/entity"
 )
 
-func ConvertTrainingPlanSummaryFromPO(po *po.TrainingPlanPO) model2.TrainingPlanSummary {
-	return model2.TrainingPlanSummary{
+func ConvertTrainingPlanSummaryFromPO(po *entity.TrainingPlanPO) course.TrainingPlanSummary {
+	return course.TrainingPlanSummary{
 		ID:         po.ID,
 		Code:       po.MajorCode,
 		MajorName:  po.Major,
@@ -16,13 +17,13 @@ func ConvertTrainingPlanSummaryFromPO(po *po.TrainingPlanPO) model2.TrainingPlan
 	}
 }
 
-func ConvertTrainingPlanDetailFromPO(po *po.TrainingPlanPO) model2.TrainingPlanDetail {
-	detail := model2.TrainingPlanDetail{
+func ConvertTrainingPlanDetailFromPO(po *entity.TrainingPlanPO) course.TrainingPlanDetail {
+	detail := course.TrainingPlanDetail{
 		TrainingPlanSummary: ConvertTrainingPlanSummaryFromPO(po),
 		TotalYear:           po.TotalYear,
 		MinCredits:          po.MinCredits,
 		MajorClass:          po.MajorClass,
-		Courses:             make([]model2.TrainingPlanCourse, 0),
+		Courses:             make([]course.TrainingPlanCourse, 0),
 	}
 	for _, baseCourse := range po.BaseCourses {
 		detail.Courses = append(detail.Courses, ConvertTrainingPlanCourseFromPO(&baseCourse))
@@ -30,9 +31,9 @@ func ConvertTrainingPlanDetailFromPO(po *po.TrainingPlanPO) model2.TrainingPlanD
 	return detail
 }
 
-func ConvertTrainingPlanCourseFromPO(po *po.TrainingPlanCoursePO) model2.TrainingPlanCourse {
-	tpCourse := model2.TrainingPlanCourse{
-		BaseCourse: model2.BaseCourse{
+func ConvertTrainingPlanCourseFromPO(po *entity.TrainingPlanCoursePO) course.TrainingPlanCourse {
+	tpCourse := course.TrainingPlanCourse{
+		BaseCourse: course.BaseCourse{
 			ID: po.BaseCourseID,
 		},
 		ID:              po.ID,
@@ -45,6 +46,6 @@ func ConvertTrainingPlanCourseFromPO(po *po.TrainingPlanCoursePO) model2.Trainin
 	return tpCourse
 }
 
-func PackTrainingPlanWithRatingInfo(t *model2.TrainingPlanSummary, rating model2.RatingInfo) {
+func PackTrainingPlanWithRatingInfo(t *course.TrainingPlanSummary, rating rating.RatingInfo) {
 	t.RatingInfo = rating
 }

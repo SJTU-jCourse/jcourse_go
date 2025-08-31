@@ -12,7 +12,7 @@ import (
 
 	"gorm.io/gorm"
 
-	po2 "jcourse_go/internal/model/po"
+	entity2 "jcourse_go/internal/infrastructure/entity"
 )
 
 type LoadedCourse struct {
@@ -34,12 +34,12 @@ type LoadedTrainingPlan struct {
 	Courses    []LoadedCourse
 }
 
-func LoadedCourse2PO(course LoadedCourse) (po2.BaseCoursePO, po2.TrainingPlanCoursePO) {
-	return po2.BaseCoursePO{
+func LoadedCourse2PO(course LoadedCourse) (entity2.BaseCourse, entity2.TrainingPlanCoursePO) {
+	return entity2.BaseCourse{
 			Code:   course.Code,
 			Name:   course.Name,
 			Credit: float64(course.Credit),
-		}, po2.TrainingPlanCoursePO{
+		}, entity2.TrainingPlanCoursePO{
 			SuggestSemester: course.SuggestSemester,
 			// Department:      course.Department,
 		}
@@ -88,8 +88,8 @@ func Lines2TrainingPlan(lines []string) LoadedTrainingPlan {
 	}
 	return plan
 }
-func TrainingPlan2PO(plan LoadedTrainingPlan) po2.TrainingPlanPO {
-	return po2.TrainingPlanPO{
+func TrainingPlan2PO(plan LoadedTrainingPlan) entity2.TrainingPlanPO {
+	return entity2.TrainingPlanPO{
 		Degree:     plan.Degree,
 		Major:      plan.Name,
 		Department: plan.Department,
@@ -115,16 +115,16 @@ func SaveTrainingPlanCourses(plan LoadedTrainingPlan, db *gorm.DB, tid int64) {
 		codes = append(codes, c.Code)
 	}
 
-	result := db.Model(&po2.BaseCoursePO{}).Where("code in ?", codes).Pluck("id", &baseCourseIDs)
+	result := db.Model(&entity2.BaseCourse{}).Where("code in ?", codes).Pluck("id", &baseCourseIDs)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return
 	}
 	if result.Error != nil {
 		log.Fatalf("Failed to load courses: %v", result.Error)
 	}
-	trainingPlanCourses := make([]po2.TrainingPlanCoursePO, 0)
+	trainingPlanCourses := make([]entity2.TrainingPlanCoursePO, 0)
 	for _, id := range baseCourseIDs {
-		trainingPlanCourses = append(trainingPlanCourses, po2.TrainingPlanCoursePO{
+		trainingPlanCourses = append(trainingPlanCourses, entity2.TrainingPlanCoursePO{
 			TrainingPlanID: tid,
 			BaseCourseID:   id,
 		})
@@ -201,8 +201,8 @@ type LoadedTeacher struct {
 	Biography  string `json:"biography"`
 }
 
-func Teacher2PO(teacher LoadedTeacher) po2.TeacherPO {
-	return po2.TeacherPO{
+func Teacher2PO(teacher LoadedTeacher) entity2.TeacherPO {
+	return entity2.TeacherPO{
 		Name:       teacher.Name,
 		Code:       strconv.Itoa(int(teacher.Code)),
 		Email:      teacher.Mail,
@@ -224,7 +224,7 @@ func SaveTeacher(teachers []LoadedTeacher, db *gorm.DB) {
 		}
 		return
 	}
-	teacherPOs := make([]po2.TeacherPO, 0)
+	teacherPOs := make([]entity2.TeacherPO, 0)
 	for _, teacher := range teachers {
 		teacherPOs = append(teacherPOs, Teacher2PO(teacher))
 	}

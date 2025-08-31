@@ -1,0 +1,8 @@
+package vo
+
+type UserActivity struct {
+	ReviewCount          int64 `json:"review_count"`
+	LikeReceive          int64 `json:"like_receive"`
+	TipReceive           int64 `json:"tip_receive"`
+	FollowingCourseCount int64 `json:"following_course_count"`
+}

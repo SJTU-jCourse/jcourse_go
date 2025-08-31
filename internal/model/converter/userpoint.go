@@ -1,14 +1,14 @@
 package converter
 
 import (
-	"jcourse_go/internal/model/model"
-	"jcourse_go/internal/model/po"
+	"jcourse_go/internal/domain/user"
+	"jcourse_go/internal/infrastructure/entity"
 	"jcourse_go/pkg/util"
 )
 
-func ConvertUserPointDetailItemFromPO(po po.UserPointDetailPO) model.UserPointDetailItem {
+func ConvertUserPointDetailItemFromPO(po entity.UserPointDetailPO) user.UserPointDetailItem {
 	location := util.GetLocation()
-	return model.UserPointDetailItem{
+	return user.UserPointDetailItem{
 		Time:        po.CreatedAt.In(location).Format(util.GoTimeLayout),
 		Value:       po.Value,
 		Description: po.Description,

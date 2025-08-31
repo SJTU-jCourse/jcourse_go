@@ -4,7 +4,7 @@ import (
 	"github.com/joho/godotenv"
 
 	"jcourse_go/internal/dal"
-	po2 "jcourse_go/internal/model/po"
+	entity2 "jcourse_go/internal/infrastructure/entity"
 	"jcourse_go/pkg/util"
 )
 
@@ -15,8 +15,8 @@ func main() {
 	db := dal.GetDBClient()
 
 	println("refreshing course...")
-	courses := make([]po2.CoursePO, 0)
-	if err := db.Model(&po2.CoursePO{}).Find(&courses).Error; err != nil {
+	courses := make([]entity2.Course, 0)
+	if err := db.Model(&entity2.Course{}).Find(&courses).Error; err != nil {
 		println(err)
 	}
 	for _, course := range courses {
@@ -24,8 +24,8 @@ func main() {
 	}
 
 	println("refreshing teacher...")
-	teachers := make([]po2.TeacherPO, 0)
-	if err := db.Model(&po2.TeacherPO{}).Find(&teachers).Error; err != nil {
+	teachers := make([]entity2.TeacherPO, 0)
+	if err := db.Model(&entity2.TeacherPO{}).Find(&teachers).Error; err != nil {
 		println(err)
 	}
 	for _, teacher := range teachers {
@@ -33,8 +33,8 @@ func main() {
 	}
 
 	println("refreshing training plan...")
-	trainingPlans := make([]po2.TrainingPlanPO, 0)
-	if err := db.Model(&po2.TrainingPlanPO{}).Find(&trainingPlans).Error; err != nil {
+	trainingPlans := make([]entity2.TrainingPlanPO, 0)
+	if err := db.Model(&entity2.TrainingPlanPO{}).Find(&trainingPlans).Error; err != nil {
 		println(err)
 	}
 	for _, tp := range trainingPlans {
@@ -42,8 +42,8 @@ func main() {
 	}
 
 	println("refreshing review...")
-	reviews := make([]po2.ReviewPO, 0)
-	if err := db.Model(&po2.ReviewPO{}).Find(&reviews).Error; err != nil {
+	reviews := make([]entity2.ReviewPO, 0)
+	if err := db.Model(&entity2.ReviewPO{}).Find(&reviews).Error; err != nil {
 		println(err)
 	}
 	for _, r := range reviews {

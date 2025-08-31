@@ -3,12 +3,13 @@ package converter
 import (
 	"strings"
 
-	model2 "jcourse_go/internal/model/model"
-	"jcourse_go/internal/model/po"
+	"jcourse_go/internal/domain/course"
+	"jcourse_go/internal/domain/rating"
+	entity2 "jcourse_go/internal/infrastructure/entity"
 )
 
-func ConvertBaseCourseFromPO(po *po.BaseCoursePO) model2.BaseCourse {
-	return model2.BaseCourse{
+func ConvertBaseCourseFromPO(po *entity2.BaseCourse) course.BaseCourse {
+	return course.BaseCourse{
 		ID:     po.ID,
 		Code:   po.Code,
 		Name:   po.Name,
@@ -16,15 +17,15 @@ func ConvertBaseCourseFromPO(po *po.BaseCoursePO) model2.BaseCourse {
 	}
 }
 
-func ConvertCourseMinimalFromPO(po *po.CoursePO) model2.CourseMinimal {
-	course := model2.CourseMinimal{
+func ConvertCourseMinimalFromPO(po *entity2.Course) course.CourseMinimal {
+	course := course.CourseMinimal{
 		ID: po.ID,
-		BaseCourse: model2.BaseCourse{
+		BaseCourse: course.BaseCourse{
 			Code:   po.Code,
 			Name:   po.Name,
 			Credit: po.Credit,
 		},
-		MainTeacher: model2.TeacherSummary{
+		MainTeacher: course.TeacherSummary{
 			ID:   po.MainTeacherID,
 			Name: po.MainTeacherName,
 		},
@@ -35,12 +36,12 @@ func ConvertCourseMinimalFromPO(po *po.CoursePO) model2.CourseMinimal {
 	return course
 }
 
-func ConvertCourseSummaryFromPO(po *po.CoursePO) model2.CourseSummary {
-	courseSummary := model2.CourseSummary{
+func ConvertCourseSummaryFromPO(po *entity2.Course) course.CourseSummary {
+	courseSummary := course.CourseSummary{
 		CourseMinimal: ConvertCourseMinimalFromPO(po),
 		Categories:    make([]string, 0),
 		Department:    po.Department,
-		RatingInfo:    model2.RatingInfo{},
+		RatingInfo:    rating.RatingInfo{},
 	}
 	if len(po.Categories) > 0 {
 		for _, v := range po.Categories {
@@ -50,10 +51,10 @@ func ConvertCourseSummaryFromPO(po *po.CoursePO) model2.CourseSummary {
 	return courseSummary
 }
 
-func ConvertCourseDetailFromPO(po *po.CoursePO) model2.CourseDetail {
-	courseDetail := model2.CourseDetail{
+func ConvertCourseDetailFromPO(po *entity2.Course) course.CourseDetail {
+	courseDetail := course.CourseDetail{
 		CourseSummary: ConvertCourseSummaryFromPO(po),
-		OfferedCourse: make([]model2.OfferedCourse, 0),
+		OfferedCourse: make([]course.OfferedCourse, 0),
 	}
 	if len(po.OfferedCourses) > 0 {
 		for _, v := range po.OfferedCourses {
@@ -63,13 +64,13 @@ func ConvertCourseDetailFromPO(po *po.CoursePO) model2.CourseDetail {
 	return courseDetail
 }
 
-func PackCourseWithRatingInfo(c *model2.CourseSummary, rating model2.RatingInfo) {
+func PackCourseWithRatingInfo(c *course.CourseSummary, rating rating.RatingInfo) {
 	c.RatingInfo = rating
 }
 
-func ConvertOfferedCourseFromPO(po po.OfferedCoursePO) model2.OfferedCourse {
+func ConvertOfferedCourseFromPO(po entity2.OfferedCoursePO) course.OfferedCourse {
 	grade := strings.Split(po.Grade, ",")
-	return model2.OfferedCourse{
+	return course.OfferedCourse{
 		ID:       po.ID,
 		Semester: po.Semester,
 		Grade:    grade,

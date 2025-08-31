@@ -7,7 +7,7 @@ import (
 	"github.com/joho/godotenv"
 
 	"jcourse_go/internal/dal"
-	"jcourse_go/internal/model/po"
+	"jcourse_go/internal/infrastructure/entity"
 	"jcourse_go/pkg/util/selenium-get"
 )
 
@@ -30,8 +30,8 @@ func main() {
 	// to extend: email, profile_url, profile_desc, picture
 	for _, t := range extend_teachers {
 		// t.department 是全名，jwc是简称
-		var teachers []po.TeacherPO
-		db.Model(po.TeacherPO{}).Where("name = ?", t.Name).Find(&teachers)
+		var teachers []entity.TeacherPO
+		db.Model(entity.TeacherPO{}).Where("name = ?", t.Name).Find(&teachers)
 		if len(teachers) == 1 {
 			teachers[0].Email = t.Mail
 			teachers[0].ProfileURL = t.ProfileUrl

@@ -3,21 +3,21 @@ package converter
 import (
 	"testing"
 
-	"jcourse_go/internal/model/po"
+	"jcourse_go/internal/infrastructure/entity"
 	"jcourse_go/internal/model/types"
 )
 
 func TestGetSettingFromPO(t *testing.T) {
 	tests := []struct {
 		name        string
-		input       po.SettingPO
+		input       entity.SettingPO
 		expectedKey string
 		expectedVal any
 		expectedErr bool
 	}{
 		{
 			name: "Valid String Setting",
-			input: po.SettingPO{
+			input: entity.SettingPO{
 				Key:   "site_name",
 				Value: "JCourse",
 				Type:  string(types.SettingTypeString),
@@ -28,7 +28,7 @@ func TestGetSettingFromPO(t *testing.T) {
 		},
 		{
 			name: "Valid Int Setting",
-			input: po.SettingPO{
+			input: entity.SettingPO{
 				Key:   "max_users",
 				Value: "1000",
 				Type:  string(types.SettingTypeInt),
@@ -39,7 +39,7 @@ func TestGetSettingFromPO(t *testing.T) {
 		},
 		{
 			name: "Valid Bool Setting",
-			input: po.SettingPO{
+			input: entity.SettingPO{
 				Key:   "enable_feature",
 				Value: "true",
 				Type:  string(types.SettingTypeBool),
@@ -50,7 +50,7 @@ func TestGetSettingFromPO(t *testing.T) {
 		},
 		{
 			name: "Invalid Int Value",
-			input: po.SettingPO{
+			input: entity.SettingPO{
 				Key:   "max_users",
 				Value: "invalid_int",
 				Type:  string(types.SettingTypeInt),
@@ -61,7 +61,7 @@ func TestGetSettingFromPO(t *testing.T) {
 		},
 		{
 			name: "Unknown Setting Type",
-			input: po.SettingPO{
+			input: entity.SettingPO{
 				Key:   "unknown",
 				Value: "value",
 				Type:  "unknown_type",

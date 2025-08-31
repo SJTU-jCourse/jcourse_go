@@ -4,13 +4,13 @@ import (
 	"context"
 	"errors"
 
-	"jcourse_go/internal/model/dto"
-	"jcourse_go/internal/model/model"
-	"jcourse_go/internal/model/po"
-	"jcourse_go/internal/repository"
+	"jcourse_go/internal/domain/user"
+	"jcourse_go/internal/infrastructure/entity"
+	"jcourse_go/internal/infrastructure/repository"
+	"jcourse_go/internal/interface/dto"
 )
 
-func CreateReviewReaction(ctx context.Context, request dto.CreateReviewReactionRequest, user *model.UserDetail) (int64, error) {
+func CreateReviewReaction(ctx context.Context, request dto.CreateReviewReactionRequest, user *user.UserDetail) (int64, error) {
 
 	if user == nil {
 		return 0, errors.New("user not login")
@@ -23,7 +23,7 @@ func CreateReviewReaction(ctx context.Context, request dto.CreateReviewReactionR
 	}
 
 	rq := repository.Q.ReviewReactionPO
-	reactionModel := po.ReviewReactionPO{
+	reactionModel := entity.ReviewReactionPO{
 		ReviewID: request.ReviewID,
 		UserID:   user.ID,
 		Reaction: request.Reaction,
@@ -36,7 +36,7 @@ func CreateReviewReaction(ctx context.Context, request dto.CreateReviewReactionR
 	return reactionModel.ReviewID, nil
 }
 
-func DeleteReviewReaction(ctx context.Context, user *model.UserDetail, reactionID int64) error {
+func DeleteReviewReaction(ctx context.Context, user *user.UserDetail, reactionID int64) error {
 	r := repository.Q.ReviewReactionPO
 	reaction, err := r.WithContext(ctx).Where(r.ID.Eq(reactionID)).Take()
 	if err != nil {

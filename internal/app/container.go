@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm"
 
 	"jcourse_go/internal/config"
-	"jcourse_go/internal/dal"
+	dal2 "jcourse_go/internal/infrastructure/dal"
 	"jcourse_go/internal/service/auth"
 )
 
@@ -16,11 +16,11 @@ type ServiceContainer struct {
 }
 
 func NewServiceContainer(c *config.AppConfig) (*ServiceContainer, error) {
-	db, err := dal.NewPostgresSQL(&c.DB)
+	db, err := dal2.NewPostgresSQL(&c.DB)
 	if err != nil {
 		return nil, err
 	}
-	rdb, err := dal.NewRedisClient(&c.Redis)
+	rdb, err := dal2.NewRedisClient(&c.Redis)
 	if err != nil {
 		return nil, err
 	}

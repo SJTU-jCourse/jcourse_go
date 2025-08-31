@@ -1,18 +1,18 @@
 package converter
 
 import (
-	"jcourse_go/internal/model/dto"
-	"jcourse_go/internal/model/model"
-	po2 "jcourse_go/internal/model/po"
+	"jcourse_go/internal/domain/rating"
+	entity2 "jcourse_go/internal/infrastructure/entity"
+	"jcourse_go/internal/interface/dto"
 	"jcourse_go/internal/model/types"
 )
 
-func ConvertRatingInfoFromPO(po po2.RatingPO) model.RatingInfo {
-	return model.RatingInfo{}
+func ConvertRatingInfoFromPO(po entity2.RatingPO) rating.RatingInfo {
+	return rating.RatingInfo{}
 }
 
-func BuildRatingFromReview(review po2.ReviewPO) po2.RatingPO {
-	return po2.RatingPO{
+func BuildRatingFromReview(review entity2.ReviewPO) entity2.RatingPO {
+	return entity2.RatingPO{
 		UserID:      review.UserID,
 		RelatedType: string(types.RelatedTypeCourse),
 		RelatedID:   review.CourseID,
@@ -20,8 +20,8 @@ func BuildRatingFromReview(review po2.ReviewPO) po2.RatingPO {
 	}
 }
 
-func ConvertRatingDTOToPO(userID int64, dto dto.RatingDTO) po2.RatingPO {
-	return po2.RatingPO{
+func ConvertRatingDTOToPO(userID int64, dto dto.RatingDTO) entity2.RatingPO {
+	return entity2.RatingPO{
 		UserID:      userID,
 		RelatedType: dto.RelatedType,
 		RelatedID:   dto.RelatedID,

@@ -1,12 +1,13 @@
 package converter
 
 import (
-	model2 "jcourse_go/internal/model/model"
-	"jcourse_go/internal/model/po"
+	"jcourse_go/internal/domain/course"
+	"jcourse_go/internal/domain/rating"
+	"jcourse_go/internal/infrastructure/entity"
 )
 
-func ConvertTeacherDetailFromPO(po *po.TeacherPO) model2.TeacherDetail {
-	return model2.TeacherDetail{
+func ConvertTeacherDetailFromPO(po *entity.TeacherPO) course.TeacherDetail {
+	return course.TeacherDetail{
 		TeacherSummary: ConvertTeacherSummaryFromPO(po),
 		Email:          po.Email,
 		Code:           po.Code,
@@ -16,12 +17,12 @@ func ConvertTeacherDetailFromPO(po *po.TeacherPO) model2.TeacherDetail {
 	}
 }
 
-func PackTeacherWithCourses(t *model2.TeacherDetail, courses []model2.CourseSummary) {
+func PackTeacherWithCourses(t *course.TeacherDetail, courses []course.CourseSummary) {
 	t.Courses = courses
 }
 
-func ConvertTeacherSummaryFromPO(po *po.TeacherPO) model2.TeacherSummary {
-	return model2.TeacherSummary{
+func ConvertTeacherSummaryFromPO(po *entity.TeacherPO) course.TeacherSummary {
+	return course.TeacherSummary{
 		ID:         po.ID,
 		Name:       po.Name,
 		Department: po.Department,
@@ -29,6 +30,6 @@ func ConvertTeacherSummaryFromPO(po *po.TeacherPO) model2.TeacherSummary {
 	}
 }
 
-func PackTeacherWithRatingInfo(t *model2.TeacherSummary, rating model2.RatingInfo) {
+func PackTeacherWithRatingInfo(t *course.TeacherSummary, rating rating.RatingInfo) {
 	t.RatingInfo = rating
 }

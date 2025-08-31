@@ -3,19 +3,19 @@ package converter
 import (
 	"errors"
 
-	"jcourse_go/internal/model/model"
-	"jcourse_go/internal/model/po"
+	"jcourse_go/internal/domain"
+	"jcourse_go/internal/infrastructure/entity"
 	"jcourse_go/internal/model/types"
 )
 
-func GetSettingFromPO(po po.SettingPO) (s model.Setting, err error) {
+func GetSettingFromPO(po entity.SettingPO) (s domain.Setting, err error) {
 	switch po.Type {
 	case string(types.SettingTypeString):
-		s = &model.StringSetting{}
+		s = &domain.StringSetting{}
 	case string(types.SettingTypeInt):
-		s = &model.IntSetting{}
+		s = &domain.IntSetting{}
 	case string(types.SettingTypeBool):
-		s = &model.BoolSetting{}
+		s = &domain.BoolSetting{}
 	}
 	if s == nil {
 		return nil, errors.New("unknown setting types")

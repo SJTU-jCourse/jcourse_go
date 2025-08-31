@@ -8,28 +8,28 @@ import (
 	"github.com/SJTU-jCourse/password_hasher"
 
 	"jcourse_go/internal/constant"
+	"jcourse_go/internal/domain/user"
+	repository2 "jcourse_go/internal/infrastructure/repository"
+	"jcourse_go/internal/infrastructure/rpc"
 	"jcourse_go/internal/model/converter"
-	"jcourse_go/internal/model/model"
-	"jcourse_go/internal/repository"
-	"jcourse_go/internal/rpc"
 )
 
 type AuthService struct {
-	query    *repository.Query
-	codeRepo *repository.VerifyCodeRepository
+	query    *repository2.Query
+	codeRepo *repository2.VerifyCodeRepository
 }
 
-func NewAuthService(query *repository.Query, codeRepo *repository.VerifyCodeRepository) *AuthService {
+func NewAuthService(query *repository2.Query, codeRepo *repository2.VerifyCodeRepository) *AuthService {
 	return &AuthService{
 		query:    query,
 		codeRepo: codeRepo,
 	}
 }
 
-func (s *AuthService) Login(ctx context.Context, email string, password string) (*model.UserDetail, error) {
+func (s *AuthService) Login(ctx context.Context, email string, password string) (*user.UserDetail, error) {
 	emailToQuery := convertEmailToQuery(email)
 
-	u := repository.Q.UserPO
+	u := repository2.Q.UserPO
 	userPO, err := u.WithContext(ctx).Where(u.Email.Eq(emailToQuery)).Limit(1).Take()
 	if err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (s *AuthService) Login(ctx context.Context, email string, password string) 
 	return &user, nil
 }
 
-func (s *AuthService) Register(ctx context.Context, email string, password string, code string) (*model.UserDetail, error) {
+func (s *AuthService) Register(ctx context.Context, email string, password string, code string) (*user.UserDetail, error) {
 	storedCode, err := s.codeRepo.GetVerifyCode(ctx, email)
 	if err != nil {
 		return nil, err
@@ -59,7 +59,7 @@ func (s *AuthService) Register(ctx context.Context, email string, password strin
 
 	emailToQuery := convertEmailToQuery(email)
 
-	u := repository.Q.UserPO
+	u := repository2.Q.UserPO
 	userPO, err := u.WithContext(ctx).Where(u.Email.Eq(emailToQuery)).Limit(1).Take()
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (s *AuthService) ResetPassword(ctx context.Context, email string, password 
 
 	emailToQuery := convertEmailToQuery(email)
 
-	u := repository.Q.UserPO
+	u := repository2.Q.UserPO
 	userPO, err := u.WithContext(ctx).Where(u.Email.Eq(emailToQuery)).Limit(1).Take()
 	if err != nil {
 		return err

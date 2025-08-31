@@ -9,10 +9,11 @@ import (
 	"github.com/joho/godotenv"
 
 	"jcourse_go/internal/dal"
-	"jcourse_go/internal/repository"
+
+	"jcourse_go/internal/infrastructure/repository"
+	"jcourse_go/internal/interface/task"
+	"jcourse_go/internal/interface/task/base"
 	"jcourse_go/internal/service"
-	"jcourse_go/internal/task"
-	"jcourse_go/internal/task/base"
 	"jcourse_go/pkg/util"
 )
 

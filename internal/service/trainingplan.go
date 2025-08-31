@@ -4,19 +4,19 @@ import (
 	"context"
 	"errors"
 
+	"jcourse_go/internal/domain/course"
+	"jcourse_go/internal/infrastructure/repository"
 	"jcourse_go/internal/model/converter"
-	model2 "jcourse_go/internal/model/model"
 	"jcourse_go/internal/model/types"
-	repository2 "jcourse_go/internal/repository"
 	"jcourse_go/pkg/util"
 )
 
-func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*model2.TrainingPlanDetail, error) {
+func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*course.TrainingPlanDetail, error) {
 	if trainingPlanID == 0 {
 		return nil, errors.New("training-plan id is 0")
 	}
 
-	tp := repository2.Q.TrainingPlanPO
+	tp := repository.Q.TrainingPlanPO
 	trainingPlanPO, err := tp.WithContext(ctx).Preload(tp.BaseCourses, tp.BaseCourses.BaseCourse).Where(tp.ID.Eq(trainingPlanID)).Take()
 	if err != nil {
 		return nil, err
@@ -33,7 +33,7 @@ func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*model2.T
 	return &trainingPlan, nil
 }
 
-func buildTrainingPlanDBOptionFromFilter(ctx context.Context, q *repository2.Query, filter model2.TrainingPlanFilterForQuery) repository2.ITrainingPlanPODo {
+func buildTrainingPlanDBOptionFromFilter(ctx context.Context, q *repository.Query, filter course.TrainingPlanFilterForQuery) repository.ITrainingPlanPODo {
 	builder := q.TrainingPlanPO.WithContext(ctx)
 	tp := q.TrainingPlanPO
 
@@ -66,15 +66,15 @@ func buildTrainingPlanDBOptionFromFilter(ctx context.Context, q *repository2.Que
 	return builder
 }
 
-func GetTrainingPlanCount(ctx context.Context, filter model2.TrainingPlanFilterForQuery) (int64, error) {
+func GetTrainingPlanCount(ctx context.Context, filter course.TrainingPlanFilterForQuery) (int64, error) {
 	filter.PageSize, filter.Page = 0, 0
-	q := buildTrainingPlanDBOptionFromFilter(ctx, repository2.Q, filter)
+	q := buildTrainingPlanDBOptionFromFilter(ctx, repository.Q, filter)
 	return q.Count()
 }
 
-func SearchTrainingPlanList(ctx context.Context, filter model2.TrainingPlanFilterForQuery) ([]model2.TrainingPlanSummary, error) {
+func SearchTrainingPlanList(ctx context.Context, filter course.TrainingPlanFilterForQuery) ([]course.TrainingPlanSummary, error) {
 
-	q := buildTrainingPlanDBOptionFromFilter(ctx, repository2.Q, filter)
+	q := buildTrainingPlanDBOptionFromFilter(ctx, repository.Q, filter)
 	/*
 		trainingPlanCourseQuery := repository.NewTrainingPlanCourseQuery(dal.GetDBClient())
 		if len(filter.ContainCourseIDs) != 0 {
@@ -100,7 +100,7 @@ func SearchTrainingPlanList(ctx context.Context, filter model2.TrainingPlanFilte
 	if err != nil {
 		return nil, err
 	}
-	result := make([]model2.TrainingPlanSummary, 0)
+	result := make([]course.TrainingPlanSummary, 0)
 	for _, tpPO := range trainingPlanPOs {
 		tp := converter.ConvertTrainingPlanSummaryFromPO(tpPO)
 		converter.PackTrainingPlanWithRatingInfo(&tp, infos[tp.ID])
@@ -109,14 +109,14 @@ func SearchTrainingPlanList(ctx context.Context, filter model2.TrainingPlanFilte
 	return result, nil
 }
 
-func GetTrainingPlanFilter(ctx context.Context) (model2.TrainingPlanFilter, error) {
-	filter := model2.TrainingPlanFilter{
-		Departments: make([]model2.FilterItem, 0),
-		EntryYears:  make([]model2.FilterItem, 0),
-		Degrees:     make([]model2.FilterItem, 0),
+func GetTrainingPlanFilter(ctx context.Context) (course.TrainingPlanFilter, error) {
+	filter := course.TrainingPlanFilter{
+		Departments: make([]course.FilterItem, 0),
+		EntryYears:  make([]course.FilterItem, 0),
+		Degrees:     make([]course.FilterItem, 0),
 	}
 
-	t := repository2.Q.TrainingPlanPO
+	t := repository.Q.TrainingPlanPO
 	err := t.WithContext(ctx).Select(t.Major.As("value"), t.ID.Count().As("count")).Group(t.Major).Scan(&filter.Degrees)
 	if err != nil {
 		return filter, err

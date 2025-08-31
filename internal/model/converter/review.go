@@ -1,13 +1,14 @@
 package converter
 
 import (
-	"jcourse_go/internal/model/dto"
-	model2 "jcourse_go/internal/model/model"
-	"jcourse_go/internal/model/po"
+	"jcourse_go/internal/domain/course"
+	"jcourse_go/internal/domain/user"
+	"jcourse_go/internal/infrastructure/entity"
+	"jcourse_go/internal/interface/dto"
 )
 
-func ConvertReviewFromPO(po *po.ReviewPO) model2.Review {
-	review := model2.Review{
+func ConvertReviewFromPO(po *entity.ReviewPO) course.Review {
+	review := course.Review{
 		ID:          po.ID,
 		Course:      ConvertCourseMinimalFromPO(po.Course),
 		User:        ConvertUserMinimalFromPO(po.User),
@@ -22,24 +23,24 @@ func ConvertReviewFromPO(po *po.ReviewPO) model2.Review {
 	return review
 }
 
-func RemoveReviewUserInfo(review *model2.Review, userID int64, hideUser bool) {
+func RemoveReviewUserInfo(review *course.Review, userID int64, hideUser bool) {
 	if review == nil {
 		return
 	}
 	// 本人点评不隐藏
 	if hideUser && review.IsAnonymous && review.User.ID != userID {
-		review.User = model2.UserMinimal{}
+		review.User = user.UserMinimal{}
 	}
 }
 
-func RemoveReviewsUserInfo(reviews []model2.Review, userID int64, hideUser bool) {
+func RemoveReviewsUserInfo(reviews []course.Review, userID int64, hideUser bool) {
 	for i := range reviews {
 		RemoveReviewUserInfo(&reviews[i], userID, hideUser)
 	}
 }
 
-func ConvertReviewDTOToPO(dto dto.UpdateReviewDTO, userID int64) po.ReviewPO {
-	return po.ReviewPO{
+func ConvertReviewDTOToPO(dto dto.UpdateReviewDTO, userID int64) entity.ReviewPO {
+	return entity.ReviewPO{
 		ID:          dto.ID,
 		CourseID:    dto.CourseID,
 		UserID:      userID,
@@ -51,12 +52,12 @@ func ConvertReviewDTOToPO(dto dto.UpdateReviewDTO, userID int64) po.ReviewPO {
 	}
 }
 
-func PackReviewWithReaction(review *model2.Review, currentUserID int64, reactions []po.ReviewReactionPO) {
+func PackReviewWithReaction(review *course.Review, currentUserID int64, reactions []entity.ReviewReactionPO) {
 	if review == nil {
 		return
 	}
 	if review.Reaction.TotalReactions == nil {
-		review.Reaction.TotalReactions = make([]model2.ReactionItem, 0)
+		review.Reaction.TotalReactions = make([]review.ReactionItem, 0)
 	}
 	if review.Reaction.MyReactions == nil {
 		review.Reaction.MyReactions = make(map[string]int64)
@@ -72,7 +73,7 @@ func PackReviewWithReaction(review *model2.Review, currentUserID int64, reaction
 	}
 
 	for reaction, count := range reactionMap {
-		review.Reaction.TotalReactions = append(review.Reaction.TotalReactions, model2.ReactionItem{
+		review.Reaction.TotalReactions = append(review.Reaction.TotalReactions, review.ReactionItem{
 			Reaction: reaction,
 			Count:    count,
 		})

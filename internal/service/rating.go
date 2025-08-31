@@ -6,12 +6,12 @@ import (
 
 	"gorm.io/gorm/clause"
 
+	"jcourse_go/internal/domain/rating"
+	"jcourse_go/internal/infrastructure/entity"
+	"jcourse_go/internal/infrastructure/repository"
+	"jcourse_go/internal/interface/dto"
 	"jcourse_go/internal/model/converter"
-	"jcourse_go/internal/model/dto"
-	"jcourse_go/internal/model/model"
-	"jcourse_go/internal/model/po"
 	types2 "jcourse_go/internal/model/types"
-	"jcourse_go/internal/repository"
 )
 
 func CreateRating(ctx context.Context, userID int64, dto dto.RatingDTO) error {
@@ -41,13 +41,13 @@ func CreateRating(ctx context.Context, userID int64, dto dto.RatingDTO) error {
 	return nil
 }
 
-func GetRating(ctx context.Context, relatedType types2.RatingRelatedType, relatedID int64) (model.RatingInfo, error) {
-	res := model.RatingInfo{}
+func GetRating(ctx context.Context, relatedType types2.RatingRelatedType, relatedID int64) (rating.RatingInfo, error) {
+	res := rating.RatingInfo{}
 	if !types2.IsARatingRelatedType(string(relatedType)) {
 		return res, errors.New("invalid related type")
 	}
 
-	dist := make([]model.RatingInfoDistItem, 0)
+	dist := make([]rating.RatingInfoDistItem, 0)
 
 	r := repository.Q.RatingPO
 	err := r.WithContext(ctx).Select(r.Rating, r.ID.Count().As("count")).
@@ -61,9 +61,9 @@ func GetRating(ctx context.Context, relatedType types2.RatingRelatedType, relate
 	return res, nil
 }
 
-func GetMultipleRating(ctx context.Context, relatedType types2.RatingRelatedType, relatedIDs []int64) (map[int64]model.RatingInfo, error) {
-	res := make(map[int64]model.RatingInfo)
-	dist := make(map[int64][]model.RatingInfoDistItem)
+func GetMultipleRating(ctx context.Context, relatedType types2.RatingRelatedType, relatedIDs []int64) (map[int64]rating.RatingInfo, error) {
+	res := make(map[int64]rating.RatingInfo)
+	dist := make(map[int64][]rating.RatingInfoDistItem)
 	if !types2.IsARatingRelatedType(string(relatedType)) {
 		return res, errors.New("invalid related type")
 	}
@@ -82,14 +82,14 @@ func GetMultipleRating(ctx context.Context, relatedType types2.RatingRelatedType
 	}
 
 	for _, row := range rows {
-		dist[row.RelatedID] = append(dist[row.RelatedID], model.RatingInfoDistItem{
+		dist[row.RelatedID] = append(dist[row.RelatedID], rating.RatingInfoDistItem{
 			Rating: row.Rating,
 			Count:  row.Count,
 		})
 	}
 
 	for id, distItems := range dist {
-		ratingInfo := model.RatingInfo{RatingDist: distItems}
+		ratingInfo := rating.RatingInfo{RatingDist: distItems}
 		ratingInfo.Calc()
 		res[id] = ratingInfo
 	}
@@ -131,23 +131,23 @@ func SyncRating(ctx context.Context, relatedType types2.RatingRelatedType, relat
 	return nil
 }
 
-func SyncCourseRating(ctx context.Context, courseID int64, ratingInfo model.RatingInfo) error {
+func SyncCourseRating(ctx context.Context, courseID int64, ratingInfo rating.RatingInfo) error {
 	c := repository.Q.CoursePO
 	_, err := c.WithContext(ctx).Select(c.RatingCount, c.RatingAvg).Where(c.ID.Eq(courseID)).
-		Updates(po.CoursePO{RatingCount: ratingInfo.Count, RatingAvg: ratingInfo.Average})
+		Updates(entity.Course{RatingCount: ratingInfo.Count, RatingAvg: ratingInfo.Average})
 	return err
 }
 
-func SyncTeacherRating(ctx context.Context, teacherID int64, ratingInfo model.RatingInfo) error {
+func SyncTeacherRating(ctx context.Context, teacherID int64, ratingInfo rating.RatingInfo) error {
 	t := repository.Q.TeacherPO
 	_, err := t.WithContext(ctx).Select(t.RatingCount, t.RatingAvg).Where(t.ID.Eq(teacherID)).
-		Updates(po.CoursePO{RatingCount: ratingInfo.Count, RatingAvg: ratingInfo.Average})
+		Updates(entity.Course{RatingCount: ratingInfo.Count, RatingAvg: ratingInfo.Average})
 	return err
 }
 
-func SyncTrainingPlanRating(ctx context.Context, trainingPlanID int64, ratingInfo model.RatingInfo) error {
+func SyncTrainingPlanRating(ctx context.Context, trainingPlanID int64, ratingInfo rating.RatingInfo) error {
 	tp := repository.Q.TrainingPlanPO
 	_, err := tp.WithContext(ctx).Select(tp.RatingCount, tp.RatingAvg).Where(tp.ID.Eq(trainingPlanID)).
-		Updates(po.CoursePO{RatingCount: ratingInfo.Count, RatingAvg: ratingInfo.Average})
+		Updates(entity.Course{RatingCount: ratingInfo.Count, RatingAvg: ratingInfo.Average})
 	return err
 }

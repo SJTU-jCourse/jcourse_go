@@ -5,7 +5,9 @@ import (
 	"gorm.io/gen"
 
 	"jcourse_go/internal/dal"
-	po2 "jcourse_go/internal/model/po"
+	entity2 "jcourse_go/internal/infrastructure/entity"
+
+	"jcourse_go/internal/entity"
 )
 
 func main() {
@@ -21,11 +23,11 @@ func main() {
 	g.UseDB(db) // reuse your gorm db
 
 	// Generate basic type-safe DAO API for struct `model.User` following conventions
-	g.ApplyBasic(po2.UserPO{}, po2.UserPointDetailPO{},
-		po2.TeacherPO{}, po2.CoursePO{}, po2.BaseCoursePO{}, po2.OfferedCoursePO{}, po2.TrainingPlanPO{},
-		po2.CourseCategoryPO{}, po2.TrainingPlanCoursePO{},
-		po2.ReviewPO{}, po2.RatingPO{}, po2.ReviewReactionPO{}, po2.ReviewRevisionPO{},
-		po2.SettingPO{}, po2.StatisticPO{}, po2.StatisticDataPO{})
+	g.ApplyBasic(entity2.UserPO{}, entity2.UserPointDetailPO{},
+		entity2.TeacherPO{}, entity2.Course{}, entity2.BaseCourse{}, entity2.OfferedCoursePO{}, entity2.TrainingPlanPO{},
+		entity2.CourseCategoryPO{}, entity2.TrainingPlanCoursePO{},
+		entity2.ReviewPO{}, entity2.RatingPO{}, entity2.ReviewReactionPO{}, entity2.ReviewRevisionPO{},
+		entity2.SettingPO{}, entity2.StatisticPO{}, entity.StatisticDataPO{})
 
 	// Generate the code
 	g.Execute()

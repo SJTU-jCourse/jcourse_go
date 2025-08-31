@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/blake2b"
 
 	"jcourse_go/internal/constant"
-	"jcourse_go/internal/model/po"
+	"jcourse_go/internal/infrastructure/entity"
 	"jcourse_go/internal/model/types"
 	"jcourse_go/pkg/util"
 )
@@ -49,8 +49,8 @@ func convertEmailToQuery(email string) string {
 	return hashedUsername
 }
 
-func buildUserToCreate(email string, passwordStore string) po.UserPO {
-	return po.UserPO{
+func buildUserToCreate(email string, passwordStore string) entity.UserPO {
+	return entity.UserPO{
 		Username:   email,
 		Email:      email,
 		UserRole:   string(types.UserRoleNormal),

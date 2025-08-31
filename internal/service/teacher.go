@@ -4,18 +4,18 @@ import (
 	"context"
 	"errors"
 
+	"jcourse_go/internal/domain/course"
+	"jcourse_go/internal/infrastructure/repository"
 	"jcourse_go/internal/model/converter"
-	model2 "jcourse_go/internal/model/model"
 	"jcourse_go/internal/model/types"
-	repository2 "jcourse_go/internal/repository"
 	"jcourse_go/pkg/util"
 )
 
-func GetTeacherDetail(ctx context.Context, teacherID int64) (*model2.TeacherDetail, error) {
+func GetTeacherDetail(ctx context.Context, teacherID int64) (*course.TeacherDetail, error) {
 	if teacherID == 0 {
 		return nil, errors.New("teacher id is 0")
 	}
-	t := repository2.Q.TeacherPO
+	t := repository.Q.TeacherPO
 	teacherPO, err := t.WithContext(ctx).Where(t.ID.Eq(teacherID)).Take()
 	if err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*model2.TeacherDeta
 	}
 	teacher := converter.ConvertTeacherDetailFromPO(teacherPO)
 
-	courses, err := GetCourseList(ctx, model2.CourseListFilterForQuery{MainTeacherID: teacherID})
+	courses, err := GetCourseList(ctx, course.CourseListFilterForQuery{MainTeacherID: teacherID})
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*model2.TeacherDeta
 	return &teacher, nil
 }
 
-func buildTeacherDBOptionFromFilter(ctx context.Context, q *repository2.Query, filter model2.TeacherFilterForQuery) repository2.ITeacherPODo {
+func buildTeacherDBOptionFromFilter(ctx context.Context, q *repository.Query, filter course.TeacherFilterForQuery) repository.ITeacherPODo {
 	builder := q.TeacherPO.WithContext(ctx)
 	t := q.TeacherPO
 
@@ -79,8 +79,8 @@ func buildTeacherDBOptionFromFilter(ctx context.Context, q *repository2.Query, f
 	return builder
 }
 
-func SearchTeacherList(ctx context.Context, filter model2.TeacherFilterForQuery) ([]model2.TeacherSummary, error) {
-	q := buildTeacherDBOptionFromFilter(ctx, repository2.Q, filter)
+func SearchTeacherList(ctx context.Context, filter course.TeacherFilterForQuery) ([]course.TeacherSummary, error) {
+	q := buildTeacherDBOptionFromFilter(ctx, repository.Q, filter)
 
 	teachers, err := q.Find()
 	if err != nil {
@@ -97,7 +97,7 @@ func SearchTeacherList(ctx context.Context, filter model2.TeacherFilterForQuery)
 		return nil, err
 	}
 
-	domainTeachers := make([]model2.TeacherSummary, 0)
+	domainTeachers := make([]course.TeacherSummary, 0)
 	for _, t := range teachers {
 		teacherDomain := converter.ConvertTeacherSummaryFromPO(t)
 		converter.PackTeacherWithRatingInfo(&teacherDomain, infos[teacherDomain.ID])
@@ -106,20 +106,20 @@ func SearchTeacherList(ctx context.Context, filter model2.TeacherFilterForQuery)
 	return domainTeachers, nil
 }
 
-func GetTeacherCount(ctx context.Context, filter model2.TeacherFilterForQuery) (int64, error) {
+func GetTeacherCount(ctx context.Context, filter course.TeacherFilterForQuery) (int64, error) {
 
 	filter.Page, filter.PageSize = 0, 0
-	q := buildTeacherDBOptionFromFilter(ctx, repository2.Q, filter)
+	q := buildTeacherDBOptionFromFilter(ctx, repository.Q, filter)
 	return q.Count()
 }
 
-func GetTeacherFilter(ctx context.Context) (model2.TeacherFilter, error) {
-	filter := model2.TeacherFilter{
-		Departments: make([]model2.FilterItem, 0),
-		Titles:      make([]model2.FilterItem, 0),
+func GetTeacherFilter(ctx context.Context) (course.TeacherFilter, error) {
+	filter := course.TeacherFilter{
+		Departments: make([]course.FilterItem, 0),
+		Titles:      make([]course.FilterItem, 0),
 	}
 
-	t := repository2.Q.TeacherPO
+	t := repository.Q.TeacherPO
 	err := t.WithContext(ctx).Select(t.Title.As("value"), t.ID.Count().As("count")).Group(t.Title).Scan(&filter.Titles)
 	if err != nil {
 		return filter, err

@@ -5,14 +5,15 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	model2 "jcourse_go/internal/model/model"
+	"jcourse_go/internal/domain/course"
+	"jcourse_go/internal/domain/user"
 )
 
 func TestRemoveReviewUserInfo(t *testing.T) {
 	hides := []bool{true, false, true, false}
 	expected := []int64{0, 1, 1, 1}
-	user := model2.UserMinimal{ID: 1}
-	reviews := []model2.Review{{
+	user := user.UserMinimal{ID: 1}
+	reviews := []course.Review{{
 		User:        user,
 		IsAnonymous: true,
 	}, {
@@ -34,8 +35,8 @@ func TestRemoveReviewUserInfo(t *testing.T) {
 }
 
 func TestRemoveReviewsUserInfo(t *testing.T) {
-	reviews := []model2.Review{{
-		User:        model2.UserMinimal{ID: 1},
+	reviews := []course.Review{{
+		User:        user.UserMinimal{ID: 1},
 		IsAnonymous: true,
 	}}
 	RemoveReviewsUserInfo(reviews, 0, true)

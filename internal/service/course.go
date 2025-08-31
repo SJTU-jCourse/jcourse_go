@@ -4,30 +4,30 @@ import (
 	"context"
 	"errors"
 
+	"jcourse_go/internal/domain/course"
+	"jcourse_go/internal/infrastructure/repository"
 	"jcourse_go/internal/model/converter"
-	"jcourse_go/internal/model/model"
 	"jcourse_go/internal/model/types"
-	repository2 "jcourse_go/internal/repository"
 	"jcourse_go/pkg/util"
 )
 
-func GetRelatedCourses(ctx context.Context, course *model.CourseDetail) (*model.RelatedCourse, error) {
+func GetRelatedCourses(ctx context.Context, course *course.CourseDetail) (*course.RelatedCourse, error) {
 	if course == nil {
 		return nil, errors.New("course is nil")
 	}
-	coursesUnderSameTeacher, err := GetCourseList(ctx, model.CourseListFilterForQuery{MainTeacherID: course.MainTeacher.ID})
+	coursesUnderSameTeacher, err := GetCourseList(ctx, course.CourseListFilterForQuery{MainTeacherID: course.MainTeacher.ID})
 	if err != nil {
 		return nil, err
 	}
 
-	coursesWithOtherTeacher, err := GetCourseList(ctx, model.CourseListFilterForQuery{Code: course.Code})
+	coursesWithOtherTeacher, err := GetCourseList(ctx, course.CourseListFilterForQuery{Code: course.Code})
 	if err != nil {
 		return nil, err
 	}
 
-	relatedCourse := &model.RelatedCourse{
-		CoursesUnderSameTeacher:  make([]model.CourseSummary, 0),
-		CoursesWithOtherTeachers: make([]model.CourseSummary, 0),
+	relatedCourse := &course.RelatedCourse{
+		CoursesUnderSameTeacher:  make([]course.CourseSummary, 0),
+		CoursesWithOtherTeachers: make([]course.CourseSummary, 0),
 	}
 
 	for _, c := range coursesUnderSameTeacher {
@@ -47,12 +47,12 @@ func GetRelatedCourses(ctx context.Context, course *model.CourseDetail) (*model.
 	return relatedCourse, nil
 }
 
-func GetCourseDetail(ctx context.Context, courseID int64, userID int64) (*model.CourseDetail, error) {
+func GetCourseDetail(ctx context.Context, courseID int64, userID int64) (*course.CourseDetail, error) {
 	if courseID == 0 {
 		return nil, errors.New("course id is 0")
 	}
 
-	c := repository2.Q.CoursePO
+	c := repository.Q.CoursePO
 	coursePO, err := c.WithContext(ctx).Preload(c.MainTeacher, c.OfferedCourses, c.Categories).Where(c.ID.Eq(courseID)).Take()
 	if err != nil {
 		return nil, err
@@ -76,7 +76,7 @@ func GetCourseDetail(ctx context.Context, courseID int64, userID int64) (*model.
 	return &course, nil
 }
 
-func buildCourseDBOptionFromFilter(ctx context.Context, q *repository2.Query, filter model.CourseListFilterForQuery) repository2.ICoursePODo {
+func buildCourseDBOptionFromFilter(ctx context.Context, q *repository.Query, filter course.CourseListFilterForQuery) repository.ICoursePODo {
 	builder := q.CoursePO.WithContext(ctx)
 	c := q.CoursePO
 
@@ -113,9 +113,9 @@ func buildCourseDBOptionFromFilter(ctx context.Context, q *repository2.Query, fi
 	return builder
 }
 
-func GetCourseList(ctx context.Context, filter model.CourseListFilterForQuery) ([]model.CourseSummary, error) {
+func GetCourseList(ctx context.Context, filter course.CourseListFilterForQuery) ([]course.CourseSummary, error) {
 
-	q := buildCourseDBOptionFromFilter(ctx, repository2.Q, filter)
+	q := buildCourseDBOptionFromFilter(ctx, repository.Q, filter)
 
 	coursePOs, err := q.Find()
 	if err != nil {
@@ -132,7 +132,7 @@ func GetCourseList(ctx context.Context, filter model.CourseListFilterForQuery) (
 		return nil, err
 	}
 
-	courses := make([]model.CourseSummary, 0, len(coursePOs))
+	courses := make([]course.CourseSummary, 0, len(coursePOs))
 	for _, coursePO := range coursePOs {
 		course := converter.ConvertCourseSummaryFromPO(coursePO)
 		converter.PackCourseWithRatingInfo(&course, ratingMap[coursePO.ID])
@@ -141,14 +141,14 @@ func GetCourseList(ctx context.Context, filter model.CourseListFilterForQuery) (
 	return courses, nil
 }
 
-func GetCourseCount(ctx context.Context, filter model.CourseListFilterForQuery) (int64, error) {
+func GetCourseCount(ctx context.Context, filter course.CourseListFilterForQuery) (int64, error) {
 	filter.Page, filter.PageSize = 0, 0
-	q := buildCourseDBOptionFromFilter(ctx, repository2.Q, filter)
+	q := buildCourseDBOptionFromFilter(ctx, repository.Q, filter)
 	return q.Count()
 }
 
-func GetBaseCourse(ctx context.Context, code string) (*model.BaseCourse, error) {
-	c := repository2.Q.BaseCoursePO
+func GetBaseCourse(ctx context.Context, code string) (*course.BaseCourse, error) {
+	c := repository.Q.BaseCoursePO
 	baseCoursePO, err := c.WithContext(ctx).Where(c.Code.Eq(code)).Take()
 	if err != nil {
 		return nil, err
@@ -157,15 +157,15 @@ func GetBaseCourse(ctx context.Context, code string) (*model.BaseCourse, error) 
 	return &baseCourse, nil
 }
 
-func GetCourseFilter(ctx context.Context) (model.CourseFilter, error) {
-	filter := model.CourseFilter{
-		Categories:  make([]model.FilterItem, 0),
-		Departments: make([]model.FilterItem, 0),
-		Credits:     make([]model.FilterItem, 0),
-		Semesters:   make([]model.FilterItem, 0),
+func GetCourseFilter(ctx context.Context) (course.CourseFilter, error) {
+	filter := course.CourseFilter{
+		Categories:  make([]course.FilterItem, 0),
+		Departments: make([]course.FilterItem, 0),
+		Credits:     make([]course.FilterItem, 0),
+		Semesters:   make([]course.FilterItem, 0),
 	}
 
-	c := repository2.Q.CoursePO
+	c := repository.Q.CoursePO
 
 	err := c.WithContext(ctx).Select(c.Credit.As("value"), c.ID.Count().As("count")).Group(c.Credit).Scan(&filter.Credits)
 	if err != nil {
@@ -177,13 +177,13 @@ func GetCourseFilter(ctx context.Context) (model.CourseFilter, error) {
 		return filter, err
 	}
 
-	oc := repository2.Q.OfferedCoursePO
+	oc := repository.Q.OfferedCoursePO
 	err = oc.WithContext(ctx).Select(oc.Semester.As("value"), oc.CourseID.Count().As("count")).Group(oc.Semester).Scan(&filter.Semesters)
 	if err != nil {
 		return filter, err
 	}
 
-	cc := repository2.Q.CourseCategoryPO
+	cc := repository.Q.CourseCategoryPO
 	err = cc.WithContext(ctx).Select(cc.Category.As("value"), cc.CourseID.Count().As("count")).Group(cc.Category).Scan(&filter.Categories)
 	if err != nil {
 		return filter, err

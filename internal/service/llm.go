@@ -10,12 +10,13 @@ import (
 	"github.com/tmc/langchaingo/schema"
 
 	"jcourse_go/internal/constant"
+	"jcourse_go/internal/domain/course"
+	"jcourse_go/internal/domain/review"
+	"jcourse_go/internal/infrastructure/repository"
+	"jcourse_go/internal/infrastructure/rpc"
+	"jcourse_go/internal/interface/dto"
 	"jcourse_go/internal/model/converter"
-	"jcourse_go/internal/model/dto"
-	model2 "jcourse_go/internal/model/model"
 	"jcourse_go/internal/model/types"
-	"jcourse_go/internal/repository"
-	"jcourse_go/internal/rpc"
 )
 
 var llm *openai.LLM
@@ -67,7 +68,7 @@ func trimLLMJSON(raw string) string {
 	return s
 }
 
-func buildCourseSummaryPrompt(course *model2.CourseDetail, reviews []model2.Review) string {
+func buildCourseSummaryPrompt(course *course.CourseDetail, reviews []course.Review) string {
 	type tinyReview struct {
 		Rating  int64  `json:"rating,omitempty"`
 		Comment string `json:"comment,omitempty"`
@@ -110,9 +111,9 @@ func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummar
 		return nil, err
 	}
 
-	filter := model2.ReviewFilterForQuery{
+	filter := reaction.ReviewFilterForQuery{
 		CourseID: courseID,
-		PaginationFilterForQuery: model2.PaginationFilterForQuery{
+		PaginationFilterForQuery: course.PaginationFilterForQuery{
 			Page:     0,
 			PageSize: 100,
 		},
@@ -161,9 +162,9 @@ func VectorizeCourse(ctx context.Context, courseID int64) error {
 
 	courseName := coursePO.Name
 
-	filter := model2.ReviewFilterForQuery{
+	filter := reaction.ReviewFilterForQuery{
 		CourseID: courseID,
-		PaginationFilterForQuery: model2.PaginationFilterForQuery{
+		PaginationFilterForQuery: course.PaginationFilterForQuery{
 			Page:     0,
 			PageSize: 100,
 		},
@@ -216,7 +217,7 @@ func VectorizeCourse(ctx context.Context, courseID int64) error {
 // TODO: 此处向量相似性计算（SimilaritySearch）中，
 // 输出的课程列表数量为2，后续可以修改。
 
-func GetMatchCourses(ctx context.Context, description string) ([]model2.CourseSummary, error) {
+func GetMatchCourses(ctx context.Context, description string) ([]course.CourseSummary, error) {
 	vectorStore, err := rpc.OpenVectorStoreConn(ctx)
 
 	if err != nil {
@@ -253,7 +254,7 @@ func GetMatchCourses(ctx context.Context, description string) ([]model2.CourseSu
 		return nil, err
 	}
 
-	courses := make([]model2.CourseSummary, 0, len(coursePOs))
+	courses := make([]course.CourseSummary, 0, len(coursePOs))
 	for _, coursePO := range coursePOs {
 		course := converter.ConvertCourseSummaryFromPO(coursePO)
 		converter.PackCourseWithRatingInfo(&course, infos[coursePO.ID])

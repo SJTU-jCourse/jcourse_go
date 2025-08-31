@@ -1,13 +1,13 @@
 package converter
 
 import (
-	"jcourse_go/internal/model/dto"
-	"jcourse_go/internal/model/model"
-	"jcourse_go/internal/model/po"
+	"jcourse_go/internal/domain/user"
+	"jcourse_go/internal/infrastructure/entity"
+	"jcourse_go/internal/interface/dto"
 )
 
-func ConvertUserDetailFromPO(po *po.UserPO) model.UserDetail {
-	return model.UserDetail{
+func ConvertUserDetailFromPO(po *entity.UserPO) user.UserDetail {
+	return user.UserDetail{
 		UserMinimal: ConvertUserMinimalFromPO(po),
 		Bio:         po.Bio,
 		Email:       po.Email,
@@ -20,16 +20,16 @@ func ConvertUserDetailFromPO(po *po.UserPO) model.UserDetail {
 	}
 }
 
-func ConvertUserMinimalFromPO(po *po.UserPO) model.UserMinimal {
-	return model.UserMinimal{
+func ConvertUserMinimalFromPO(po *entity.UserPO) user.UserMinimal {
+	return user.UserMinimal{
 		ID:       po.ID,
 		Username: po.Username,
 		Avatar:   po.Avatar,
 	}
 }
 
-func ConvertUserProfileToPO(dto dto.UserProfileDTO) po.UserPO {
-	return po.UserPO{
+func ConvertUserProfileToPO(dto dto.UserProfileDTO) entity.UserPO {
+	return entity.UserPO{
 		Username: dto.Username,
 		Type:     dto.Type,
 		Avatar:   dto.Avatar,
@@ -41,7 +41,7 @@ func ConvertUserProfileToPO(dto dto.UserProfileDTO) po.UserPO {
 	}
 }
 
-func RemoveUserEmail(u *model.UserDetail, userID int64) {
+func RemoveUserEmail(u *user.UserDetail, userID int64) {
 	if u.ID == userID {
 		return
 	}

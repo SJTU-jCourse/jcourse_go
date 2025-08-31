@@ -5,8 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"jcourse_go/internal/model/model"
-	"jcourse_go/internal/model/po"
+	"jcourse_go/internal/entity"
+
+	"jcourse_go/internal/domain/statistic"
+	entity2 "jcourse_go/internal/infrastructure/entity"
 	"jcourse_go/pkg/util"
 
 	"github.com/RoaringBitmap/roaring"
@@ -23,7 +25,7 @@ func TestConvertStatisticDataFromPO(t *testing.T) {
 		if err != nil {
 			t.Errorf("ConvertStatisticDataFromPO error: %v", err)
 		}
-		data := po.StatisticDataPO{
+		data := entity.StatisticDataPO{
 			StatisticID: 1,
 			Date:        util.FormatDate(time.Now()),
 			UVData:      bytes,
@@ -43,8 +45,8 @@ func TestConvertStatisticDataFromPO(t *testing.T) {
 
 func TestGetPeriodInfoFromPOs(t *testing.T) {
 	// Helper function to create a StatisticPO with a given date and UVCount
-	createStatisticPO := func(daysAgo int) po.StatisticPO {
-		return po.StatisticPO{
+	createStatisticPO := func(daysAgo int) entity2.StatisticPO {
+		return entity2.StatisticPO{
 			Date:         util.FormatDate(util.GetMidTime(time.Now()).AddDate(0, 0, -daysAgo)),
 			UVCount:      int64(rand.Uint64() % 1000),
 			PVCount:      int64(rand.Uint64() % 1000),
@@ -56,20 +58,20 @@ func TestGetPeriodInfoFromPOs(t *testing.T) {
 	}
 
 	// Test data
-	pos := make([]*po.StatisticPO, 40)
+	pos := make([]*entity2.StatisticPO, 40)
 	for i := 0; i < 40; i++ {
 		p := createStatisticPO(i)
 		pos[i] = &p
 	}
 
-	keys := []model.PeriodInfoKey{model.PeriodInfoKeyMAU, model.PeriodInfoKeyWAU}
+	keys := []statistic.PeriodInfoKey{statistic.PeriodInfoKeyMAU, statistic.PeriodInfoKeyWAU}
 
 	// Call the function
 	periodInfoMap, err := GetPeriodInfoFromPOs(pos, keys)
 	assert.Nil(t, err)
 
 	// Verify the results for MAU
-	mauInfo := periodInfoMap[model.PeriodInfoKeyMAU]
+	mauInfo := periodInfoMap[statistic.PeriodInfoKeyMAU]
 	assert.Equal(t, 1, len(mauInfo))
 
 	assert.Equal(t, pos[10].Date, mauInfo[0].StartDate, 0)
@@ -82,7 +84,7 @@ func TestGetPeriodInfoFromPOs(t *testing.T) {
 	assert.Equal(t, mau, mauInfo[0].Value) // Average of UVCounts from 0 to 29
 
 	// Verify the results for WAU
-	wauInfo := periodInfoMap[model.PeriodInfoKeyWAU]
+	wauInfo := periodInfoMap[statistic.PeriodInfoKeyWAU]
 	assert.Equal(t, 5, len(wauInfo))
 	for i, info := range wauInfo {
 		start := 7*i + 5 // 6, 13, 20, 27, 34

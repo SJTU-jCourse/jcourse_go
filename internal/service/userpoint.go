@@ -8,15 +8,15 @@ import (
 	"github.com/pkg/errors"
 
 	"jcourse_go/internal/constant"
+	"jcourse_go/internal/domain/user"
+	entity2 "jcourse_go/internal/infrastructure/entity"
+	"jcourse_go/internal/infrastructure/repository"
 	"jcourse_go/internal/model/converter"
-	"jcourse_go/internal/model/model"
-	po2 "jcourse_go/internal/model/po"
 	"jcourse_go/internal/model/types"
-	repository2 "jcourse_go/internal/repository"
 	"jcourse_go/pkg/util"
 )
 
-func buildUserPointDetailDBOptionFromFilter(ctx context.Context, q *repository2.Query, filter model.UserPointDetailFilter) repository2.IUserPointDetailPODo {
+func buildUserPointDetailDBOptionFromFilter(ctx context.Context, q *repository.Query, filter user.UserPointDetailFilter) repository.IUserPointDetailPODo {
 	builder := q.UserPointDetailPO.WithContext(ctx)
 	p := q.UserPointDetailPO
 
@@ -39,10 +39,10 @@ func buildUserPointDetailDBOptionFromFilter(ctx context.Context, q *repository2.
 	return builder
 }
 
-func GetUserPointDetailList(ctx context.Context, filter model.UserPointDetailFilter) (int64, []model.UserPointDetailItem, error) {
+func GetUserPointDetailList(ctx context.Context, filter user.UserPointDetailFilter) (int64, []user.UserPointDetailItem, error) {
 
-	p := repository2.Q.UserPointDetailPO
-	q := buildUserPointDetailDBOptionFromFilter(ctx, repository2.Q, filter)
+	p := repository.Q.UserPointDetailPO
+	q := buildUserPointDetailDBOptionFromFilter(ctx, repository.Q, filter)
 	userPointDetailPOs, err := q.Find()
 	if err != nil {
 		return 0, nil, err
@@ -51,27 +51,27 @@ func GetUserPointDetailList(ctx context.Context, filter model.UserPointDetailFil
 	total := struct {
 		Value int64 `json:"value"`
 	}{}
-	err = repository2.Q.UserPointDetailPO.WithContext(ctx).Select(p.Value.Sum().As("value")).Where(p.UserID.Eq(filter.UserID)).Scan(&total)
+	err = repository.Q.UserPointDetailPO.WithContext(ctx).Select(p.Value.Sum().As("value")).Where(p.UserID.Eq(filter.UserID)).Scan(&total)
 	if err != nil {
 		return 0, nil, err
 	}
 
-	result := make([]model.UserPointDetailItem, 0)
+	result := make([]user.UserPointDetailItem, 0)
 	for _, detailPO := range userPointDetailPOs {
 		result = append(result, converter.ConvertUserPointDetailItemFromPO(*detailPO))
 	}
 	return total.Value, result, nil
 }
 
-func GetUserPointDetailCount(ctx context.Context, filter model.UserPointDetailFilter) (int64, error) {
+func GetUserPointDetailCount(ctx context.Context, filter user.UserPointDetailFilter) (int64, error) {
 	filter.Page, filter.PageSize = 0, 0
-	q := buildUserPointDetailDBOptionFromFilter(ctx, repository2.Q, filter)
+	q := buildUserPointDetailDBOptionFromFilter(ctx, repository.Q, filter)
 	return q.Count()
 }
 
 // HINT: 以下的几个UserPoint相关函数都是并发安全的, 但不保证成功，事务失败时需要上层自行处理
 func ChangeUserPoints(ctx context.Context, userID int64, eventType types.PointEventType, value int64, description string) error {
-	u := repository2.Q.UserPO
+	u := repository.Q.UserPO
 	user, err := u.WithContext(ctx).Where(u.ID.Eq(userID)).Take()
 	if err != nil {
 		return err
@@ -83,14 +83,14 @@ func ChangeUserPoints(ctx context.Context, userID int64, eventType types.PointEv
 	originalPoints := user.Points
 	user.Points += value
 
-	point := po2.UserPointDetailPO{
+	point := entity2.UserPointDetailPO{
 		UserID:      userID,
 		Value:       value,
 		Description: description,
 		EventType:   string(eventType),
 	}
 
-	err = repository2.Q.Transaction(func(tx *repository2.Query) error {
+	err = repository.Q.Transaction(func(tx *repository.Query) error {
 		_, err := tx.UserPO.WithContext(ctx).Where(u.ID.Eq(user.ID), u.Points.Eq(originalPoints)).Update(u.Points, user.Points)
 		if err != nil {
 			return err
@@ -122,7 +122,7 @@ const (
 )
 
 func TransferUserPoints(ctx context.Context, senderID int64, receiverID int64, value int64) error {
-	u := repository2.Q.UserPO
+	u := repository.Q.UserPO
 
 	// 合并到一次查询
 	ids := []int64{senderID, receiverID}
@@ -130,8 +130,8 @@ func TransferUserPoints(ctx context.Context, senderID int64, receiverID int64, v
 	if err != nil {
 		return err
 	}
-	var senderPO *po2.UserPO = nil
-	var receiverPO *po2.UserPO = nil
+	var senderPO *entity2.UserPO = nil
+	var receiverPO *entity2.UserPO = nil
 	for _, user := range userPOs {
 		if user.ID == (senderID) {
 			senderPO = user
@@ -156,19 +156,19 @@ func TransferUserPoints(ctx context.Context, senderID int64, receiverID int64, v
 	receiverPO.Points += receivedValue
 
 	description := fmt.Sprintf(TransferDescriptionFormat, senderID, receiverID, value)
-	senderPoint := po2.UserPointDetailPO{
+	senderPoint := entity2.UserPointDetailPO{
 		UserID:      senderID,
 		Value:       value,
 		Description: description,
 		EventType:   string(types.PointEventTransfer),
 	}
-	receiverPoint := po2.UserPointDetailPO{
+	receiverPoint := entity2.UserPointDetailPO{
 		UserID:      receiverID,
 		Value:       receivedValue,
 		Description: description,
 		EventType:   string(types.PointEventTransfer),
 	}
-	err = repository2.Q.Transaction(func(tx *repository2.Query) error {
+	err = repository.Q.Transaction(func(tx *repository.Query) error {
 		_, err := tx.UserPO.WithContext(ctx).Where(u.ID.Eq(senderID), u.Points.Eq(senderOriginalPoints)).Update(u.Points, senderPO.Points)
 		if err != nil {
 			return err

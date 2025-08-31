@@ -6,16 +6,18 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"jcourse_go/internal/model/dto"
-	"jcourse_go/internal/model/types"
 	repository2 "jcourse_go/internal/repository"
+
+	"jcourse_go/internal/infrastructure/repository"
+	"jcourse_go/internal/interface/dto"
+	"jcourse_go/internal/model/types"
 )
 
 func TestSyncRating(t *testing.T) {
 	repository2.SetupTestEnv()
 	ctx := context.Background()
 	t.Run("sync course", func(t *testing.T) {
-		c := repository2.Q.CoursePO
+		c := repository.Q.CoursePO
 
 		coursePO, err := c.WithContext(ctx).Where(c.ID.Eq(1)).Take()
 		assert.Nil(t, err)
@@ -31,7 +33,7 @@ func TestSyncRating(t *testing.T) {
 	})
 
 	t.Run("sync teacher", func(t *testing.T) {
-		te := repository2.Q.TeacherPO
+		te := repository.Q.TeacherPO
 
 		teacherPO, err := te.WithContext(ctx).Where(te.ID.Eq(2)).Take()
 		assert.Nil(t, err)
@@ -69,7 +71,7 @@ func TestCreateRating(t *testing.T) {
 			},
 			expectedError: false,
 			verify: func(t *testing.T) {
-				coursePO, err := repository2.Q.CoursePO.WithContext(context.Background()).Where(repository2.Q.CoursePO.ID.Eq(1)).Take()
+				coursePO, err := repository.Q.CoursePO.WithContext(context.Background()).Where(repository.Q.CoursePO.ID.Eq(1)).Take()
 				assert.Nil(t, err)
 				assert.Equal(t, 1, int(coursePO.RatingCount))
 				assert.Equal(t, 5.0, coursePO.RatingAvg)
@@ -85,7 +87,7 @@ func TestCreateRating(t *testing.T) {
 			},
 			expectedError: false,
 			verify: func(t *testing.T) {
-				coursePO, err := repository2.Q.CoursePO.WithContext(context.Background()).Where(repository2.Q.CoursePO.ID.Eq(1)).Take()
+				coursePO, err := repository.Q.CoursePO.WithContext(context.Background()).Where(repository.Q.CoursePO.ID.Eq(1)).Take()
 				assert.Nil(t, err)
 				assert.Equal(t, 1, int(coursePO.RatingCount))
 				assert.Equal(t, 3.0, coursePO.RatingAvg)
