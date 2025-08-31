@@ -6,6 +6,11 @@ import (
 	"jcourse_go/internal/domain/shared"
 )
 
+type CurriculumRepository interface {
+	Get(ctx context.Context, code string) (*Curriculum, error)
+	FindByTrainingPlan(ctx context.Context, trainingPlanID shared.IDType) ([]Curriculum, error)
+}
+
 type CourseRepository interface {
 	Get(ctx context.Context, id shared.IDType) (*Course, error)
 	GetFilter(ctx context.Context) (*CourseFilter, error)

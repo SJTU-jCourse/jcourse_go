@@ -51,7 +51,7 @@ func GetUserDetailByID(ctx context.Context, userID int64) (*user.UserDetail, err
 	return &user, nil
 }
 
-func buildUserDBOptionFromFilter(ctx context.Context, q *repository.Query, filter user.UserFilterForQuery) repository.IUserPODo {
+func buildUserDBOptionFromFilter(ctx context.Context, q *repository.Query, filter user.UserQuery) repository.IUserPODo {
 	builder := q.UserPO.WithContext(ctx)
 	u := q.UserPO
 	if filter.Page > 0 || filter.PageSize > 0 {
@@ -70,7 +70,7 @@ func buildUserDBOptionFromFilter(ctx context.Context, q *repository.Query, filte
 	return builder
 }
 
-func GetUserList(ctx context.Context, filter user.UserFilterForQuery) ([]user.UserMinimal, error) {
+func GetUserList(ctx context.Context, filter user.UserQuery) ([]user.UserMinimal, error) {
 	q := buildUserDBOptionFromFilter(ctx, repository.Q, filter)
 	userPOs, err := q.Find()
 	if err != nil {
@@ -84,7 +84,7 @@ func GetUserList(ctx context.Context, filter user.UserFilterForQuery) ([]user.Us
 	return result, nil
 }
 
-func GetUserCount(ctx context.Context, filter user.UserFilterForQuery) (int64, error) {
+func GetUserCount(ctx context.Context, filter user.UserQuery) (int64, error) {
 	filter.Page, filter.PageSize = 0, 0
 	q := buildUserDBOptionFromFilter(ctx, repository.Q, filter)
 	return q.Count()

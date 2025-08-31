@@ -8,8 +8,8 @@ import (
 	entity2 "jcourse_go/internal/infrastructure/entity"
 )
 
-func ConvertBaseCourseFromPO(po *entity2.BaseCourse) course.BaseCourse {
-	return course.BaseCourse{
+func ConvertBaseCourseFromPO(po *entity2.BaseCourse) course.Curriculum {
+	return course.Curriculum{
 		ID:     po.ID,
 		Code:   po.Code,
 		Name:   po.Name,
@@ -20,7 +20,7 @@ func ConvertBaseCourseFromPO(po *entity2.BaseCourse) course.BaseCourse {
 func ConvertCourseMinimalFromPO(po *entity2.Course) course.CourseMinimal {
 	course := course.CourseMinimal{
 		ID: po.ID,
-		BaseCourse: course.BaseCourse{
+		BaseCourse: course.Curriculum{
 			Code:   po.Code,
 			Name:   po.Name,
 			Credit: po.Credit,
@@ -54,7 +54,7 @@ func ConvertCourseSummaryFromPO(po *entity2.Course) course.CourseSummary {
 func ConvertCourseDetailFromPO(po *entity2.Course) course.CourseDetail {
 	courseDetail := course.CourseDetail{
 		CourseSummary: ConvertCourseSummaryFromPO(po),
-		OfferedCourse: make([]course.OfferedCourse, 0),
+		OfferedCourse: make([]course.CourseOffering, 0),
 	}
 	if len(po.OfferedCourses) > 0 {
 		for _, v := range po.OfferedCourses {
@@ -68,9 +68,9 @@ func PackCourseWithRatingInfo(c *course.CourseSummary, rating rating.RatingInfo)
 	c.RatingInfo = rating
 }
 
-func ConvertOfferedCourseFromPO(po entity2.OfferedCoursePO) course.OfferedCourse {
+func ConvertOfferedCourseFromPO(po entity2.OfferedCoursePO) course.CourseOffering {
 	grade := strings.Split(po.Grade, ",")
-	return course.OfferedCourse{
+	return course.CourseOffering{
 		ID:       po.ID,
 		Semester: po.Semester,
 		Grade:    grade,

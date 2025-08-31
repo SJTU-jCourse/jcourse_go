@@ -11,8 +11,8 @@ import (
 	entity2 "jcourse_go/internal/infrastructure/entity"
 )
 
-func ConvertDailyInfoFromPO(po *entity2.StatisticPO) statistic.DailyInfo {
-	return statistic.DailyInfo{
+func ConvertDailyInfoFromPO(po *entity2.StatisticPO) statistic.DailyStatistic {
+	return statistic.DailyStatistic{
 		ID:               po.ID,
 		Date:             po.Date,
 		UVCount:          po.UVCount,

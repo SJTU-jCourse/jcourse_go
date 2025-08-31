@@ -25,11 +25,11 @@ func getDailyInfoKeyFromTime(datetime time.Time) string {
 	return DailyInfoKeyPrefix + ":" + util2.FormatDate(datetime)
 }
 func getDailyInfoKeyFromStr(datetime string) string { return DailyInfoKeyPrefix + ":" + datetime }
-func getDailyInfoInCache(ctx context.Context, datetime time.Time) (statistic.DailyInfo, error) {
+func getDailyInfoInCache(ctx context.Context, datetime time.Time) (statistic.DailyStatistic, error) {
 	// TODO
-	return statistic.DailyInfo{}, util2.ErrNotFound
+	return statistic.DailyStatistic{}, util2.ErrNotFound
 }
-func updateDailyInfoCache(ctx context.Context, detail statistic.DailyInfo) error {
+func updateDailyInfoCache(ctx context.Context, detail statistic.DailyStatistic) error {
 	key := getDailyInfoKeyFromStr(detail.Date)
 	log.Printf("Update: %s", key)
 	// TODO
@@ -37,22 +37,22 @@ func updateDailyInfoCache(ctx context.Context, detail statistic.DailyInfo) error
 }
 
 // CalDailyInfo 计算某一天0-24点的日活、新增课程数、新增点评数
-func CalDailyInfo(ctx context.Context, datetime time.Time) (statistic.DailyInfo, error) {
+func CalDailyInfo(ctx context.Context, datetime time.Time) (statistic.DailyStatistic, error) {
 	u := repository.Q.UserPO
 	r := repository.Q.ReviewPO
 
 	dayStart, dayEnd := util2.GetDayTimeRange(datetime)
 
-	dailyInfo := statistic.DailyInfo{}
+	dailyInfo := statistic.DailyStatistic{}
 	newUserCount, err := u.WithContext(ctx).Where(u.CreatedAt.Between(dayStart, dayEnd)).Count()
 	dailyInfo.NewUserCount = newUserCount
 	if err != nil {
-		return statistic.DailyInfo{}, err
+		return statistic.DailyStatistic{}, err
 	}
 	newReviewCount, err := r.WithContext(ctx).Where(r.CreatedAt.Between(dayStart, dayEnd)).Count()
 	dailyInfo.NewReviewCount = newReviewCount
 	if err != nil {
-		return statistic.DailyInfo{}, err
+		return statistic.DailyStatistic{}, err
 	}
 	return dailyInfo, nil
 }
@@ -70,16 +70,16 @@ func buildStatisticDBOptionsFromFilter(ctx context.Context, q *repository.Query,
 	}
 	return builder
 }
-func GetStatistics(ctx context.Context, filter statistic.StatisticFilter) ([]statistic.DailyInfo, []statistic.PeriodInfo, error) {
+func GetStatistics(ctx context.Context, filter statistic.StatisticFilter) ([]statistic.DailyStatistic, []statistic.PeriodInfo, error) {
 	// TODO: cache
 
 	q := buildStatisticDBOptionsFromFilter(ctx, repository.Q, filter)
 	statistics, err := q.Find()
 	if err != nil {
-		return []statistic.DailyInfo{}, []statistic.PeriodInfo{}, err
+		return []statistic.DailyStatistic{}, []statistic.PeriodInfo{}, err
 	}
 	num := len(statistics)
-	dailyInfos := make([]statistic.DailyInfo, num)
+	dailyInfos := make([]statistic.DailyStatistic, num)
 	if len(filter.PeriodInfoKeys) == 0 {
 		for i, statisticPO := range statistics {
 			dailyInfos[i] = converter.ConvertDailyInfoFromPO(statisticPO)

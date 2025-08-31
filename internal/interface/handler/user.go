@@ -23,7 +23,7 @@ func GetUserListHandler(c *gin.Context) {
 		return
 	}
 
-	filter := user.UserFilterForQuery{
+	filter := user.UserQuery{
 		PaginationQuery: request.PaginationFilterForQuery,
 	}
 	users, err := service.GetUserList(c, filter)

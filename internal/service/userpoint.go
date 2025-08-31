@@ -16,7 +16,7 @@ import (
 	"jcourse_go/pkg/util"
 )
 
-func buildUserPointDetailDBOptionFromFilter(ctx context.Context, q *repository.Query, filter user.UserPointDetailFilter) repository.IUserPointDetailPODo {
+func buildUserPointDetailDBOptionFromFilter(ctx context.Context, q *repository.Query, filter user.UserPointQuery) repository.IUserPointDetailPODo {
 	builder := q.UserPointDetailPO.WithContext(ctx)
 	p := q.UserPointDetailPO
 
@@ -39,7 +39,7 @@ func buildUserPointDetailDBOptionFromFilter(ctx context.Context, q *repository.Q
 	return builder
 }
 
-func GetUserPointDetailList(ctx context.Context, filter user.UserPointDetailFilter) (int64, []user.UserPointDetailItem, error) {
+func GetUserPointDetailList(ctx context.Context, filter user.UserPointQuery) (int64, []user.UserPointDetailItem, error) {
 
 	p := repository.Q.UserPointDetailPO
 	q := buildUserPointDetailDBOptionFromFilter(ctx, repository.Q, filter)
@@ -63,7 +63,7 @@ func GetUserPointDetailList(ctx context.Context, filter user.UserPointDetailFilt
 	return total.Value, result, nil
 }
 
-func GetUserPointDetailCount(ctx context.Context, filter user.UserPointDetailFilter) (int64, error) {
+func GetUserPointDetailCount(ctx context.Context, filter user.UserPointQuery) (int64, error) {
 	filter.Page, filter.PageSize = 0, 0
 	q := buildUserPointDetailDBOptionFromFilter(ctx, repository.Q, filter)
 	return q.Count()

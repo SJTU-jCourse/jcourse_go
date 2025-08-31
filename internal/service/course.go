@@ -147,7 +147,7 @@ func GetCourseCount(ctx context.Context, filter course.CourseListQuery) (int64, 
 	return q.Count()
 }
 
-func GetBaseCourse(ctx context.Context, code string) (*course.BaseCourse, error) {
+func GetBaseCourse(ctx context.Context, code string) (*course.Curriculum, error) {
 	c := repository.Q.BaseCoursePO
 	baseCoursePO, err := c.WithContext(ctx).Where(c.Code.Eq(code)).Take()
 	if err != nil {

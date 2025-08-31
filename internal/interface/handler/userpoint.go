@@ -86,7 +86,7 @@ func AdminGetUserPointDetailList(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
 		return
 	}
-	filter := user.UserPointDetailFilter{
+	filter := user.UserPointQuery{
 		UserID:    request.UserID,
 		StartTime: request.StartTime,
 		EndTime:   request.EndTime,

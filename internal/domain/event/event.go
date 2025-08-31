@@ -1,5 +1,7 @@
 package event
 
+import "context"
+
 type Type string
 
 const (
@@ -11,4 +13,8 @@ type Event struct {
 	ID      string
 	Type    Type
 	Payload any
+}
+
+type Publisher interface {
+	Publish(ctx context.Context, event Event) error
 }

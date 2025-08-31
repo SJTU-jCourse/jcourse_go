@@ -2,11 +2,11 @@ package user
 
 import "jcourse_go/internal/domain/shared"
 
-type UserFilterForQuery struct {
+type UserQuery struct {
 	shared.PaginationQuery
 }
 
-type UserPointDetailFilter struct {
+type UserPointQuery struct {
 	shared.PaginationQuery
 	UserPointDetailID int64
 	UserID            int64

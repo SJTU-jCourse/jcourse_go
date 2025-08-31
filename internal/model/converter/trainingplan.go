@@ -33,7 +33,7 @@ func ConvertTrainingPlanDetailFromPO(po *entity.TrainingPlanPO) course.TrainingP
 
 func ConvertTrainingPlanCourseFromPO(po *entity.TrainingPlanCoursePO) course.TrainingPlanCourse {
 	tpCourse := course.TrainingPlanCourse{
-		BaseCourse: course.BaseCourse{
+		BaseCourse: course.Curriculum{
 			ID: po.BaseCourseID,
 		},
 		ID:              po.ID,

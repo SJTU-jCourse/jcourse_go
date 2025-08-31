@@ -6,8 +6,8 @@ import (
 	"jcourse_go/internal/domain/shared"
 )
 
-// BaseCourse 基础课程，Code 作为 id
-type BaseCourse struct {
+// Curriculum 基础课程，Code 作为 id
+type Curriculum struct {
 	Code   string  `json:"code"`
 	Name   string  `json:"name"`
 	Credit float64 `json:"credit"`
@@ -22,13 +22,13 @@ type Course struct {
 	MainTeacherID shared.IDType `json:"main_teacher_id"`
 	MainTeacher   *Teacher      `json:"main_teacher"`
 
-	OfferedCourses []OfferedCourse `json:"offered_courses"`
+	OfferedCourses []CourseOffering `json:"offered_courses"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type OfferedCourse struct {
+type CourseOffering struct {
 	ID           shared.IDType `json:"id"`
 	Semester     string        `json:"semester"`
 	Department   string        `json:"department"`
@@ -50,6 +50,10 @@ type Teacher struct {
 	Department string `json:"department"`
 	Pinyin     Pinyin `json:"pinyin"`
 
+	Email   string `json:"email"`
+	Picture string `json:"picture"`
+	Bio     string `json:"bio"`
+
 	MainCourses []Course `json:"main_courses"`
 
 	CreatedAt time.Time `json:"created_at"`
@@ -57,20 +61,20 @@ type Teacher struct {
 }
 
 type TrainingPlan struct {
-	ID         shared.IDType        `json:"id"`
-	Code       string               `json:"code"`
-	MajorName  string               `json:"name"`
-	EntryYear  string               `json:"entry_year"`
-	Department string               `json:"department"`
-	Degree     string               `json:"degree"`
-	MajorClass string               `json:"major_class"`
-	MinCredits float64              `json:"min_credits"`
-	TotalYear  int64                `json:"total_year"`
-	Courses    []TrainingPlanCourse `json:"courses"`
+	ID          shared.IDType            `json:"id"`
+	Code        string                   `json:"code"`
+	MajorName   string                   `json:"name"`
+	EntryYear   string                   `json:"entry_year"`
+	Department  string                   `json:"department"`
+	Degree      string                   `json:"degree"`
+	MajorClass  string                   `json:"major_class"`
+	MinCredits  float64                  `json:"min_credits"`
+	TotalYear   int64                    `json:"total_year"`
+	Curriculums []TrainingPlanCurriculum `json:"curriculums"`
 }
 
-type TrainingPlanCourse struct {
-	BaseCourse      BaseCourse `json:"base_course"`
+type TrainingPlanCurriculum struct {
+	Curriculum      Curriculum `json:"curriculum"`
 	SuggestSemester string     `json:"suggest_semester"`
 	Category        string     `json:"category"`
 }

@@ -11,6 +11,6 @@ type StatisticRequest struct {
 }
 
 type StatisticResponse struct {
-	DailyInfos  []statistic.DailyInfo  `json:"daily_infos"`
-	PeriodInfos []statistic.PeriodInfo `json:"period_infos"`
+	DailyInfos  []statistic.DailyStatistic `json:"daily_infos"`
+	PeriodInfos []statistic.PeriodInfo     `json:"period_infos"`
 }
