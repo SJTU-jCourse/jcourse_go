@@ -76,7 +76,7 @@ func GetCourseDetail(ctx context.Context, courseID int64, userID int64) (*course
 	return &course, nil
 }
 
-func buildCourseDBOptionFromFilter(ctx context.Context, q *repository.Query, filter course.CourseListFilterForQuery) repository.ICoursePODo {
+func buildCourseDBOptionFromFilter(ctx context.Context, q *repository.Query, filter course.CourseListQuery) repository.ICoursePODo {
 	builder := q.CoursePO.WithContext(ctx)
 	c := q.CoursePO
 
@@ -113,7 +113,7 @@ func buildCourseDBOptionFromFilter(ctx context.Context, q *repository.Query, fil
 	return builder
 }
 
-func GetCourseList(ctx context.Context, filter course.CourseListFilterForQuery) ([]course.CourseSummary, error) {
+func GetCourseList(ctx context.Context, filter course.CourseListQuery) ([]course.CourseSummary, error) {
 
 	q := buildCourseDBOptionFromFilter(ctx, repository.Q, filter)
 
@@ -141,7 +141,7 @@ func GetCourseList(ctx context.Context, filter course.CourseListFilterForQuery) 
 	return courses, nil
 }
 
-func GetCourseCount(ctx context.Context, filter course.CourseListFilterForQuery) (int64, error) {
+func GetCourseCount(ctx context.Context, filter course.CourseListQuery) (int64, error) {
 	filter.Page, filter.PageSize = 0, 0
 	q := buildCourseDBOptionFromFilter(ctx, repository.Q, filter)
 	return q.Count()
@@ -159,10 +159,10 @@ func GetBaseCourse(ctx context.Context, code string) (*course.BaseCourse, error)
 
 func GetCourseFilter(ctx context.Context) (course.CourseFilter, error) {
 	filter := course.CourseFilter{
-		Categories:  make([]course.FilterItem, 0),
-		Departments: make([]course.FilterItem, 0),
-		Credits:     make([]course.FilterItem, 0),
-		Semesters:   make([]course.FilterItem, 0),
+		Categories:  make([]course.FilterAggregateItem, 0),
+		Departments: make([]course.FilterAggregateItem, 0),
+		Credits:     make([]course.FilterAggregateItem, 0),
+		Semesters:   make([]course.FilterAggregateItem, 0),
 	}
 
 	c := repository.Q.CoursePO

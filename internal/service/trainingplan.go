@@ -33,7 +33,7 @@ func GetTrainingPlanDetail(ctx context.Context, trainingPlanID int64) (*course.T
 	return &trainingPlan, nil
 }
 
-func buildTrainingPlanDBOptionFromFilter(ctx context.Context, q *repository.Query, filter course.TrainingPlanFilterForQuery) repository.ITrainingPlanPODo {
+func buildTrainingPlanDBOptionFromFilter(ctx context.Context, q *repository.Query, filter course.TrainingPlanListQuery) repository.ITrainingPlanPODo {
 	builder := q.TrainingPlanPO.WithContext(ctx)
 	tp := q.TrainingPlanPO
 
@@ -66,13 +66,13 @@ func buildTrainingPlanDBOptionFromFilter(ctx context.Context, q *repository.Quer
 	return builder
 }
 
-func GetTrainingPlanCount(ctx context.Context, filter course.TrainingPlanFilterForQuery) (int64, error) {
+func GetTrainingPlanCount(ctx context.Context, filter course.TrainingPlanListQuery) (int64, error) {
 	filter.PageSize, filter.Page = 0, 0
 	q := buildTrainingPlanDBOptionFromFilter(ctx, repository.Q, filter)
 	return q.Count()
 }
 
-func SearchTrainingPlanList(ctx context.Context, filter course.TrainingPlanFilterForQuery) ([]course.TrainingPlanSummary, error) {
+func SearchTrainingPlanList(ctx context.Context, filter course.TrainingPlanListQuery) ([]course.TrainingPlanSummary, error) {
 
 	q := buildTrainingPlanDBOptionFromFilter(ctx, repository.Q, filter)
 	/*
@@ -111,9 +111,9 @@ func SearchTrainingPlanList(ctx context.Context, filter course.TrainingPlanFilte
 
 func GetTrainingPlanFilter(ctx context.Context) (course.TrainingPlanFilter, error) {
 	filter := course.TrainingPlanFilter{
-		Departments: make([]course.FilterItem, 0),
-		EntryYears:  make([]course.FilterItem, 0),
-		Degrees:     make([]course.FilterItem, 0),
+		Departments: make([]course.FilterAggregateItem, 0),
+		EntryYears:  make([]course.FilterAggregateItem, 0),
+		Degrees:     make([]course.FilterAggregateItem, 0),
 	}
 
 	t := repository.Q.TrainingPlanPO

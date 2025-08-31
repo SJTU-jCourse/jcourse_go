@@ -36,14 +36,14 @@ func GetCourseDetailHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, course)
 }
 
-func convertCourseListFilter(request dto.CourseListRequest) course.CourseListFilterForQuery {
-	filter := course.CourseListFilterForQuery{
-		PaginationFilterForQuery: request.PaginationFilterForQuery,
-		Categories:               make([]string, 0),
-		Departments:              make([]string, 0),
-		Credits:                  make([]float64, 0),
-		Code:                     request.Code,
-		MainTeacherID:            request.MainTeacherID,
+func convertCourseListFilter(request dto.CourseListRequest) course.CourseListQuery {
+	filter := course.CourseListQuery{
+		PaginationQuery: request.PaginationFilterForQuery,
+		Categories:      make([]string, 0),
+		Departments:     make([]string, 0),
+		Credits:         make([]float64, 0),
+		Code:            request.Code,
+		MainTeacherID:   request.MainTeacherID,
 	}
 
 	categories := strings.Split(request.Categories, ",")

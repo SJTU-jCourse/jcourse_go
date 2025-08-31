@@ -25,7 +25,7 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*course.TeacherDeta
 	}
 	teacher := converter.ConvertTeacherDetailFromPO(teacherPO)
 
-	courses, err := GetCourseList(ctx, course.CourseListFilterForQuery{MainTeacherID: teacherID})
+	courses, err := GetCourseList(ctx, course.CourseListQuery{MainTeacherID: teacherID})
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func GetTeacherDetail(ctx context.Context, teacherID int64) (*course.TeacherDeta
 	return &teacher, nil
 }
 
-func buildTeacherDBOptionFromFilter(ctx context.Context, q *repository.Query, filter course.TeacherFilterForQuery) repository.ITeacherPODo {
+func buildTeacherDBOptionFromFilter(ctx context.Context, q *repository.Query, filter course.TeacherListQuery) repository.ITeacherPODo {
 	builder := q.TeacherPO.WithContext(ctx)
 	t := q.TeacherPO
 
@@ -79,7 +79,7 @@ func buildTeacherDBOptionFromFilter(ctx context.Context, q *repository.Query, fi
 	return builder
 }
 
-func SearchTeacherList(ctx context.Context, filter course.TeacherFilterForQuery) ([]course.TeacherSummary, error) {
+func SearchTeacherList(ctx context.Context, filter course.TeacherListQuery) ([]course.TeacherSummary, error) {
 	q := buildTeacherDBOptionFromFilter(ctx, repository.Q, filter)
 
 	teachers, err := q.Find()
@@ -106,7 +106,7 @@ func SearchTeacherList(ctx context.Context, filter course.TeacherFilterForQuery)
 	return domainTeachers, nil
 }
 
-func GetTeacherCount(ctx context.Context, filter course.TeacherFilterForQuery) (int64, error) {
+func GetTeacherCount(ctx context.Context, filter course.TeacherListQuery) (int64, error) {
 
 	filter.Page, filter.PageSize = 0, 0
 	q := buildTeacherDBOptionFromFilter(ctx, repository.Q, filter)
@@ -115,8 +115,8 @@ func GetTeacherCount(ctx context.Context, filter course.TeacherFilterForQuery) (
 
 func GetTeacherFilter(ctx context.Context) (course.TeacherFilter, error) {
 	filter := course.TeacherFilter{
-		Departments: make([]course.FilterItem, 0),
-		Titles:      make([]course.FilterItem, 0),
+		Departments: make([]course.FilterAggregateItem, 0),
+		Titles:      make([]course.FilterAggregateItem, 0),
 	}
 
 	t := repository.Q.TeacherPO

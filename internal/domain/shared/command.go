@@ -1,6 +1,6 @@
 package shared
 
-type PaginationFilterForQuery struct {
+type PaginationQuery struct {
 	Page      int64  `json:"page" form:"page"`
 	PageSize  int64  `json:"page_size" form:"page_size"`
 	Search    string `json:"search" form:"search"`

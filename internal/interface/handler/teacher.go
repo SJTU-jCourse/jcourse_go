@@ -12,14 +12,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func convertTeacherListFilter(request dto.TeacherListRequest) course.TeacherFilterForQuery {
-	filter := course.TeacherFilterForQuery{
-		PaginationFilterForQuery: request.PaginationFilterForQuery,
-		Name:                     request.Name,
-		Departments:              make([]string, 0),
-		Titles:                   make([]string, 0),
-		Pinyin:                   request.Pinyin,
-		PinyinAbbr:               request.PinyinAbbr,
+func convertTeacherListFilter(request dto.TeacherListRequest) course.TeacherListQuery {
+	filter := course.TeacherListQuery{
+		PaginationQuery: request.PaginationFilterForQuery,
+		Name:            request.Name,
+		Departments:     make([]string, 0),
+		Titles:          make([]string, 0),
+		Pinyin:          request.Pinyin,
+		PinyinAbbr:      request.PinyinAbbr,
 	}
 
 	departments := strings.Split(request.Departments, ",")
@@ -96,11 +96,11 @@ func SearchTeacherListHandler(c *gin.Context) {
 		return
 	}
 
-	filter := course.TeacherFilterForQuery{
-		Name:                     request.Name,
-		Pinyin:                   request.Pinyin,
-		PinyinAbbr:               request.PinyinAbbr,
-		PaginationFilterForQuery: request.PaginationFilterForQuery,
+	filter := course.TeacherListQuery{
+		Name:            request.Name,
+		Pinyin:          request.Pinyin,
+		PinyinAbbr:      request.PinyinAbbr,
+		PaginationQuery: request.PaginationFilterForQuery,
 	}
 
 	teachers, err := service.SearchTeacherList(c, filter)

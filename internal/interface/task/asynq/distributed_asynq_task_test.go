@@ -13,7 +13,7 @@ package asynq
 // )
 
 // func mockTaskHandler(ctx context.Context, t base.Task, executionChan chan<- string) error {
-// 	executionChan <- t.Type()
+// 	executionChan <- t.Event()
 // 	return nil
 // }
 
@@ -112,7 +112,7 @@ package asynq
 // 	// Register a handler for the test task
 // 	taskType := "test:kill_task"
 // 	err := asynqManager.RegisterTaskHandler(taskType, func(ctx context.Context, t base.Task) error {
-// 		executionChan <- t.Type()
+// 		executionChan <- t.Event()
 // 		return nil
 // 	})
 // 	assert.Nil(t, err, "RegisterTaskHandler should not return an error")

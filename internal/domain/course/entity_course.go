@@ -2,6 +2,8 @@ package course
 
 import (
 	"time"
+
+	"jcourse_go/internal/domain/shared"
 )
 
 // BaseCourse 基础课程，Code 作为 id
@@ -12,13 +14,13 @@ type BaseCourse struct {
 }
 
 type Course struct {
-	ID     string  `json:"id"`
-	Code   string  `json:"code"`
-	Name   string  `json:"name"`
-	Credit float64 `json:"credit"`
+	ID     shared.IDType `json:"id"`
+	Code   string        `json:"code"`
+	Name   string        `json:"name"`
+	Credit float64       `json:"credit"`
 
-	MainTeacherID string   `json:"main_teacher_id"`
-	MainTeacher   *Teacher `json:"main_teacher"`
+	MainTeacherID shared.IDType `json:"main_teacher_id"`
+	MainTeacher   *Teacher      `json:"main_teacher"`
 
 	OfferedCourses []OfferedCourse `json:"offered_courses"`
 
@@ -27,22 +29,22 @@ type Course struct {
 }
 
 type OfferedCourse struct {
-	ID           int64     `json:"id"`
-	Semester     string    `json:"semester"`
-	Department   string    `json:"department"`
-	Language     string    `json:"language"`
-	Grade        []string  `json:"grade"`
-	Categories   []string  `json:"categories"`
-	TeacherGroup []Teacher `json:"teacher_group"`
+	ID           shared.IDType `json:"id"`
+	Semester     string        `json:"semester"`
+	Department   string        `json:"department"`
+	Language     string        `json:"language"`
+	Grade        []string      `json:"grade"`
+	Categories   []string      `json:"categories"`
+	TeacherGroup []Teacher     `json:"teacher_group"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type Teacher struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Code string `json:"code"`
+	ID   shared.IDType `json:"id"`
+	Name string        `json:"name"`
+	Code string        `json:"code"`
 
 	Title      string `json:"title"`
 	Department string `json:"department"`
@@ -55,7 +57,7 @@ type Teacher struct {
 }
 
 type TrainingPlan struct {
-	ID         int64                `json:"id"`
+	ID         shared.IDType        `json:"id"`
 	Code       string               `json:"code"`
 	MajorName  string               `json:"name"`
 	EntryYear  string               `json:"entry_year"`

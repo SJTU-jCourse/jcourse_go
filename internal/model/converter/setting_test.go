@@ -60,7 +60,7 @@ func TestGetSettingFromPO(t *testing.T) {
 			expectedErr: true,
 		},
 		{
-			name: "Unknown Setting Type",
+			name: "Unknown Setting Event",
 			input: entity.SettingPO{
 				Key:   "unknown",
 				Value: "value",

@@ -58,13 +58,13 @@ func GetTrainingPlanFilter(c *gin.Context) {
 	c.JSON(http.StatusOK, filter)
 }
 
-func convTrainingPlanFilter(request dto.TrainingPlanListQueryRequest) course.TrainingPlanFilterForQuery {
-	filter := course.TrainingPlanFilterForQuery{
-		Major:                    request.MajorName,
-		EntryYears:               make([]string, 0),
-		Departments:              make([]string, 0),
-		Degrees:                  make([]string, 0),
-		PaginationFilterForQuery: request.PaginationFilterForQuery,
+func convTrainingPlanFilter(request dto.TrainingPlanListQueryRequest) course.TrainingPlanListQuery {
+	filter := course.TrainingPlanListQuery{
+		Major:           request.MajorName,
+		EntryYears:      make([]string, 0),
+		Departments:     make([]string, 0),
+		Degrees:         make([]string, 0),
+		PaginationQuery: request.PaginationFilterForQuery,
 	}
 
 	degrees := strings.Split(request.Degrees, ",")

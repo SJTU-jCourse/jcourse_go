@@ -190,6 +190,6 @@ package asynq
 // 	task := taskManager.CreateTask(taskType, payload)
 
 // 	// Verify the task
-// 	assert.Equal(t, taskType, task.Type(), "Task type should match")
+// 	assert.Equal(t, taskType, task.Event(), "Task type should match")
 // 	assert.Equal(t, payload, task.Payload(), "Task payload should match")
 // }

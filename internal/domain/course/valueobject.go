@@ -1,23 +1,26 @@
 package course
 
-import "jcourse_go/internal/domain/shared"
+type FilterAggregateItem struct {
+	Value string `json:"value"`
+	Count int64  `json:"count"`
+}
 
 type CourseFilter struct {
-	Departments []shared.FilterItem `json:"departments"`
-	Credits     []shared.FilterItem `json:"credits"`
-	Semesters   []shared.FilterItem `json:"semesters"`
-	Categories  []shared.FilterItem `json:"categories"`
+	Departments []FilterAggregateItem `json:"departments"`
+	Credits     []FilterAggregateItem `json:"credits"`
+	Semesters   []FilterAggregateItem `json:"semesters"`
+	Categories  []FilterAggregateItem `json:"categories"`
 }
 
 type TeacherFilter struct {
-	Departments []shared.FilterItem `json:"departments"`
-	Titles      []shared.FilterItem `json:"titles"`
+	Departments []FilterAggregateItem `json:"departments"`
+	Titles      []FilterAggregateItem `json:"titles"`
 }
 
 type TrainingPlanFilter struct {
-	Departments []shared.FilterItem `json:"departments"`
-	Degrees     []shared.FilterItem `json:"degrees"`
-	EntryYears  []shared.FilterItem `json:"entry_years"`
+	Departments []FilterAggregateItem `json:"departments"`
+	Degrees     []FilterAggregateItem `json:"degrees"`
+	EntryYears  []FilterAggregateItem `json:"entry_years"`
 }
 
 type Pinyin struct {
