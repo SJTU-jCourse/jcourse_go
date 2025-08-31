@@ -15,7 +15,7 @@ func ConvertUserDetailFromPO(po *entity.UserPO) user.UserDetail {
 		Role:        po.UserRole,
 		// Department:  po.Department,
 		// Major:       po.Major,
-		// Grade:       po.Grade,
+		// Score:       po.Score,
 		Points: po.Points,
 	}
 }
@@ -36,7 +36,7 @@ func ConvertUserProfileToPO(dto dto.UserProfileDTO) entity.UserPO {
 		// Department: dto.Department,
 		// Major:      dto.Major,
 		// Degree:     dto.Degree,
-		// Grade:      dto.Grade,
+		// Score:      dto.Score,
 		Bio: dto.Bio,
 	}
 }

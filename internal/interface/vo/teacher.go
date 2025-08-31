@@ -2,7 +2,6 @@ package vo
 
 import (
 	"jcourse_go/internal/domain/course"
-	"jcourse_go/internal/domain/rating"
 )
 
 type TeacherInCourseVO struct {
@@ -20,12 +19,12 @@ func NewTeacherInCourseVO(t *course.Teacher) TeacherInCourseVO {
 }
 
 type TeacherListItemVO struct {
-	ID         int64             `json:"id"`
-	Name       string            `json:"name"`
-	Department string            `json:"department"`
-	Title      string            `json:"title"`
-	Picture    string            `json:"picture"`
-	RatingInfo rating.RatingInfo `json:"rating_info"`
+	ID         int64    `json:"id"`
+	Name       string   `json:"name"`
+	Department string   `json:"department"`
+	Title      string   `json:"title"`
+	Picture    string   `json:"picture"`
+	RatingInfo RatingVO `json:"rating_info"`
 }
 
 func NewTeacherListItemVO(t *course.Teacher) TeacherListItemVO {

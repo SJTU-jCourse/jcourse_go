@@ -18,7 +18,7 @@ func ConvertReviewFromPO(po *entity.ReviewPO) course.Review {
 		IsAnonymous: po.IsAnonymous,
 		CreatedAt:   po.CreatedAt,
 		UpdatedAt:   po.UpdatedAt,
-		Grade:       po.Grade,
+		Score:       po.Grade,
 	}
 	return review
 }

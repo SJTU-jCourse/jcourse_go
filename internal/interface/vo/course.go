@@ -2,24 +2,47 @@ package vo
 
 import (
 	"jcourse_go/internal/domain/course"
-	"jcourse_go/internal/domain/rating"
 )
 
-type OfferedInfoVO struct {
+type OfferingInfoVO struct {
 	Categories []string `json:"categories"`
 	Department string   `json:"department"`
 	Language   string   `json:"language"`
 	Grade      []string `json:"grade"`
 }
 
+func NewOfferingInfoVO(co *course.CourseOffering) OfferingInfoVO {
+	return OfferingInfoVO{
+		Categories: co.Categories,
+		Department: co.Department,
+		Language:   co.Language,
+		Grade:      co.Grade,
+	}
+}
+
 type CourseListItemVO struct {
-	ID                int64             `json:"id"`
-	Code              string            `json:"code"`
-	Name              string            `json:"name"`
-	Credit            float64           `json:"credit"`
-	MainTeacher       TeacherInCourseVO `json:"main_teacher"`
-	LatestOfferedInfo OfferedInfoVO     `json:"latest_offered_info"`
-	RatingInfo        rating.RatingInfo `json:"rating_info"`
+	ID             int64             `json:"id"`
+	Code           string            `json:"code"`
+	Name           string            `json:"name"`
+	Credit         float64           `json:"credit"`
+	MainTeacher    TeacherInCourseVO `json:"main_teacher"`
+	LatestOffering OfferingInfoVO    `json:"latest_offering"`
+	RatingInfo     RatingVO          `json:"rating_info"`
+}
+
+func NewCourseListItemVO(c *course.Course) CourseListItemVO {
+	var offering OfferingInfoVO
+	if len(c.OfferedCourses) > 0 {
+		offering = NewOfferingInfoVO(&c.OfferedCourses[len(c.OfferedCourses)-1])
+	}
+	return CourseListItemVO{
+		ID:             c.ID.Int64(),
+		Code:           c.Code,
+		Name:           c.Name,
+		Credit:         c.Credit,
+		MainTeacher:    NewTeacherInCourseVO(c.MainTeacher),
+		LatestOffering: offering,
+	}
 }
 
 type CourseInReviewVO struct {
@@ -29,6 +52,15 @@ type CourseInReviewVO struct {
 	MainTeacher TeacherInCourseVO `json:"main_teacher"`
 }
 
+func NewCourseInReviewVO(c *course.Course) CourseInReviewVO {
+	return CourseInReviewVO{
+		ID:          c.ID.Int64(),
+		Code:        c.Code,
+		Name:        c.Name,
+		MainTeacher: NewTeacherInCourseVO(c.MainTeacher),
+	}
+}
+
 type CourseDetailVO struct {
 	ID          int64              `json:"id"`
 	Code        string             `json:"code"`
@@ -36,6 +68,21 @@ type CourseDetailVO struct {
 	Credit      float64            `json:"credit"`
 	MainTeacher TeacherInCourseVO  `json:"main_teacher"`
 	Offering    []CourseOfferingVO `json:"offering"`
+}
+
+func NewCourseDetailVO(c *course.Course) CourseDetailVO {
+	offering := make([]CourseOfferingVO, 0)
+	for _, o := range c.OfferedCourses {
+		offering = append(offering, NewCourseOfferingVO(&o))
+	}
+	return CourseDetailVO{
+		ID:          c.ID.Int64(),
+		Code:        c.Code,
+		Name:        c.Name,
+		Credit:      c.Credit,
+		MainTeacher: NewTeacherInCourseVO(c.MainTeacher),
+		Offering:    offering,
+	}
 }
 
 type CourseOfferingVO struct {
