@@ -3,17 +3,18 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 
+	"jcourse_go/internal/application"
 	"jcourse_go/internal/domain/course"
 )
 
 type ReviewController struct {
 	reviewRepo       course.ReviewRepository
-	reviewCmdService course.ReviewCommandService
+	reviewCmdService application.ReviewCommandService
 }
 
 func NewReviewController(
 	reviewRepo course.ReviewRepository,
-	reviewCmdService course.ReviewCommandService,
+	reviewCmdService application.ReviewCommandService,
 ) *ReviewController {
 	return &ReviewController{
 		reviewRepo:       reviewRepo,
