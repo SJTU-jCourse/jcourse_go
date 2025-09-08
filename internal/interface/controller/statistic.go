@@ -3,18 +3,18 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 
-	"jcourse_go/internal/domain/statistic"
+	"jcourse_go/internal/application"
 )
 
 type StatisticController struct {
-	statisticRepo statistic.StatisticRepository
+	statisticQuery application.StatisticQueryService
 }
 
 func NewStatisticController(
-	statisticRepo statistic.StatisticRepository,
+	statisticQuery application.StatisticQueryService,
 ) *StatisticController {
 	return &StatisticController{
-		statisticRepo: statisticRepo,
+		statisticQuery: statisticQuery,
 	}
 }
 

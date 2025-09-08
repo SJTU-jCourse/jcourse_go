@@ -4,21 +4,20 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"jcourse_go/internal/application"
-	"jcourse_go/internal/domain/course"
 )
 
 type ReviewController struct {
-	reviewRepo       course.ReviewRepository
-	reviewCmdService application.ReviewCommandService
+	reviewQuery   application.ReviewQueryService
+	reviewCommand application.ReviewCommandService
 }
 
 func NewReviewController(
-	reviewRepo course.ReviewRepository,
-	reviewCmdService application.ReviewCommandService,
+	reviewQuery application.ReviewQueryService,
+	reviewCommand application.ReviewCommandService,
 ) *ReviewController {
 	return &ReviewController{
-		reviewRepo:       reviewRepo,
-		reviewCmdService: reviewCmdService,
+		reviewQuery:   reviewQuery,
+		reviewCommand: reviewCommand,
 	}
 }
 

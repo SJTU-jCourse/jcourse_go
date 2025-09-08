@@ -7,7 +7,7 @@ type UserActivityVO struct {
 	FollowingCourseCount int64 `json:"following_course_count"`
 }
 
-type UserVO struct {
+type UserInfoVO struct {
 	ID       int64  `json:"id,omitempty"`
 	Username string `json:"username,omitempty"`
 	Role     string `json:"role,omitempty"`

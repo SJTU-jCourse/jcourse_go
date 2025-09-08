@@ -3,18 +3,18 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 
-	"jcourse_go/internal/domain/course"
+	"jcourse_go/internal/application"
 )
 
 type TeacherController struct {
-	teacherRepo course.TeacherRepository
+	teacherQuery application.TeacherQueryService
 }
 
 func NewTeacherController(
-	teacherRepo course.TeacherRepository,
+	teacherQuery application.TeacherQueryService,
 ) *TeacherController {
 	return &TeacherController{
-		teacherRepo: teacherRepo,
+		teacherQuery: teacherQuery,
 	}
 }
 
