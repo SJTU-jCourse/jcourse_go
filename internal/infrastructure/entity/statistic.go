@@ -2,8 +2,8 @@ package entity
 
 import "time"
 
-type StatisticPO struct {
-	ID int64 `gorm:"primarykey"`
+type Statistic struct {
+	ID int64 `gorm:"primaryKey"`
 
 	Date         string `gorm:"index:unique"` // 异步落盘, yyyy-mm-dd
 	NewUsers     int64
@@ -12,9 +12,9 @@ type StatisticPO struct {
 	TotalUsers   int64
 	TotalReviews int64
 
-	CreatedAt time.Time `gorm:"index"`
+	CreatedAt time.Time
 }
 
-func (po *StatisticPO) TableName() string {
-	return "statistics"
+func (po *Statistic) TableName() string {
+	return "statistic"
 }

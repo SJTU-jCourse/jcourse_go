@@ -4,76 +4,70 @@ import (
 	"time"
 )
 
-type BaseCourse struct {
-	Code      string    `gorm:"index;uniqueIndex"`
-	Name      string    `gorm:"index"`
-	Credit    float64   `gorm:"index"`
-	CreatedAt time.Time `gorm:"index"`
-}
-
-func (s *BaseCourse) TableName() string {
-	return "base_courses"
-}
-
 type Course struct {
-	ID int64 `gorm:"primarykey"`
+	ID int64 `gorm:"primaryKey"`
 
-	Code          string  `gorm:"index;index:uniq_course,unique"`
-	Name          string  `gorm:"index"`
-	Credit        float64 `gorm:"index"`
-	MainTeacherID int64   `gorm:"index;index:uniq_course,unique"`
+	Code   string  `gorm:"index;index:uniq_course,unique"`
+	Name   string  `gorm:"index"`
+	Credit float64 `gorm:"index"`
 
-	SearchIndex SearchIndex `gorm:"->:false;<-"`
+	MainTeacherID int64 `gorm:"index;index:uniq_course,unique"`
+	MainTeacher   *Teacher
+
+	Offerings []*CourseOffering
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
 func (po *Course) TableName() string {
-	return "courses"
+	return "course"
 }
 
-type OfferedCoursePO struct {
-	ID int64 `gorm:"primarykey"`
+type CourseOffering struct {
+	ID int64 `gorm:"primaryKey"`
 
-	CourseID      int64  `gorm:"index;index:uniq_offered_course,unique"`
-	MainTeacherID int64  `gorm:"index"`
-	Semester      string `gorm:"index;index:uniq_offered_course,unique"`
-	Language      string `gorm:"index"`
-	Grade         string `gorm:"index"`
-	Department    string `gorm:"index;index:uniq_course,unique"`
+	CourseID      int64 `gorm:"index;index:uniq_offering,unique"`
+	Course        *Course
+	MainTeacherID int64 `gorm:"index"`
+
+	Semester   string `gorm:"index;index:uniq_offering,unique"`
+	Language   string `gorm:"index"`
+	Department string `gorm:"index;index:uniq_offering,unique"`
+
+	Categories   []CourseOfferingCategory
+	TeacherGroup []*Teacher `gorm:"many2many:course_offering_teacher"`
 
 	CreatedAt time.Time
 }
 
-func (po *OfferedCoursePO) TableName() string {
-	return "offered_courses"
+func (po *CourseOffering) TableName() string {
+	return "course_offering"
 }
 
-type OfferedCourseCategoryPO struct {
-	ID        int64 `gorm:"primarykey"`
-	CreatedAt time.Time
-
-	CourseID int64   `gorm:"index;index:uniq_offered_course_category,unique"`
-	Course   *Course `gorm:"constraint:OnDelete:CASCADE;"`
-	Category string  `gorm:"index;index:uniq_offered_course_category,unique"`
+type CourseOfferingCategory struct {
+	ID               int64  `gorm:"primaryKey"`
+	CourseOfferingID int64  `gorm:"index:uniq_offering_category,unique"`
+	Category         string `gorm:"index:uniq_offering_category,unique"`
+	CourseID         int64  `gorm:"index"`
+	Course           *Course
+	CreatedAt        time.Time
 }
 
-func (po *OfferedCourseCategoryPO) TableName() string {
-	return "offered_course_categories"
+func (po *CourseOfferingCategory) TableName() string {
+	return "course_offering_category"
 }
 
-type OfferedCourseTeacherPO struct {
-	ID int64 `gorm:"primarykey"`
+type CourseOfferingTeacher struct {
+	ID int64 `gorm:"primaryKey"`
 
-	CourseID        int64 `gorm:"index"`
-	OfferedCourseID int64 `gorm:"index;index:uniq_offered_course_teacher,unique"`
-	MainTeacherID   int64 `gorm:"index"`
-	TeacherID       int64 `gorm:"index;index:uniq_offered_course_teacher,unique"`
-
-	CreatedAt time.Time
+	CourseOfferingID int64 `gorm:"index:uniq_offering_category,unique"`
+	TeacherID        int64 `gorm:"index:uniq_offering_category,unique"`
+	CourseID         int64 `gorm:"index"`
+	Course           *Course
+	CreatedAt        time.Time
 }
 
-func (po *OfferedCourseTeacherPO) TableName() string {
-	return "offered_courses_teachers"
+func (po *CourseOfferingTeacher) TableName() string {
+	return "course_offering_teacher"
 }

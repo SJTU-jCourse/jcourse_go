@@ -83,7 +83,7 @@ func ChangeUserPoints(ctx context.Context, userID int64, eventType types.PointEv
 	originalPoints := user.Points
 	user.Points += value
 
-	point := entity2.UserPointDetailPO{
+	point := entity2.UserPointDetail{
 		UserID:      userID,
 		Value:       value,
 		Description: description,
@@ -130,8 +130,8 @@ func TransferUserPoints(ctx context.Context, senderID int64, receiverID int64, v
 	if err != nil {
 		return err
 	}
-	var senderPO *entity2.UserPO = nil
-	var receiverPO *entity2.UserPO = nil
+	var senderPO *entity2.User = nil
+	var receiverPO *entity2.User = nil
 	for _, user := range userPOs {
 		if user.ID == (senderID) {
 			senderPO = user
@@ -156,13 +156,13 @@ func TransferUserPoints(ctx context.Context, senderID int64, receiverID int64, v
 	receiverPO.Points += receivedValue
 
 	description := fmt.Sprintf(TransferDescriptionFormat, senderID, receiverID, value)
-	senderPoint := entity2.UserPointDetailPO{
+	senderPoint := entity2.UserPointDetail{
 		UserID:      senderID,
 		Value:       value,
 		Description: description,
 		EventType:   string(types.PointEventTransfer),
 	}
-	receiverPoint := entity2.UserPointDetailPO{
+	receiverPoint := entity2.UserPointDetail{
 		UserID:      receiverID,
 		Value:       receivedValue,
 		Description: description,

@@ -7,7 +7,7 @@ import (
 	"jcourse_go/internal/interface/dto"
 )
 
-func ConvertReviewFromPO(po *entity.ReviewPO) course.Review {
+func ConvertReviewFromPO(po *entity.Review) course.Review {
 	review := course.Review{
 		ID:          po.ID,
 		Course:      ConvertCourseMinimalFromPO(po.Course),
@@ -39,8 +39,8 @@ func RemoveReviewsUserInfo(reviews []course.Review, userID int64, hideUser bool)
 	}
 }
 
-func ConvertReviewDTOToPO(dto dto.UpdateReviewDTO, userID int64) entity.ReviewPO {
-	return entity.ReviewPO{
+func ConvertReviewDTOToPO(dto dto.UpdateReviewDTO, userID int64) entity.Review {
+	return entity.Review{
 		ID:          dto.ID,
 		CourseID:    dto.CourseID,
 		UserID:      userID,
@@ -52,7 +52,7 @@ func ConvertReviewDTOToPO(dto dto.UpdateReviewDTO, userID int64) entity.ReviewPO
 	}
 }
 
-func PackReviewWithReaction(review *course.Review, currentUserID int64, reactions []entity.ReviewReactionPO) {
+func PackReviewWithReaction(review *course.Review, currentUserID int64, reactions []entity.ReviewReaction) {
 	if review == nil {
 		return
 	}

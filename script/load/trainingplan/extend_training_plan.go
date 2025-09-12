@@ -32,11 +32,11 @@ func main() {
 	allTrainingPlans := seleniumget.LoadTrainingPLans(data_path)
 
 	// 对齐trainingplan course 和 basecourse
-	var all_courses []entity2.BaseCourse
-	db.Model(entity2.BaseCourse{}).Find(&all_courses)
+	var all_courses []entity2.Curriculum
+	db.Model(entity2.Curriculum{}).Find(&all_courses)
 
 	for _, tp := range allTrainingPlans {
-		tp_po := entity2.TrainingPlanPO{
+		tp_po := entity2.TrainingPlan{
 			Degree:     tp.Degree,
 			Major:      tp.Name,
 			Department: tp.Department,
@@ -46,15 +46,15 @@ func main() {
 			MajorCode:  tp.Code,
 			MajorClass: tp.MajorClass,
 		}
-		result := db.Model(entity2.TrainingPlanPO{}).
+		result := db.Model(entity2.TrainingPlan{}).
 			Clauses(clause.OnConflict{DoNothing: true}).
 			Create(&tp_po)
 		if result.Error != nil {
 			log.Fatalf("In create training plan %#v:%#v", tp, result.Error)
 		}
 		for _, c := range tp.Courses {
-			course := entity2.BaseCourse{}
-			cresult := db.Model(entity2.BaseCourse{}).Where("code = ?", c.Code).First(&course)
+			course := entity2.Curriculum{}
+			cresult := db.Model(entity2.Curriculum{}).Where("code = ?", c.Code).First(&course)
 			if cresult.Error != nil {
 				if !errors.Is(cresult.Error, gorm.ErrRecordNotFound) {
 					log.Fatalf("In bind course %#v totraining plan %#v:%#v", c, tp, cresult.Error)
@@ -63,14 +63,14 @@ func main() {
 				log.Printf("In bind course %#v totraining plan %#v:course not found", c, tp)
 				continue
 			}
-			tpc_po := entity2.TrainingPlanCoursePO{
+			tpc_po := entity2.TrainingPlanCurriculum{
 				TrainingPlanID:  int64(tp_po.ID),
-				BaseCourseID:    int64(course.ID),
+				CourseCode:      int64(course.ID),
 				SuggestSemester: c.SuggestSemester,
 				// Department:      c.Department,
 			}
 			// 已有记录则跳过
-			cresult = db.Model(entity2.TrainingPlanCoursePO{}).
+			cresult = db.Model(entity2.TrainingPlanCurriculum{}).
 				Clauses(clause.OnConflict{DoNothing: true}).
 				Create(&tpc_po)
 			if cresult.Error != nil {

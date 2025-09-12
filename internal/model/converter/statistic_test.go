@@ -44,9 +44,9 @@ func TestConvertStatisticDataFromPO(t *testing.T) {
 }
 
 func TestGetPeriodInfoFromPOs(t *testing.T) {
-	// Helper function to create a StatisticPO with a given date and UVCount
-	createStatisticPO := func(daysAgo int) entity2.StatisticPO {
-		return entity2.StatisticPO{
+	// Helper function to create a Statistic with a given date and UVCount
+	createStatisticPO := func(daysAgo int) entity2.Statistic {
+		return entity2.Statistic{
 			Date:         util.FormatDate(util.GetMidTime(time.Now()).AddDate(0, 0, -daysAgo)),
 			UVCount:      int64(rand.Uint64() % 1000),
 			PVCount:      int64(rand.Uint64() % 1000),
@@ -58,7 +58,7 @@ func TestGetPeriodInfoFromPOs(t *testing.T) {
 	}
 
 	// Test data
-	pos := make([]*entity2.StatisticPO, 40)
+	pos := make([]*entity2.Statistic, 40)
 	for i := 0; i < 40; i++ {
 		p := createStatisticPO(i)
 		pos[i] = &p

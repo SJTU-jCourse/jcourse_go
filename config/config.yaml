@@ -1,0 +1,6 @@
+db:
+  host: localhost
+  port: 5432
+  user: jcourse
+  password: jcourse
+  db_name: jcourse_v2

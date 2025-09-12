@@ -47,20 +47,25 @@ type SMTPConfig struct {
 	Sender   string `yaml:"sender"`
 }
 
-var global *AppConfig
+var global AppConfig
 
-func GetAppConfig() *AppConfig {
+func GetAppConfig() AppConfig {
 	return global
 }
 
-func InitConfig(path string) *AppConfig {
+func InitConfig(path string) AppConfig {
 	file, err := os.Open(path)
 	if err != nil {
 		panic(err)
 	}
 	defer file.Close()
 	configBytes, err := io.ReadAll(file)
-	global = new(AppConfig)
-	err = yaml.Unmarshal(configBytes, global)
+	if err != nil {
+		panic(err)
+	}
+	err = yaml.Unmarshal(configBytes, &global)
+	if err != nil {
+		panic(err)
+	}
 	return global
 }

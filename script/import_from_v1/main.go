@@ -47,18 +47,18 @@ var (
 	userPointMap      map[int64]UserPointV1
 	reviewReactionMap map[int64]ReviewReactionV1
 
-	oldToNewCourseMap  map[int64]entity2.Course    // old id -> new model
-	oldToNewTeacherMap map[int64]entity2.TeacherPO // old id -> new model
+	oldToNewCourseMap  map[int64]entity2.Course  // old id -> new model
+	oldToNewTeacherMap map[int64]entity2.Teacher // old id -> new model
 
-	newBaseCourseMap     map[string]entity2.BaseCourse       // code -> new
-	newCourseMap         map[string]entity2.Course           // course key -> new
-	newTeacherMap        map[string]entity2.TeacherPO        // teacher code -> new
-	newUserMap           map[int64]entity2.UserPO            // uid -> new
-	newReviewMap         map[int64]entity2.ReviewPO          // uid -> new
-	newReviewRevisionMap map[int64]entity2.ReviewRevisionPO  // uid -> new
-	newUserPointMap      map[int64]entity2.UserPointDetailPO // uid -> new
-	newReviewReactionMap map[int64]entity2.ReviewReactionPO  // uid -> new
-	newRatingMap         map[string]entity2.RatingPO         // uid & course_id -> new rating
+	newBaseCourseMap     map[string]entity2.Curriculum     // code -> new
+	newCourseMap         map[string]entity2.Course         // course key -> new
+	newTeacherMap        map[string]entity2.Teacher        // teacher code -> new
+	newUserMap           map[int64]entity2.User            // uid -> new
+	newReviewMap         map[int64]entity2.Review          // uid -> new
+	newReviewRevisionMap map[int64]entity2.ReviewRevision  // uid -> new
+	newUserPointMap      map[int64]entity2.UserPointDetail // uid -> new
+	newReviewReactionMap map[int64]entity2.ReviewReaction  // uid -> new
+	newRatingMap         map[string]entity2.Rating         // uid & course_id -> new rating
 )
 
 func makeCourseKey(course entity2.Course) string {
@@ -160,9 +160,9 @@ func makeRatingKey(userID int64, courseID int64) string {
 }
 
 func loadNewBaseCourse() {
-	baseCourses := make([]entity2.BaseCourse, 0)
-	newDB.Model(&entity2.BaseCourse{}).Find(&baseCourses)
-	newBaseCourseMap = make(map[string]entity2.BaseCourse)
+	baseCourses := make([]entity2.Curriculum, 0)
+	newDB.Model(&entity2.Curriculum{}).Find(&baseCourses)
+	newBaseCourseMap = make(map[string]entity2.Curriculum)
 	for _, baseCourse := range baseCourses {
 		newBaseCourseMap[baseCourse.Code] = baseCourse
 	}
@@ -178,70 +178,70 @@ func loadNewCourse() {
 }
 
 func loadNewTeacher() {
-	teachers := make([]entity2.TeacherPO, 0)
-	newDB.Model(&entity2.TeacherPO{}).Find(&teachers)
-	newTeacherMap = make(map[string]entity2.TeacherPO)
+	teachers := make([]entity2.Teacher, 0)
+	newDB.Model(&entity2.Teacher{}).Find(&teachers)
+	newTeacherMap = make(map[string]entity2.Teacher)
 	for _, teacher := range teachers {
 		newTeacherMap[teacher.Code] = teacher
 	}
 }
 
 func loadNewUser() {
-	users := make([]entity2.UserPO, 0)
-	newDB.Model(&entity2.UserPO{}).Find(&users)
-	newUserMap = make(map[int64]entity2.UserPO)
+	users := make([]entity2.User, 0)
+	newDB.Model(&entity2.User{}).Find(&users)
+	newUserMap = make(map[int64]entity2.User)
 	for _, user := range users {
 		newUserMap[int64(user.ID)] = user
 	}
 }
 
 func loadNewUserPoint() {
-	userPoints := make([]entity2.UserPointDetailPO, 0)
-	newDB.Model(&entity2.UserPointDetailPO{}).Find(&userPoints)
-	newUserPointMap = make(map[int64]entity2.UserPointDetailPO)
+	userPoints := make([]entity2.UserPointDetail, 0)
+	newDB.Model(&entity2.UserPointDetail{}).Find(&userPoints)
+	newUserPointMap = make(map[int64]entity2.UserPointDetail)
 	for _, userPoint := range userPoints {
 		newUserPointMap[int64(userPoint.ID)] = userPoint
 	}
 }
 
 func loadNewReview() {
-	reviews := make([]entity2.ReviewPO, 0)
-	newDB.Model(&entity2.ReviewPO{}).Find(&reviews)
-	newReviewMap = make(map[int64]entity2.ReviewPO)
+	reviews := make([]entity2.Review, 0)
+	newDB.Model(&entity2.Review{}).Find(&reviews)
+	newReviewMap = make(map[int64]entity2.Review)
 	for _, review := range reviews {
 		newReviewMap[int64(review.ID)] = review
 	}
 }
 
 func loadNewReviewRevision() {
-	reviewRevisions := make([]entity2.ReviewRevisionPO, 0)
-	newDB.Model(&entity2.ReviewRevisionPO{}).Find(&reviewRevisions)
-	newReviewRevisionMap = make(map[int64]entity2.ReviewRevisionPO)
+	reviewRevisions := make([]entity2.ReviewRevision, 0)
+	newDB.Model(&entity2.ReviewRevision{}).Find(&reviewRevisions)
+	newReviewRevisionMap = make(map[int64]entity2.ReviewRevision)
 	for _, reviewRevision := range reviewRevisions {
 		newReviewRevisionMap[int64(reviewRevision.ID)] = reviewRevision
 	}
 }
 
 func loadNewReviewReaction() {
-	reviewReactions := make([]entity2.ReviewReactionPO, 0)
-	newDB.Model(&entity2.ReviewReactionPO{}).Find(&reviewReactions)
-	newReviewReactionMap = make(map[int64]entity2.ReviewReactionPO)
+	reviewReactions := make([]entity2.ReviewReaction, 0)
+	newDB.Model(&entity2.ReviewReaction{}).Find(&reviewReactions)
+	newReviewReactionMap = make(map[int64]entity2.ReviewReaction)
 	for _, reviewReaction := range reviewReactions {
 		newReviewReactionMap[int64(reviewReaction.ID)] = reviewReaction
 	}
 }
 
 func loadNewRating() {
-	ratings := make([]entity2.RatingPO, 0)
-	newDB.Model(&entity2.RatingPO{}).Where("related_type = ?", "course").Find(&ratings)
-	newRatingMap = make(map[string]entity2.RatingPO)
+	ratings := make([]entity2.Rating, 0)
+	newDB.Model(&entity2.Rating{}).Where("related_type = ?", "course").Find(&ratings)
+	newRatingMap = make(map[string]entity2.Rating)
 	for _, rating := range ratings {
 		newRatingMap[makeRatingKey(rating.UserID, rating.RelatedID)] = rating
 	}
 }
 
-func BuildNewTeacherFromOld(teacher TeacherV1) entity2.TeacherPO {
-	return entity2.TeacherPO{
+func BuildNewTeacherFromOld(teacher TeacherV1) entity2.Teacher {
+	return entity2.Teacher{
 		Code:       teacher.Tid,
 		Name:       teacher.Name,
 		Title:      teacher.Title,
@@ -251,8 +251,8 @@ func BuildNewTeacherFromOld(teacher TeacherV1) entity2.TeacherPO {
 	}
 }
 
-func BuildNewCourseFromOld(course CourseV1) (entity2.BaseCourse, entity2.Course) {
-	newBaseCourse := entity2.BaseCourse{
+func BuildNewCourseFromOld(course CourseV1) (entity2.Curriculum, entity2.Course) {
+	newBaseCourse := entity2.Curriculum{
 		Code:   course.Code,
 		Name:   course.Name,
 		Credit: course.Credit,
@@ -270,8 +270,8 @@ func BuildNewCourseFromOld(course CourseV1) (entity2.BaseCourse, entity2.Course)
 	return newBaseCourse, newCourse
 }
 
-func BuildNewUserFromOld(user UserV1) entity2.UserPO {
-	newUser := entity2.UserPO{
+func BuildNewUserFromOld(user UserV1) entity2.User {
+	newUser := entity2.User{
 		ID:        user.ID,
 		CreatedAt: user.DateJoined,
 		Username:  user.Username,
@@ -285,8 +285,8 @@ func BuildNewUserFromOld(user UserV1) entity2.UserPO {
 	return newUser
 }
 
-func BuildNewReviewFormOld(review ReviewV1) entity2.ReviewPO {
-	newReview := entity2.ReviewPO{
+func BuildNewReviewFormOld(review ReviewV1) entity2.Review {
+	newReview := entity2.Review{
 		ID:          review.ID,
 		CreatedAt:   review.CreatedAt,
 		UpdatedAt:   review.ModifiedAt,
@@ -302,10 +302,10 @@ func BuildNewReviewFormOld(review ReviewV1) entity2.ReviewPO {
 	return newReview
 }
 
-func BuildNewReviewRevisionFromOld(revision ReviewRevisionV1) entity2.ReviewRevisionPO {
+func BuildNewReviewRevisionFromOld(revision ReviewRevisionV1) entity2.ReviewRevision {
 	newCourse := oldToNewCourseMap[revision.CourseID]
 
-	return entity2.ReviewRevisionPO{
+	return entity2.ReviewRevision{
 		ID:        revision.ID,
 		CreatedAt: revision.CreatedAt,
 		CourseID:  newCourse.ID,
@@ -318,8 +318,8 @@ func BuildNewReviewRevisionFromOld(revision ReviewRevisionV1) entity2.ReviewRevi
 	}
 }
 
-func BuildUserPointFromOld(point UserPointV1) entity2.UserPointDetailPO {
-	return entity2.UserPointDetailPO{
+func BuildUserPointFromOld(point UserPointV1) entity2.UserPointDetail {
+	return entity2.UserPointDetail{
 		ID:          point.ID,
 		CreatedAt:   point.Time,
 		UserID:      point.UserID,
@@ -328,12 +328,12 @@ func BuildUserPointFromOld(point UserPointV1) entity2.UserPointDetailPO {
 	}
 }
 
-func BuildNewReviewReactionFromOld(reaction ReviewReactionV1) entity2.ReviewReactionPO {
+func BuildNewReviewReactionFromOld(reaction ReviewReactionV1) entity2.ReviewReaction {
 	reactionMapping := map[int64]string{
 		1:  "+1",
 		-1: "-1",
 	}
-	return entity2.ReviewReactionPO{
+	return entity2.ReviewReaction{
 		ID:       reaction.ID,
 		UserID:   reaction.UserID,
 		ReviewID: reaction.ReviewID,
@@ -373,11 +373,11 @@ func main() {
 	println("start import")
 	println("importing teacher")
 	// course、teacher 如果新的没有，需要添加
-	oldToNewTeacherMap = make(map[int64]entity2.TeacherPO)
+	oldToNewTeacherMap = make(map[int64]entity2.Teacher)
 	for _, teacher := range teacherMap {
 		newTeacher := BuildNewTeacherFromOld(teacher)
 		if _, ok := newTeacherMap[newTeacher.Code]; !ok {
-			err := newDB.Model(&entity2.TeacherPO{}).Clauses(clause.OnConflict{DoNothing: true}).Create(&newTeacher).Error
+			err := newDB.Model(&entity2.Teacher{}).Clauses(clause.OnConflict{DoNothing: true}).Create(&newTeacher).Error
 			if err != nil {
 				println("create teacher error", newTeacher.Code, newTeacher.Name, err.Error())
 				continue
@@ -397,7 +397,7 @@ func main() {
 	for _, course := range courseMap {
 		newBaseCourse, newCourse := BuildNewCourseFromOld(course)
 		if _, ok := newBaseCourseMap[newBaseCourse.Code]; !ok {
-			err := newDB.Model(&entity2.BaseCourse{}).Clauses(clause.OnConflict{DoNothing: true}).Create(&newBaseCourse).Error
+			err := newDB.Model(&entity2.Curriculum{}).Clauses(clause.OnConflict{DoNothing: true}).Create(&newBaseCourse).Error
 			if err != nil {
 				println("create base course error", newBaseCourse.Code, newBaseCourse.Name, err.Error())
 				continue
@@ -426,7 +426,7 @@ func main() {
 	for _, user := range userMap {
 		newUser := BuildNewUserFromOld(user)
 		if _, ok := newUserMap[int64(newUser.ID)]; !ok {
-			err := newDB.Model(&entity2.UserPO{}).Clauses(clause.OnConflict{DoNothing: true}).Create(&newUser).Error
+			err := newDB.Model(&entity2.User{}).Clauses(clause.OnConflict{DoNothing: true}).Create(&newUser).Error
 			if err != nil {
 				println("create user error", newUser.Username, err.Error())
 				continue
@@ -443,7 +443,7 @@ func main() {
 	for _, userPoint := range userPointMap {
 		newUserPoint := BuildUserPointFromOld(userPoint)
 		if _, ok := newUserPointMap[int64(newUserPoint.ID)]; !ok {
-			err := newDB.Model(&entity2.UserPointDetailPO{}).Clauses(clause.OnConflict{DoNothing: true}).Create(&newUserPoint).Error
+			err := newDB.Model(&entity2.UserPointDetail{}).Clauses(clause.OnConflict{DoNothing: true}).Create(&newUserPoint).Error
 			if err != nil {
 				println("create user point error", newUserPoint.UserID, err.Error())
 				continue
@@ -460,7 +460,7 @@ func main() {
 	for _, review := range reviewMap {
 		newReview := BuildNewReviewFormOld(review)
 		if _, ok := newReviewMap[int64(newReview.ID)]; !ok {
-			err := newDB.Model(&entity2.ReviewPO{}).Create(&newReview).Error
+			err := newDB.Model(&entity2.Review{}).Create(&newReview).Error
 			if err != nil {
 				println("create review error", newReview.CourseID, newReview.UserID, err.Error())
 				continue
@@ -477,7 +477,7 @@ func main() {
 	for _, reviewRevision := range reviewRevisionMap {
 		newReviewRevision := BuildNewReviewRevisionFromOld(reviewRevision)
 		if _, ok := newReviewRevisionMap[int64(newReviewRevision.ID)]; !ok {
-			err := newDB.Model(&entity2.ReviewRevisionPO{}).Clauses(clause.OnConflict{DoNothing: true}).Create(&newReviewRevision).Error
+			err := newDB.Model(&entity2.ReviewRevision{}).Clauses(clause.OnConflict{DoNothing: true}).Create(&newReviewRevision).Error
 			if err != nil {
 				println("create review revision error", newReviewRevision.CourseID, newReviewRevision.UserID, err.Error())
 				continue
@@ -494,7 +494,7 @@ func main() {
 	for _, reviewReaction := range reviewReactionMap {
 		newReviewReaction := BuildNewReviewReactionFromOld(reviewReaction)
 		if _, ok := newReviewReactionMap[int64(newReviewReaction.ID)]; !ok {
-			err := newDB.Model(&entity2.ReviewReactionPO{}).Clauses(clause.OnConflict{DoNothing: true}).Create(&newReviewReaction).Error
+			err := newDB.Model(&entity2.ReviewReaction{}).Clauses(clause.OnConflict{DoNothing: true}).Create(&newReviewReaction).Error
 			if err != nil {
 				println("create review reaction error", newReviewReaction.ReviewID, newReviewReaction.UserID, err.Error())
 				continue
@@ -511,7 +511,7 @@ func main() {
 		ratingKey := makeRatingKey(review.UserID, review.CourseID)
 		if _, ok := newRatingMap[ratingKey]; !ok {
 			rating := converter.BuildRatingFromReview(review)
-			err := newDB.Model(&entity2.RatingPO{}).Clauses(clause.OnConflict{DoNothing: true}).Create(&rating).Error
+			err := newDB.Model(&entity2.Rating{}).Clauses(clause.OnConflict{DoNothing: true}).Create(&rating).Error
 			if err != nil {
 				println("create rating error", rating.RelatedID, rating.UserID, err.Error())
 				continue

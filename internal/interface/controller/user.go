@@ -3,15 +3,15 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 
-	"jcourse_go/internal/application"
+	"jcourse_go/internal/application/query"
 )
 
 type UserController struct {
-	userQuery application.UserQueryService
+	userQuery query.UserQueryService
 }
 
 func NewUserController(
-	userQuery application.UserQueryService,
+	userQuery query.UserQueryService,
 
 ) *UserController {
 	return &UserController{

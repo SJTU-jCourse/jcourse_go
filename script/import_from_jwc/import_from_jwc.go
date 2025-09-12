@@ -21,16 +21,16 @@ const Semester = "2024-2025-2"
 
 var (
 	db                         *gorm.DB
-	baseCourseKeyMap           = make(map[string]entity2.BaseCourse)
-	baseCourseIDMap            = make(map[int64]entity2.BaseCourse)
+	baseCourseKeyMap           = make(map[string]entity2.Curriculum)
+	baseCourseIDMap            = make(map[int64]entity2.Curriculum)
 	courseKeyMap               = make(map[string]entity2.Course)
 	courseIDMap                = make(map[int64]entity2.Course)
-	teacherKeyMap              = make(map[string]entity2.TeacherPO)
-	teacherIDMap               = make(map[int64]entity2.TeacherPO)
+	teacherKeyMap              = make(map[string]entity2.Teacher)
+	teacherIDMap               = make(map[int64]entity2.Teacher)
 	courseCategoryMap          = make(map[string]entity2.CourseCategoryPO)
-	offeredCourseKeyMap        = make(map[string]entity2.OfferedCoursePO)
-	offeredCourseIDMap         = make(map[int64]entity2.OfferedCoursePO)
-	offeredCourseTeacherKeyMap = make(map[string]entity2.OfferedCourseTeacherPO)
+	offeredCourseKeyMap        = make(map[string]entity2.CourseOffering)
+	offeredCourseIDMap         = make(map[int64]entity2.CourseOffering)
+	offeredCourseTeacherKeyMap = make(map[string]entity2.CourseOfferingTeacher)
 )
 
 func initDB() {
@@ -89,7 +89,7 @@ func main() {
 }
 
 func importBaseCourse(data [][]string) {
-	baseCourses := make([]entity2.BaseCourse, 0)
+	baseCourses := make([]entity2.Curriculum, 0)
 	baseCourseDedup := make(map[string]struct{})
 	for _, line := range data[1:] {
 		baseCourse := parseBaseCourseFromLine(line)
@@ -100,12 +100,12 @@ func importBaseCourse(data [][]string) {
 		baseCourses = append(baseCourses, baseCourse)
 	}
 	println("base course count: ", len(baseCourses))
-	result := db.Model(&entity2.BaseCourse{}).Clauses(clause.OnConflict{UpdateAll: true}).CreateInBatches(&baseCourses, 100)
+	result := db.Model(&entity2.Curriculum{}).Clauses(clause.OnConflict{UpdateAll: true}).CreateInBatches(&baseCourses, 100)
 	println("base course rows affected: ", result.RowsAffected)
 }
 
 func importTeacher(data [][]string) {
-	teachers := make([]entity2.TeacherPO, 0)
+	teachers := make([]entity2.Teacher, 0)
 	teacherSet := make(map[string]bool)
 	for _, line := range data[1:] {
 		for _, t := range parseTeacherGroupFromLine(line) {
@@ -117,7 +117,7 @@ func importTeacher(data [][]string) {
 		}
 	}
 	println("teacher count: ", len(teachers))
-	result := db.Model(&entity2.TeacherPO{}).Clauses(clause.OnConflict{
+	result := db.Model(&entity2.Teacher{}).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "code"}},
 		DoUpdates: clause.AssignmentColumns([]string{"department", "title"}),
 	}).CreateInBatches(&teachers, 100)
@@ -149,7 +149,7 @@ func importCourse(data [][]string) {
 }
 
 func importOfferedCourse(data [][]string) {
-	offeredCourses := make([]entity2.OfferedCoursePO, 0)
+	offeredCourses := make([]entity2.CourseOffering, 0)
 	offeredDedup := make(map[string]struct{})
 	for _, line := range data[1:] {
 		offered := parseOfferedCourseFromLine(line)
@@ -161,7 +161,7 @@ func importOfferedCourse(data [][]string) {
 		offeredCourses = append(offeredCourses, offered)
 	}
 	println("offered course count: ", len(offeredCourses))
-	result := db.Model(&entity2.OfferedCoursePO{}).Clauses(clause.OnConflict{UpdateAll: true}).CreateInBatches(&offeredCourses, 100)
+	result := db.Model(&entity2.CourseOffering{}).Clauses(clause.OnConflict{UpdateAll: true}).CreateInBatches(&offeredCourses, 100)
 	println("offered course rows affected: ", result.RowsAffected)
 }
 
@@ -175,7 +175,7 @@ func importCourseCategory(data [][]string) {
 }
 
 func importOfferedCourseTeacher(data [][]string) {
-	offeredCourseTeachers := make([]entity2.OfferedCourseTeacherPO, 0)
+	offeredCourseTeachers := make([]entity2.CourseOfferingTeacher, 0)
 	for _, line := range data[1:] {
 		teacherGroup := parseOfferedCourseTeacherGroup(line)
 		for _, t := range teacherGroup {
@@ -185,13 +185,13 @@ func importOfferedCourseTeacher(data [][]string) {
 			offeredCourseTeachers = append(offeredCourseTeachers, t)
 		}
 	}
-	result := db.Model(&entity2.OfferedCourseTeacherPO{}).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(&offeredCourseTeachers, 100)
+	result := db.Model(&entity2.CourseOfferingTeacher{}).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(&offeredCourseTeachers, 100)
 	println("offered course teacher rows affected: ", result.RowsAffected)
 }
 
-func parseBaseCourseFromLine(line []string) entity2.BaseCourse {
+func parseBaseCourseFromLine(line []string) entity2.Curriculum {
 	credit, _ := strconv.ParseFloat(line[9], 32)
-	baseCourse := entity2.BaseCourse{
+	baseCourse := entity2.Curriculum{
 		Code:   line[0],
 		Name:   line[1],
 		Credit: credit,
@@ -207,8 +207,8 @@ func makeBaseCourseKey(courseCode string) string {
 }
 
 func queryAllBaseCourse() {
-	baseCourses := make([]entity2.BaseCourse, 0)
-	result := db.Model(&entity2.BaseCourse{}).Find(&baseCourses)
+	baseCourses := make([]entity2.Curriculum, 0)
+	result := db.Model(&entity2.Curriculum{}).Find(&baseCourses)
 	if result.Error != nil {
 		return
 	}
@@ -218,19 +218,19 @@ func queryAllBaseCourse() {
 	}
 }
 
-func parseMainTeacherFromLine(line []string) entity2.TeacherPO {
+func parseMainTeacherFromLine(line []string) entity2.Teacher {
 	if line[4] == "" {
 		groups := parseTeacherGroupFromLine(line)
 		if len(groups) == 0 {
-			return entity2.TeacherPO{}
+			return entity2.Teacher{}
 		}
 		return groups[0]
 	}
 	teacherInfo := strings.Split(line[4], "|")
 	if len(teacherInfo) <= 1 {
-		return entity2.TeacherPO{}
+		return entity2.Teacher{}
 	}
-	teacher := entity2.TeacherPO{
+	teacher := entity2.Teacher{
 		Name:       teacherInfo[1],
 		Code:       teacherInfo[0],
 		Pinyin:     generatePinyin(teacherInfo[1]),
@@ -244,11 +244,11 @@ func parseMainTeacherFromLine(line []string) entity2.TeacherPO {
 	return teacher
 }
 
-func parseSingleTeacherFromLine(teacherInfo string) entity2.TeacherPO {
+func parseSingleTeacherFromLine(teacherInfo string) entity2.Teacher {
 	l := strings.Split(teacherInfo, "/")
 	s := strings.Split(l[2], "[")
 	dept, _ := strings.CutSuffix(s[1], "]")
-	teacher := entity2.TeacherPO{
+	teacher := entity2.Teacher{
 		Name:       l[1],
 		Code:       l[0],
 		Department: dept,
@@ -262,11 +262,11 @@ func parseSingleTeacherFromLine(teacherInfo string) entity2.TeacherPO {
 	return teacher
 }
 
-func parseTeacherGroupFromLine(line []string) []entity2.TeacherPO {
+func parseTeacherGroupFromLine(line []string) []entity2.Teacher {
 	replaced := strings.ReplaceAll(line[3], "THIERRY; Fine; VAN CHUNG", "THIERRY, Fine, VAN CHUNG")
 	teacherInfos := strings.Split(replaced, ";")
 
-	teachers := make([]entity2.TeacherPO, 0)
+	teachers := make([]entity2.Teacher, 0)
 	for _, teacherInfo := range teacherInfos {
 		teachers = append(teachers, parseSingleTeacherFromLine(teacherInfo))
 	}
@@ -278,9 +278,9 @@ func makeTeacherKey(teacherCode string) string {
 }
 
 func queryAllTeacher() {
-	teachers := make([]entity2.TeacherPO, 0)
+	teachers := make([]entity2.Teacher, 0)
 
-	result := db.Model(&entity2.TeacherPO{}).Find(&teachers)
+	result := db.Model(&entity2.Teacher{}).Find(&teachers)
 	if result.Error != nil {
 		return
 	}
@@ -323,10 +323,10 @@ func queryAllCourse() {
 	}
 }
 
-func parseOfferedCourseFromLine(line []string) entity2.OfferedCoursePO {
+func parseOfferedCourseFromLine(line []string) entity2.CourseOffering {
 	course := parseCourseFromLine(line)
 	mainTeacher := parseMainTeacherFromLine(line)
-	offeredCourse := entity2.OfferedCoursePO{
+	offeredCourse := entity2.CourseOffering{
 		CourseID:      int64(course.ID),
 		MainTeacherID: int64(mainTeacher.ID),
 		Semester:      Semester,
@@ -345,8 +345,8 @@ func makeOfferedCourseKey(courseID int64, semester string) string {
 }
 
 func queryAllOfferedCourse() {
-	offeredCourses := make([]entity2.OfferedCoursePO, 0)
-	result := db.Model(&entity2.OfferedCoursePO{}).Find(&offeredCourses)
+	offeredCourses := make([]entity2.CourseOffering, 0)
+	result := db.Model(&entity2.CourseOffering{}).Find(&offeredCourses)
 	if result.Error != nil {
 		return
 	}
@@ -356,17 +356,17 @@ func queryAllOfferedCourse() {
 	}
 }
 
-func parseOfferedCourseTeacherGroup(line []string) []entity2.OfferedCourseTeacherPO {
+func parseOfferedCourseTeacherGroup(line []string) []entity2.CourseOfferingTeacher {
 	teacherGroup := parseTeacherGroupFromLine(line)
 	offeredCourse := parseOfferedCourseFromLine(line)
-	teachers := make([]entity2.OfferedCourseTeacherPO, 0)
+	teachers := make([]entity2.CourseOfferingTeacher, 0)
 	for _, teacher := range teacherGroup {
-		teachers = append(teachers, entity2.OfferedCourseTeacherPO{
-			CourseID:        offeredCourse.CourseID,
-			OfferedCourseID: int64(offeredCourse.ID),
-			MainTeacherID:   offeredCourse.MainTeacherID,
-			TeacherID:       int64(teacher.ID),
-			TeacherName:     teacher.Name,
+		teachers = append(teachers, entity2.CourseOfferingTeacher{
+			CourseID:         offeredCourse.CourseID,
+			CourseOfferingID: int64(offeredCourse.ID),
+			MainTeacherID:    offeredCourse.MainTeacherID,
+			TeacherID:        int64(teacher.ID),
+			TeacherName:      teacher.Name,
 		})
 	}
 	return teachers
@@ -377,13 +377,13 @@ func makeOfferedCourseTeacherKey(offeredCourseID int64, teacherID int64) string 
 }
 
 func queryAllOfferedCourseTeacherGroup() {
-	offeredCourseTeachers := make([]entity2.OfferedCourseTeacherPO, 0)
-	result := db.Model(&entity2.OfferedCourseTeacherPO{}).Find(&offeredCourseTeachers)
+	offeredCourseTeachers := make([]entity2.CourseOfferingTeacher, 0)
+	result := db.Model(&entity2.CourseOfferingTeacher{}).Find(&offeredCourseTeachers)
 	if result.Error != nil {
 		return
 	}
 	for _, offeredCourseTeacher := range offeredCourseTeachers {
-		offeredCourseTeacherKeyMap[makeOfferedCourseTeacherKey(offeredCourseTeacher.OfferedCourseID, offeredCourseTeacher.TeacherID)] = offeredCourseTeacher
+		offeredCourseTeacherKeyMap[makeOfferedCourseTeacherKey(offeredCourseTeacher.CourseOfferingID, offeredCourseTeacher.TeacherID)] = offeredCourseTeacher
 	}
 }
 

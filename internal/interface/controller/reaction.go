@@ -1,13 +1,15 @@
 package controller
 
-import "jcourse_go/internal/application"
+import (
+	"jcourse_go/internal/application/command"
+)
 
 type ReviewReactionController struct {
-	reactionService application.ReactionService
+	reactionService command.ReactionService
 }
 
 func NewReviewReactionController(
-	reactionService application.ReactionService,
+	reactionService command.ReactionService,
 ) *ReviewReactionController {
 	return &ReviewReactionController{
 		reactionService: reactionService,

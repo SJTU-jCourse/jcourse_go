@@ -7,12 +7,12 @@ import (
 	"jcourse_go/internal/model/types"
 )
 
-func ConvertRatingInfoFromPO(po entity2.RatingPO) rating.RatingInfo {
+func ConvertRatingInfoFromPO(po entity2.Rating) rating.RatingInfo {
 	return rating.RatingInfo{}
 }
 
-func BuildRatingFromReview(review entity2.ReviewPO) entity2.RatingPO {
-	return entity2.RatingPO{
+func BuildRatingFromReview(review entity2.Review) entity2.Rating {
+	return entity2.Rating{
 		UserID:      review.UserID,
 		RelatedType: string(types.RelatedTypeCourse),
 		RelatedID:   review.CourseID,
@@ -20,8 +20,8 @@ func BuildRatingFromReview(review entity2.ReviewPO) entity2.RatingPO {
 	}
 }
 
-func ConvertRatingDTOToPO(userID int64, dto dto.RatingDTO) entity2.RatingPO {
-	return entity2.RatingPO{
+func ConvertRatingDTOToPO(userID int64, dto dto.RatingDTO) entity2.Rating {
+	return entity2.Rating{
 		UserID:      userID,
 		RelatedType: dto.RelatedType,
 		RelatedID:   dto.RelatedID,

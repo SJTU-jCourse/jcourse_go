@@ -23,7 +23,7 @@ func CreateReviewReaction(ctx context.Context, request dto.CreateReviewReactionR
 	}
 
 	rq := repository.Q.ReviewReactionPO
-	reactionModel := entity.ReviewReactionPO{
+	reactionModel := entity.ReviewReaction{
 		ReviewID: request.ReviewID,
 		UserID:   user.ID,
 		Reaction: request.Reaction,

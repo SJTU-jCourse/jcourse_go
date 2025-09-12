@@ -8,7 +8,7 @@ import (
 	entity2 "jcourse_go/internal/infrastructure/entity"
 )
 
-func ConvertBaseCourseFromPO(po *entity2.BaseCourse) course.Curriculum {
+func ConvertBaseCourseFromPO(po *entity2.Curriculum) course.Curriculum {
 	return course.Curriculum{
 		ID:     po.ID,
 		Code:   po.Code,
@@ -68,7 +68,7 @@ func PackCourseWithRatingInfo(c *course.CourseSummary, rating rating.RatingInfo)
 	c.RatingInfo = rating
 }
 
-func ConvertOfferedCourseFromPO(po entity2.OfferedCoursePO) course.CourseOffering {
+func ConvertOfferedCourseFromPO(po entity2.CourseOffering) course.CourseOffering {
 	grade := strings.Split(po.Grade, ",")
 	return course.CourseOffering{
 		ID:       po.ID,

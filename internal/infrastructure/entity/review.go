@@ -4,30 +4,36 @@ import (
 	"time"
 )
 
-type ReviewPO struct {
-	ID int64 `gorm:"primarykey"`
+type Review struct {
+	ID int64 `gorm:"primaryKey"`
 
 	CourseID    int64 `gorm:"index;index:uniq_course_review,unique"`
+	Course      *Course
 	UserID      int64 `gorm:"index;index:uniq_course_review,unique"`
+	User        *User
 	Comment     string
 	Rating      int64  `gorm:"index"`
 	Semester    string `gorm:"index"`
 	IsAnonymous bool
 	Grade       string // 成绩
 
-	SearchIndex SearchIndex `gorm:"->:false;<-"`
+	Revisions []*ReviewRevision
+	Reactions []*ReviewReaction
 
 	CreatedAt time.Time `gorm:"index"`
 	UpdatedAt time.Time `gorm:"index"`
 }
 
-func (po *ReviewPO) TableName() string {
-	return "reviews"
+func (po *Review) TableName() string {
+	return "review"
 }
 
-type ReviewRevisionPO struct {
-	ID          int64 `gorm:"primarykey"`
+type ReviewRevision struct {
+	ID          int64 `gorm:"primaryKey"`
+	UserID      int64 `gorm:"index"`
+	User        *User
 	ReviewID    int64 `gorm:"index"`
+	Review      *Review
 	Comment     string
 	Rating      int64
 	Semester    string
@@ -37,20 +43,22 @@ type ReviewRevisionPO struct {
 	CreatedAt   time.Time `gorm:"index"`
 }
 
-func (po *ReviewRevisionPO) TableName() string {
-	return "review_revisions"
+func (po *ReviewRevision) TableName() string {
+	return "review_revision"
 }
 
-type ReviewReactionPO struct {
-	ID int64 `gorm:"primarykey"`
+type ReviewReaction struct {
+	ID int64 `gorm:"primaryKey"`
 
-	ReviewID int64  `gorm:"index;index:uniq_review_reaction,unique"`
-	UserID   int64  `gorm:"index;index:uniq_review_reaction,unique"`
+	ReviewID int64 `gorm:"index;index:uniq_review_reaction,unique"`
+	Review   *Review
+	UserID   int64 `gorm:"index;index:uniq_review_reaction,unique"`
+	User     *User
 	Reaction string `gorm:"index;index:uniq_review_reaction,unique"`
 
 	CreatedAt time.Time `gorm:"index"`
 }
 
-func (po *ReviewReactionPO) TableName() string {
-	return "review_reactions"
+func (po *ReviewReaction) TableName() string {
+	return "review_reaction"
 }

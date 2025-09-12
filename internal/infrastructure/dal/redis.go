@@ -6,7 +6,7 @@ import (
 	"jcourse_go/internal/config"
 )
 
-func NewRedisClient(c *config.RedisConfig) (*redis.Client, error) {
+func NewRedisClient(c config.RedisConfig) (*redis.Client, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:     c.Addr,
 		Username: c.Username,

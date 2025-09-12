@@ -6,7 +6,7 @@ import (
 	"jcourse_go/internal/infrastructure/entity"
 )
 
-func ConvertTrainingPlanSummaryFromPO(po *entity.TrainingPlanPO) course.TrainingPlanSummary {
+func ConvertTrainingPlanSummaryFromPO(po *entity.TrainingPlan) course.TrainingPlanSummary {
 	return course.TrainingPlanSummary{
 		ID:         po.ID,
 		Code:       po.MajorCode,
@@ -17,7 +17,7 @@ func ConvertTrainingPlanSummaryFromPO(po *entity.TrainingPlanPO) course.Training
 	}
 }
 
-func ConvertTrainingPlanDetailFromPO(po *entity.TrainingPlanPO) course.TrainingPlanDetail {
+func ConvertTrainingPlanDetailFromPO(po *entity.TrainingPlan) course.TrainingPlanDetail {
 	detail := course.TrainingPlanDetail{
 		TrainingPlanSummary: ConvertTrainingPlanSummaryFromPO(po),
 		TotalYear:           po.TotalYear,
@@ -31,10 +31,10 @@ func ConvertTrainingPlanDetailFromPO(po *entity.TrainingPlanPO) course.TrainingP
 	return detail
 }
 
-func ConvertTrainingPlanCourseFromPO(po *entity.TrainingPlanCoursePO) course.TrainingPlanCourse {
+func ConvertTrainingPlanCourseFromPO(po *entity.TrainingPlanCurriculum) course.TrainingPlanCourse {
 	tpCourse := course.TrainingPlanCourse{
 		BaseCourse: course.Curriculum{
-			ID: po.BaseCourseID,
+			ID: po.CourseCode,
 		},
 		ID:              po.ID,
 		SuggestSemester: po.SuggestSemester,

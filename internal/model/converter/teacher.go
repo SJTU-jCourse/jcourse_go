@@ -6,7 +6,7 @@ import (
 	"jcourse_go/internal/infrastructure/entity"
 )
 
-func ConvertTeacherDetailFromPO(po *entity.TeacherPO) course.TeacherDetail {
+func ConvertTeacherDetailFromPO(po *entity.Teacher) course.TeacherDetail {
 	return course.TeacherDetail{
 		TeacherSummary: ConvertTeacherSummaryFromPO(po),
 		Email:          po.Email,
@@ -21,7 +21,7 @@ func PackTeacherWithCourses(t *course.TeacherDetail, courses []course.CourseSumm
 	t.Courses = courses
 }
 
-func ConvertTeacherSummaryFromPO(po *entity.TeacherPO) course.TeacherSummary {
+func ConvertTeacherSummaryFromPO(po *entity.Teacher) course.TeacherSummary {
 	return course.TeacherSummary{
 		ID:         po.ID,
 		Name:       po.Name,

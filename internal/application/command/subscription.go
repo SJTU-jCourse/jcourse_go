@@ -1,3 +1,3 @@
-package application
+package command
 
 type SubscriptionService interface{}

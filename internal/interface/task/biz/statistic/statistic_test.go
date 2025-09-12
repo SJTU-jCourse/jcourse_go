@@ -43,7 +43,7 @@ func TestSaveStatistic(t *testing.T) {
 		}
 		// count data
 		u := repository2.Q.UserPO
-		userPO := entity.UserPO{
+		userPO := entity.User{
 			Email:    "test@example.com",
 			Password: "password",
 		}

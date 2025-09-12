@@ -12,10 +12,10 @@ import (
 
 func migrate() {
 	db := dal.GetDBClient()
-	err := db.AutoMigrate(&entity2.UserPO{},
-		&entity2.BaseCourse{}, &entity2.Course{}, &entity2.TeacherPO{}, &entity2.CourseCategoryPO{},
-		&entity2.OfferedCoursePO{}, &entity2.OfferedCourseTeacherPO{},
-		&entity2.ReviewPO{}, &entity2.RatingPO{}, &entity2.TrainingPlanPO{}, &entity2.TrainingPlanCoursePO{})
+	err := db.AutoMigrate(&entity2.User{},
+		&entity2.Curriculum{}, &entity2.Course{}, &entity2.Teacher{}, &entity2.CourseCategoryPO{},
+		&entity2.CourseOffering{}, &entity2.CourseOfferingTeacher{},
+		&entity2.Review{}, &entity2.Rating{}, &entity2.TrainingPlan{}, &entity2.TrainingPlanCurriculum{})
 	if err != nil {
 		panic(err)
 	}

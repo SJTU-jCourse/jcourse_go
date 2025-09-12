@@ -148,7 +148,7 @@ func CreateStatistic(ctx context.Context, datetime time.Time, uvCount, pvCount i
 		return err
 	}
 	// create statistic item
-	newStatisticItem := entity2.StatisticPO{
+	newStatisticItem := entity2.Statistic{
 		Date:         util2.FormatDate(datetime),
 		UVCount:      uvCount,
 		PVCount:      pvCount,

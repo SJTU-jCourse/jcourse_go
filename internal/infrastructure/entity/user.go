@@ -4,8 +4,8 @@ import (
 	"time"
 )
 
-type UserPO struct {
-	ID int64 `gorm:"primarykey"`
+type User struct {
+	ID int64 `gorm:"primaryKey"`
 
 	Username   string `gorm:"index:idx_auth;uniqueIndex"`
 	Email      string `gorm:"uniqueIndex"`
@@ -17,6 +17,6 @@ type UserPO struct {
 	UpdatedAt time.Time `gorm:"index"`
 }
 
-func (po *UserPO) TableName() string {
-	return "users"
+func (po *User) TableName() string {
+	return "user"
 }

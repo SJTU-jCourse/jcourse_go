@@ -6,7 +6,7 @@ import (
 	"jcourse_go/pkg/util"
 )
 
-func ConvertUserPointDetailItemFromPO(po entity.UserPointDetailPO) user.UserPointDetailItem {
+func ConvertUserPointDetailItemFromPO(po entity.UserPointDetail) user.UserPointDetailItem {
 	location := util.GetLocation()
 	return user.UserPointDetailItem{
 		Time:        po.CreatedAt.In(location).Format(util.GoTimeLayout),

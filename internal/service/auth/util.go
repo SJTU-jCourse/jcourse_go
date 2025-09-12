@@ -49,8 +49,8 @@ func convertEmailToQuery(email string) string {
 	return hashedUsername
 }
 
-func buildUserToCreate(email string, passwordStore string) entity.UserPO {
-	return entity.UserPO{
+func buildUserToCreate(email string, passwordStore string) entity.User {
+	return entity.User{
 		Username:   email,
 		Email:      email,
 		UserRole:   string(types.UserRoleNormal),

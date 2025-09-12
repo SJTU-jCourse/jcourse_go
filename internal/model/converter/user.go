@@ -6,7 +6,7 @@ import (
 	"jcourse_go/internal/interface/dto"
 )
 
-func ConvertUserDetailFromPO(po *entity.UserPO) user.UserDetail {
+func ConvertUserDetailFromPO(po *entity.User) user.UserDetail {
 	return user.UserDetail{
 		UserMinimal: ConvertUserMinimalFromPO(po),
 		Bio:         po.Bio,
@@ -20,7 +20,7 @@ func ConvertUserDetailFromPO(po *entity.UserPO) user.UserDetail {
 	}
 }
 
-func ConvertUserMinimalFromPO(po *entity.UserPO) user.UserMinimal {
+func ConvertUserMinimalFromPO(po *entity.User) user.UserMinimal {
 	return user.UserMinimal{
 		ID:       po.ID,
 		Username: po.Username,
@@ -28,8 +28,8 @@ func ConvertUserMinimalFromPO(po *entity.UserPO) user.UserMinimal {
 	}
 }
 
-func ConvertUserProfileToPO(dto dto.UserProfileDTO) entity.UserPO {
-	return entity.UserPO{
+func ConvertUserProfileToPO(dto dto.UserProfileDTO) entity.User {
+	return entity.User{
 		Username: dto.Username,
 		Type:     dto.Type,
 		Avatar:   dto.Avatar,

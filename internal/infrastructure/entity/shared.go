@@ -1,14 +1,26 @@
 package entity
 
-import "time"
+import (
+	"time"
+)
 
 type Semester struct {
 	ID        int64
-	Name      string
+	Name      string `gorm:"uniqueIndex"`
 	Available bool
 	CreatedAt time.Time
 }
 
 func (s *Semester) TableName() string {
-	return "semesters"
+	return "semester"
+}
+
+type Department struct {
+	ID        int64
+	Name      string `gorm:"uniqueIndex"`
+	CreatedAt time.Time
+}
+
+func (d *Department) TableName() string {
+	return "department"
 }

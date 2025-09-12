@@ -11,7 +11,7 @@ import (
 	entity2 "jcourse_go/internal/infrastructure/entity"
 )
 
-func ConvertDailyInfoFromPO(po *entity2.StatisticPO) statistic.DailyStatistic {
+func ConvertDailyInfoFromPO(po *entity2.Statistic) statistic.DailyStatistic {
 	return statistic.DailyStatistic{
 		ID:               po.ID,
 		Date:             po.Date,
@@ -25,7 +25,7 @@ func ConvertDailyInfoFromPO(po *entity2.StatisticPO) statistic.DailyStatistic {
 }
 
 // GetPeriodInfoFromPOs 从统计数据中获取指定的周期信息, 调用者保证pos中的数据是按时间增序排列的, 保证返回的数据是按时间增序排列的
-func GetPeriodInfoFromPOs(pos []*entity2.StatisticPO, keys []statistic.PeriodInfoKey) (map[statistic.PeriodInfoKey][]statistic.PeriodInfo, error) {
+func GetPeriodInfoFromPOs(pos []*entity2.Statistic, keys []statistic.PeriodInfoKey) (map[statistic.PeriodInfoKey][]statistic.PeriodInfo, error) {
 	const week = 7
 	const month = 30
 	periodInfoMap := make(map[statistic.PeriodInfoKey][]statistic.PeriodInfo)
