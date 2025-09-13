@@ -12,45 +12,45 @@ import (
 )
 
 func TransferUserPointHandler(c *gin.Context) {
-	var request dto.TransferUserPointRequest
+	var request olddto.TransferUserPointRequest
 	if err := c.ShouldBind(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 	user := middleware.GetCurrentUser(c)
 	if user.ID == request.Receiver {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "不能给自己转账。"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "不能给自己转账。"})
 		return
 	}
 	err := service.TransferUserPoints(c, user.ID, request.Receiver, request.Value)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "用户积分转账失败。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "用户积分转账失败。"})
 		return
 	}
-	c.JSON(http.StatusOK, dto.BaseResponse{Message: "用户积分转账成功。"})
+	c.JSON(http.StatusOK, olddto.BaseResponse{Message: "用户积分转账成功。"})
 }
 func AdminTransferUserPoint(c *gin.Context) {
-	var request dto.TransferUserPointAdminRequest
+	var request olddto.TransferUserPointAdminRequest
 	if err := c.ShouldBind(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 	if request.Sender == request.Receiver {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "不能给自己转账。"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "不能给自己转账。"})
 		return
 	}
 	err := service.TransferUserPoints(c, request.Sender, request.Receiver, request.Value)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "用户积分转账失败。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "用户积分转账失败。"})
 		return
 	}
-	c.JSON(http.StatusOK, dto.BaseResponse{Message: "用户积分转账成功。"})
+	c.JSON(http.StatusOK, olddto.BaseResponse{Message: "用户积分转账成功。"})
 }
 
 func GetUserPointDetailListHandler(c *gin.Context) {
-	var request dto.UserPointDetailListRequest
+	var request olddto.UserPointDetailListRequest
 	if err := c.ShouldBind(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 	user := middleware.GetCurrentUser(c)
@@ -61,15 +61,15 @@ func GetUserPointDetailListHandler(c *gin.Context) {
 	}
 	totalValue, userPointDetails, err := service.GetUserPointDetailList(c, filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 	}
 
 	total, _ := service.GetUserPointDetailCount(c, filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 	}
-	response := dto.UserPointDetailListResponse{
-		BasePaginateResponse: dto.BasePaginateResponse[user.UserPointDetailItem]{
+	response := olddto.UserPointDetailListResponse{
+		BasePaginateResponse: olddto.BasePaginateResponse[user.UserPointDetailItem]{
 			Page:     request.Page,
 			PageSize: request.PageSize,
 			Total:    total,
@@ -81,9 +81,9 @@ func GetUserPointDetailListHandler(c *gin.Context) {
 }
 
 func AdminGetUserPointDetailList(c *gin.Context) {
-	var request dto.UserPointDetailListAdminRequest
+	var request olddto.UserPointDetailListAdminRequest
 	if err := c.ShouldBind(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 	filter := user.UserPointQuery{
@@ -93,15 +93,15 @@ func AdminGetUserPointDetailList(c *gin.Context) {
 	}
 	_, userPointDetails, err := service.GetUserPointDetailList(c, filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 	}
 
 	total, _ := service.GetUserPointDetailCount(c, filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 	}
-	response := dto.UserPointDetailListResponse{
-		BasePaginateResponse: dto.BasePaginateResponse[user.UserPointDetailItem]{
+	response := olddto.UserPointDetailListResponse{
+		BasePaginateResponse: olddto.BasePaginateResponse[user.UserPointDetailItem]{
 			Page:     request.Page,
 			PageSize: request.PageSize,
 			Total:    total,

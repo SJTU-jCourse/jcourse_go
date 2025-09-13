@@ -12,9 +12,9 @@ import (
 )
 
 func AdminGetUserList(c *gin.Context) {
-	var request dto.UserListRequest
+	var request olddto.UserListRequest
 	if err := c.ShouldBindQuery(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 	/*
@@ -37,16 +37,16 @@ func AdminGetUserList(c *gin.Context) {
 	*/
 }
 func AdminChangeUserPoint(c *gin.Context) {
-	var request dto.ChangeUserPointRequest
+	var request olddto.ChangeUserPointRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 	err := service.ChangeUserPoints(c, request.UserID, types.PointEventAdminChange, request.Value, "")
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "用户积分更新失败。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "用户积分更新失败。"})
 		log.Printf("ChangeUserPointHandler: %v", err)
 		return
 	}
-	c.JSON(http.StatusOK, dto.BaseResponse{Message: "用户积分更新成功。"})
+	c.JSON(http.StatusOK, olddto.BaseResponse{Message: "用户积分更新成功。"})
 }

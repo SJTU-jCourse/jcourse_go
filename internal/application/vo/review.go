@@ -2,6 +2,7 @@ package vo
 
 import (
 	"jcourse_go/internal/domain/course"
+	"jcourse_go/internal/infrastructure/entity"
 )
 
 type ReviewVO struct {
@@ -15,7 +16,7 @@ type ReviewVO struct {
 	UpdatedAt int64             `json:"updated_at"`
 }
 
-func NewReviewVO(r *course.Review) ReviewVO {
+func NewReviewVOFromDomain(r *course.Review) ReviewVO {
 	reviewVO := ReviewVO{
 		ID:        r.ID.Int64(),
 		Course:    nil,
@@ -27,8 +28,22 @@ func NewReviewVO(r *course.Review) ReviewVO {
 		UpdatedAt: r.UpdatedAt.Unix(),
 	}
 	if r.Course != nil {
-		c := NewCourseInReviewVO(r.Course)
+		c := NewCourseInReviewVOFromDomain(r.Course)
 		reviewVO.Course = &c
 	}
 	return reviewVO
+}
+
+func NewReviewVOFromEntity(e *entity.Review) ReviewVO {
+	courseVO := NewCourseInReviewVOFromEntity(e.Course)
+	return ReviewVO{
+		ID:        e.ID,
+		Course:    &courseVO,
+		Comment:   e.Comment,
+		Rating:    e.Rating,
+		Score:     e.Score,
+		Semester:  e.Semester,
+		CreatedAt: e.CreatedAt.Unix(),
+		UpdatedAt: e.UpdatedAt.Unix(),
+	}
 }

@@ -149,13 +149,13 @@ func CreateStatistic(ctx context.Context, datetime time.Time, uvCount, pvCount i
 	}
 	// create statistic item
 	newStatisticItem := entity2.Statistic{
-		Date:         util2.FormatDate(datetime),
-		UVCount:      uvCount,
-		PVCount:      pvCount,
-		NewReviews:   newReviewCount,
-		NewUsers:     newUserCount,
-		TotalReviews: totalReviewCount,
-		TotalUsers:   totalUserCount,
+		Date:           util2.FormatDate(datetime),
+		UVCount:        uvCount,
+		PVCount:        pvCount,
+		DailyNewReview: newReviewCount,
+		DailyNewUser:   newUserCount,
+		TotalReview:    totalReviewCount,
+		TotalUser:      totalUserCount,
 	}
 
 	err = repository.Q.StatisticPO.WithContext(ctx).Create(&newStatisticItem)

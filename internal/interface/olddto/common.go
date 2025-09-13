@@ -1,4 +1,4 @@
-package dto
+package olddto
 
 import (
 	"jcourse_go/internal/domain/user"

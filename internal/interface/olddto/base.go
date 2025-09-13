@@ -1,4 +1,4 @@
-package dto
+package olddto
 
 type BaseResponse struct {
 	Message string `json:"message"`

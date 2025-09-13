@@ -11,15 +11,15 @@ import (
 )
 
 func CreateRatingHandler(c *gin.Context) {
-	var request dto.RatingDTO
+	var request olddto.RatingDTO
 	if err := c.ShouldBind(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 	user := middleware.GetCurrentUser(c)
 	err := service.CreateRating(c, user.ID, request)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 	c.JSON(http.StatusOK, nil)

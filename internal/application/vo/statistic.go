@@ -1,6 +1,9 @@
 package vo
 
-import "jcourse_go/internal/domain/statistic"
+import (
+	"jcourse_go/internal/domain/statistic"
+	"jcourse_go/internal/infrastructure/entity"
+)
 
 type StatisticVO struct {
 	Date             string `json:"date"` // yyyy-mm-dd
@@ -12,7 +15,7 @@ type StatisticVO struct {
 	TotalReviewCount int64  `json:"total_review_count"`
 }
 
-func NewStatisticVO(s *statistic.DailyStatistic) StatisticVO {
+func NewStatisticVOFromDomain(s *statistic.DailyStatistic) StatisticVO {
 	return StatisticVO{
 		Date:             s.Date,
 		NewUserCount:     s.NewUserCount,
@@ -21,5 +24,17 @@ func NewStatisticVO(s *statistic.DailyStatistic) StatisticVO {
 		PVCount:          s.PVCount,
 		TotalUserCount:   s.TotalUserCount,
 		TotalReviewCount: s.TotalReviewCount,
+	}
+}
+
+func NewStatisticVOFromEntity(s *entity.Statistic) StatisticVO {
+	return StatisticVO{
+		Date:             s.Date,
+		NewUserCount:     s.DailyNewUser,
+		NewReviewCount:   s.DailyNewReview,
+		UVCount:          s.DailyActiveUser,
+		PVCount:          s.DailyPageView,
+		TotalUserCount:   s.TotalUser,
+		TotalReviewCount: s.TotalReview,
 	}
 }

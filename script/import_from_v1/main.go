@@ -291,7 +291,7 @@ func BuildNewReviewFormOld(review ReviewV1) entity2.Review {
 		CreatedAt:   review.CreatedAt,
 		UpdatedAt:   review.ModifiedAt,
 		Comment:     review.Comment,
-		Grade:       review.Score,
+		Score:       review.Score,
 		Rating:      review.Rating,
 		Semester:    semesterMap[review.SemesterID],
 		UserID:      review.UserID,

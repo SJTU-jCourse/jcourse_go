@@ -4,6 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"jcourse_go/internal/application/query"
+	"jcourse_go/internal/domain/shared"
+	"jcourse_go/internal/interface/dto"
 )
 
 type CourseController struct {
@@ -19,7 +21,19 @@ func NewCourseController(
 }
 
 func (c *CourseController) GetCourseDetail(ctx *gin.Context) {
+	var req dto.CourseDetailRequest
+	if err := ctx.ShouldBind(&req); err != nil {
+		dto.WriteBadArgumentResponse(ctx)
+		return
+	}
 
+	course, err := c.courseQuery.GetCourseDetail(ctx, shared.IDType(req.CourseID))
+	if err != nil {
+		dto.WriteErrorResponse(ctx, err)
+		return
+	}
+
+	dto.WriteDataResponse(ctx, course)
 }
 
 func (c *CourseController) GetCourseList(ctx *gin.Context) {

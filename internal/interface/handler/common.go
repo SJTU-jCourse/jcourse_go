@@ -13,17 +13,17 @@ import (
 func GetCommonInfo(c *gin.Context) {
 	user := middleware.GetCurrentUser(c)
 	if user == nil {
-		c.JSON(http.StatusUnauthorized, dto.BaseResponse{Message: "用户未登录！"})
+		c.JSON(http.StatusUnauthorized, olddto.BaseResponse{Message: "用户未登录！"})
 		return
 	}
 
 	settings, err := service.GetClientSettings(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误"})
 		return
 	}
 
-	resp := dto.CommonInfoResponse{
+	resp := olddto.CommonInfoResponse{
 		User:     *user,
 		Settings: settings,
 	}

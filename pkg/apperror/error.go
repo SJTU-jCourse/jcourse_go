@@ -32,5 +32,6 @@ func (e *AppError) Wrap(err error) *AppError {
 
 var (
 	ErrSomethingWrong = &AppError{Code: -1000, Msg: "Something went wrong", HTTPStatus: http.StatusInternalServerError}
-	ErrNotFound       = &AppError{Code: -1001, Msg: "Not Found", HTTPStatus: http.StatusNotFound}
+	ErrBadRequest     = &AppError{Code: -1001, Msg: "Input wrong", HTTPStatus: http.StatusBadRequest}
+	ErrNotFound       = &AppError{Code: -1002, Msg: "Not Found", HTTPStatus: http.StatusNotFound}
 )

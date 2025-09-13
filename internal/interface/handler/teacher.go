@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func convertTeacherListFilter(request dto.TeacherListRequest) course.TeacherListQuery {
+func convertTeacherListFilter(request olddto.TeacherListRequest) course.TeacherListQuery {
 	filter := course.TeacherListQuery{
 		PaginationQuery: request.PaginationFilterForQuery,
 		Name:            request.Name,
@@ -42,31 +42,31 @@ func convertTeacherListFilter(request dto.TeacherListRequest) course.TeacherList
 }
 
 func GetTeacherListHandler(c *gin.Context) {
-	request := dto.TeacherListRequest{
+	request := olddto.TeacherListRequest{
 		PaginationFilterForQuery: course.PaginationFilterForQuery{
 			Page:     constant.DefaultPage,
 			PageSize: constant.DefaultPageSize,
 		},
 	}
 	if err := c.ShouldBindQuery(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 	filter := convertTeacherListFilter(request)
 
 	teachers, err := service.SearchTeacherList(c, filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 
 	total, err := service.GetTeacherCount(c, filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "查无此人。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "查无此人。"})
 		return
 	}
 
-	resp := dto.TeacherListResponse{
+	resp := olddto.TeacherListResponse{
 		Total:    total,
 		Data:     teachers,
 		Page:     request.Page,
@@ -76,23 +76,23 @@ func GetTeacherListHandler(c *gin.Context) {
 }
 
 func GetTeacherDetailHandler(c *gin.Context) {
-	var request dto.TeacherDetailRequest
+	var request olddto.TeacherDetailRequest
 	if err := c.ShouldBindUri(&request); err != nil {
-		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusNotFound, olddto.BaseResponse{Message: "参数错误"})
 	}
 
 	teacher, err := service.GetTeacherDetail(c, request.TeacherID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 	c.JSON(http.StatusOK, teacher)
 }
 
 func SearchTeacherListHandler(c *gin.Context) {
-	var request dto.TeacherListRequest
+	var request olddto.TeacherListRequest
 	if err := c.ShouldBindQuery(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 
@@ -105,17 +105,17 @@ func SearchTeacherListHandler(c *gin.Context) {
 
 	teachers, err := service.SearchTeacherList(c, filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 
 	total, err := service.GetTeacherCount(c, filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "查无此人。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "查无此人。"})
 		return
 	}
 
-	resp := dto.TeacherListResponse{
+	resp := olddto.TeacherListResponse{
 		Total:    total,
 		Data:     teachers,
 		Page:     request.Page,
@@ -127,7 +127,7 @@ func SearchTeacherListHandler(c *gin.Context) {
 func GetTeacherFilter(c *gin.Context) {
 	filter, err := service.GetTeacherFilter(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 	c.JSON(http.StatusOK, filter)

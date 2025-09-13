@@ -90,7 +90,7 @@ func GetUserCount(ctx context.Context, filter user.UserQuery) (int64, error) {
 	return q.Count()
 }
 
-func UpdateUserProfileByID(ctx context.Context, userProfileDTO dto.UserProfileDTO, userID int64) error {
+func UpdateUserProfileByID(ctx context.Context, userProfileDTO olddto.UserProfileDTO, userID int64) error {
 	u := repository.Q.UserPO
 	newUserPO := converter.ConvertUserProfileToPO(userProfileDTO)
 	newUserPO.ID = userID

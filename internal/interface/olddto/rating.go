@@ -1,4 +1,4 @@
-package dto
+package olddto
 
 type RatingDTO struct {
 	RelatedType string `json:"related_type" binding:"required"`

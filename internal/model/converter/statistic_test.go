@@ -47,13 +47,13 @@ func TestGetPeriodInfoFromPOs(t *testing.T) {
 	// Helper function to create a Statistic with a given date and UVCount
 	createStatisticPO := func(daysAgo int) entity2.Statistic {
 		return entity2.Statistic{
-			Date:         util.FormatDate(util.GetMidTime(time.Now()).AddDate(0, 0, -daysAgo)),
-			UVCount:      int64(rand.Uint64() % 1000),
-			PVCount:      int64(rand.Uint64() % 1000),
-			TotalReviews: 10000 - int64(daysAgo)*100,
-			TotalUsers:   1000 - int64(daysAgo)*10,
-			NewReviews:   100,
-			NewUsers:     10,
+			Date:           util.FormatDate(util.GetMidTime(time.Now()).AddDate(0, 0, -daysAgo)),
+			UVCount:        int64(rand.Uint64() % 1000),
+			PVCount:        int64(rand.Uint64() % 1000),
+			TotalReview:    10000 - int64(daysAgo)*100,
+			TotalUser:      1000 - int64(daysAgo)*10,
+			DailyNewReview: 100,
+			DailyNewUser:   10,
 		}
 	}
 

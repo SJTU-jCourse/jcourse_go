@@ -36,7 +36,7 @@ func InitLLM() error {
 // 函数返回值包含两个字段：
 // Suggestion为修改建议，
 // Result为根据修改建议给出的一种修改结果。
-func OptCourseReview(ctx context.Context, courseName string, reviewContent string) (dto.OptCourseReviewResponse, error) {
+func OptCourseReview(ctx context.Context, courseName string, reviewContent string) (olddto.OptCourseReviewResponse, error) {
 	inputJson, _ := json.Marshal(map[string]string{
 		"course": courseName,
 		"review": reviewContent,
@@ -53,9 +53,9 @@ func OptCourseReview(ctx context.Context, courseName string, reviewContent strin
 	)
 
 	if err != nil {
-		return dto.OptCourseReviewResponse{}, err
+		return olddto.OptCourseReviewResponse{}, err
 	}
-	var response dto.OptCourseReviewResponse
+	var response olddto.OptCourseReviewResponse
 	responseStr := trimLLMJSON(completion.Choices[0].Content)
 	err = json.Unmarshal([]byte(responseStr), &response)
 
@@ -105,7 +105,7 @@ func buildCourseSummaryPrompt(course *course.CourseDetail, reviews []course.Revi
 // 返回值包含课程的总结。
 // TODO: 此处基于课程最近的100条评价内容生成课程总结，后续可
 // 以进一步调整和优化。
-func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummaryResponse, error) {
+func GetCourseSummary(ctx context.Context, courseID int64) (*olddto.GetCourseSummaryResponse, error) {
 	courseDetail, err := GetCourseDetail(ctx, courseID, 0)
 	if err != nil {
 		return nil, err
@@ -140,7 +140,7 @@ func GetCourseSummary(ctx context.Context, courseID int64) (*dto.GetCourseSummar
 		return nil, err
 	}
 
-	var response dto.GetCourseSummaryResponse
+	var response olddto.GetCourseSummaryResponse
 	responseStr := trimLLMJSON(completion.Choices[0].Content)
 	err = json.Unmarshal([]byte(responseStr), &response)
 

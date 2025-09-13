@@ -20,7 +20,7 @@ func CSRF() gin.HandlerFunc {
 		csrf.Secure(!util.IsDebug()),
 		csrf.ErrorHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusForbidden)
-			bytes, _ := sonic.Marshal(dto.BaseResponse{Message: "Forbidden - CSRF token invalid"})
+			bytes, _ := sonic.Marshal(olddto.BaseResponse{Message: "Forbidden - CSRF token invalid"})
 			_, _ = w.Write(bytes)
 		})),
 	)

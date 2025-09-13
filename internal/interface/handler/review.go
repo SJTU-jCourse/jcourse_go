@@ -17,9 +17,9 @@ import (
 func GetSuggestedReviewHandler(c *gin.Context) {}
 
 func GetReviewDetailHandler(c *gin.Context) {
-	var request dto.ReviewDetailRequest
+	var request olddto.ReviewDetailRequest
 	if err := c.ShouldBindUri(&request); err != nil {
-		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusNotFound, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 
@@ -31,7 +31,7 @@ func GetReviewDetailHandler(c *gin.Context) {
 
 	reviews, err := service.GetReviewList(c, user, reaction.ReviewFilterForQuery{ReviewID: request.ReviewID})
 	if err != nil || len(reviews) == 0 {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 
@@ -41,7 +41,7 @@ func GetReviewDetailHandler(c *gin.Context) {
 }
 
 func GetReviewListHandler(c *gin.Context) {
-	var request = dto.ReviewListRequest{
+	var request = olddto.ReviewListRequest{
 		PaginationFilterForQuery: course.PaginationFilterForQuery{
 			Page:      constant.DefaultPage,
 			PageSize:  constant.DefaultPageSize,
@@ -50,7 +50,7 @@ func GetReviewListHandler(c *gin.Context) {
 		},
 	}
 	if err := c.ShouldBind(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 
@@ -73,18 +73,18 @@ func GetReviewListHandler(c *gin.Context) {
 
 	reviews, err := service.GetReviewList(c, user, filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 	total, err := service.GetReviewCount(c, filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 
 	converter.RemoveReviewsUserInfo(reviews, currentUserID, true)
 
-	response := dto.ReviewListResponse{
+	response := olddto.ReviewListResponse{
 		Page:     request.Page,
 		PageSize: request.PageSize,
 		Total:    total,
@@ -94,68 +94,68 @@ func GetReviewListHandler(c *gin.Context) {
 }
 
 func CreateReviewHandler(c *gin.Context) {
-	var request dto.UpdateReviewDTO
+	var request olddto.UpdateReviewDTO
 	if err := c.ShouldBind(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 
 	user := middleware.GetCurrentUser(c)
 	reviewID, err := service.CreateReview(c, request, user)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.CreateReviewResponse{ReviewID: reviewID})
+	c.JSON(http.StatusOK, olddto.CreateReviewResponse{ReviewID: reviewID})
 }
 
 func UpdateReviewHandler(c *gin.Context) {
-	var request dto.UpdateReviewRequest
+	var request olddto.UpdateReviewRequest
 	if err := c.ShouldBindUri(&request); err != nil {
-		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusNotFound, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 
-	var reviewDTO dto.UpdateReviewDTO
+	var reviewDTO olddto.UpdateReviewDTO
 	if err := c.ShouldBind(&reviewDTO); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 
 	user := middleware.GetCurrentUser(c)
 	if user == nil {
-		c.JSON(http.StatusUnauthorized, dto.BaseResponse{Message: "用户未登录！"})
+		c.JSON(http.StatusUnauthorized, olddto.BaseResponse{Message: "用户未登录！"})
 		return
 	}
 	reviewDTO.ID = request.ReviewID
 
 	err := service.UpdateReview(c, reviewDTO, user)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.UpdateReviewResponse{ReviewID: request.ReviewID}) // nolint: gosimple
+	c.JSON(http.StatusOK, olddto.UpdateReviewResponse{ReviewID: request.ReviewID}) // nolint: gosimple
 }
 
 func DeleteReviewHandler(c *gin.Context) {
-	var request dto.DeleteReviewRequest
+	var request olddto.DeleteReviewRequest
 	if err := c.ShouldBindUri(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 	user := middleware.GetCurrentUser(c)
 	if user == nil {
-		c.JSON(http.StatusUnauthorized, dto.BaseResponse{Message: "用户未登录！"})
+		c.JSON(http.StatusUnauthorized, olddto.BaseResponse{Message: "用户未登录！"})
 		return
 	}
 
 	err := service.DeleteReview(c, request.ReviewID, user)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.DeleteReviewResponse{ReviewID: request.ReviewID}) // nolint: gosimple
+	c.JSON(http.StatusOK, olddto.DeleteReviewResponse{ReviewID: request.ReviewID}) // nolint: gosimple
 }

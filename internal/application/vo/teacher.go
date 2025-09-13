@@ -2,6 +2,7 @@ package vo
 
 import (
 	"jcourse_go/internal/domain/course"
+	"jcourse_go/internal/infrastructure/entity"
 )
 
 type TeacherInCourseVO struct {
@@ -10,9 +11,17 @@ type TeacherInCourseVO struct {
 	Department string `json:"department"`
 }
 
-func NewTeacherInCourseVO(t *course.Teacher) TeacherInCourseVO {
+func NewTeacherInCourseVOFromDomain(t *course.Teacher) TeacherInCourseVO {
 	return TeacherInCourseVO{
 		ID:         t.ID.Int64(),
+		Name:       t.Name,
+		Department: t.Department,
+	}
+}
+
+func NewTeacherInCourseVOFromEntity(t *entity.Teacher) TeacherInCourseVO {
+	return TeacherInCourseVO{
+		ID:         t.ID,
 		Name:       t.Name,
 		Department: t.Department,
 	}
@@ -37,6 +46,16 @@ func NewTeacherListItemVO(t *course.Teacher) TeacherListItemVO {
 	}
 }
 
+func NewTeacherListItemVOFromEntity(t *entity.Teacher) TeacherListItemVO {
+	return TeacherListItemVO{
+		ID:         t.ID,
+		Name:       t.Name,
+		Department: t.Department,
+		Title:      t.Title,
+		Picture:    t.Picture,
+	}
+}
+
 type TeacherDetailVO struct {
 	TeacherListItemVO
 	Email string `json:"email"`
@@ -48,5 +67,13 @@ func NewTeacherDetailVO(t *course.Teacher) TeacherDetailVO {
 		TeacherListItemVO: NewTeacherListItemVO(t),
 		Email:             t.Email,
 		Bio:               t.Bio,
+	}
+}
+
+func NewTeacherDetailVOFromEntity(t *entity.Teacher) TeacherDetailVO {
+	return TeacherDetailVO{
+		TeacherListItemVO: NewTeacherListItemVOFromEntity(t),
+		Email:             t.Email,
+		Bio:               t.Biography,
 	}
 }

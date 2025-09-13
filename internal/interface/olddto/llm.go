@@ -1,4 +1,4 @@
-package dto
+package olddto
 
 type OptCourseReviewRequest struct {
 	CourseName    string `json:"course_name" binding:"required"`

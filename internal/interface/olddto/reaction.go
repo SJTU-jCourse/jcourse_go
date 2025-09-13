@@ -1,4 +1,4 @@
-package dto
+package olddto
 
 type CreateReviewReactionRequest struct {
 	ReviewID int64  `json:"review_id" binding:"required"`

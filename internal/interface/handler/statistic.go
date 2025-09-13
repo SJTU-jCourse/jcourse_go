@@ -13,17 +13,17 @@ import (
 )
 
 func GetStatisticHandler(c *gin.Context) {
-	request := dto.StatisticRequest{
+	request := olddto.StatisticRequest{
 		StartTime:  0,
 		EndTime:    0,
 		PeriodKeys: []statistic.PeriodInfoKey{},
 	}
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 	if request.StartTime > request.EndTime {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 	filter := statistic.StatisticFilter{
@@ -33,10 +33,10 @@ func GetStatisticHandler(c *gin.Context) {
 	}
 	dailyInfos, periodInfos, err := service.GetStatistics(c, filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误"})
 		return
 	}
-	c.JSON(http.StatusOK, dto.StatisticResponse{
+	c.JSON(http.StatusOK, olddto.StatisticResponse{
 		DailyInfos:  dailyInfos,
 		PeriodInfos: periodInfos,
 	})

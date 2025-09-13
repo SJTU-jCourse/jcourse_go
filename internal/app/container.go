@@ -37,7 +37,14 @@ func NewServiceContainer(c config.AppConfig) (*ServiceContainer, error) {
 		return nil, err
 	}
 	return &ServiceContainer{
-		DB:    db,
-		Redis: rdb,
+		DB:                db,
+		Redis:             rdb,
+		CourseQuery:       query.NewCourseQueryService(db),
+		ReviewQuery:       query.NewReviewQueryService(db),
+		StatisticQuery:    query.NewStatisticQueryService(db),
+		TeacherQuery:      query.NewTeacherQueryService(db),
+		TrainingPlanQuery: query.NewTrainingPlanQueryService(db),
+		UserQuery:         query.NewUserQueryService(db),
+		UserPointQuery:    query.NewUserPointQueryService(db),
 	}, nil
 }

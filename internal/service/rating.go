@@ -14,7 +14,7 @@ import (
 	types2 "jcourse_go/internal/model/types"
 )
 
-func CreateRating(ctx context.Context, userID int64, dto dto.RatingDTO) error {
+func CreateRating(ctx context.Context, userID int64, dto olddto.RatingDTO) error {
 
 	if !types2.IsARatingRelatedType(dto.RelatedType) {
 		return errors.New("invalid related type")

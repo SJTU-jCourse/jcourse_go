@@ -18,7 +18,7 @@ func ConvertReviewFromPO(po *entity.Review) course.Review {
 		IsAnonymous: po.IsAnonymous,
 		CreatedAt:   po.CreatedAt,
 		UpdatedAt:   po.UpdatedAt,
-		Score:       po.Grade,
+		Score:       po.Score,
 	}
 	return review
 }
@@ -39,7 +39,7 @@ func RemoveReviewsUserInfo(reviews []course.Review, userID int64, hideUser bool)
 	}
 }
 
-func ConvertReviewDTOToPO(dto dto.UpdateReviewDTO, userID int64) entity.Review {
+func ConvertReviewDTOToPO(dto olddto.UpdateReviewDTO, userID int64) entity.Review {
 	return entity.Review{
 		ID:          dto.ID,
 		CourseID:    dto.CourseID,
@@ -48,7 +48,7 @@ func ConvertReviewDTOToPO(dto dto.UpdateReviewDTO, userID int64) entity.Review {
 		Rating:      dto.Rating,
 		Semester:    dto.Semester,
 		IsAnonymous: dto.IsAnonymous,
-		Grade:       dto.Grade,
+		Score:       dto.Grade,
 	}
 }
 

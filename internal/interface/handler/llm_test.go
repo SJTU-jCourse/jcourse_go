@@ -15,7 +15,7 @@ import (
 
 func TestOptCourseReviewHandler(t *testing.T) {
 	t.Run("BasicBindInBody", func(t *testing.T) {
-		body := dto.OptCourseReviewRequest{
+		body := olddto.OptCourseReviewRequest{
 			CourseName:    "CourseName",
 			ReviewContent: "ReviewContent",
 		}
@@ -33,7 +33,7 @@ func TestOptCourseReviewHandler(t *testing.T) {
 	})
 
 	t.Run("SuccessWriteResponse", func(t *testing.T) {
-		body := dto.OptCourseReviewRequest{
+		body := olddto.OptCourseReviewRequest{
 			CourseName:    "CourseName",
 			ReviewContent: "ReviewContent",
 		}
@@ -47,10 +47,10 @@ func TestOptCourseReviewHandler(t *testing.T) {
 		w := httptest.NewRecorder()
 		handler := func(c *gin.Context) {
 			responseJson := `{"suggestion":"suggestion","result":"result"}`
-			var response dto.OptCourseReviewResponse
+			var response olddto.OptCourseReviewResponse
 			err := json.Unmarshal([]byte(responseJson), &response)
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+				c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 				return
 			}
 			c.JSON(http.StatusOK, response)
@@ -64,7 +64,7 @@ func TestOptCourseReviewHandler(t *testing.T) {
 
 func TestGetMatchCoursesHandler(t *testing.T) {
 	t.Run("BasicBindInBody", func(t *testing.T) {
-		body := dto.GetMatchCourseRequest{
+		body := olddto.GetMatchCourseRequest{
 			Description: "test",
 		}
 		gin.SetMode(gin.TestMode)

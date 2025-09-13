@@ -84,7 +84,7 @@ func GetReviewCount(ctx context.Context, filter reaction.ReviewFilterForQuery) (
 	return q.Count()
 }
 
-func CreateReview(ctx context.Context, review dto.UpdateReviewDTO, user *user.UserDetail) (int64, error) {
+func CreateReview(ctx context.Context, review olddto.UpdateReviewDTO, user *user.UserDetail) (int64, error) {
 	if !validateReview(ctx, review, user) {
 		return 0, errors.New("validate review error")
 	}
@@ -121,7 +121,7 @@ func CreateReview(ctx context.Context, review dto.UpdateReviewDTO, user *user.Us
 	return reviewPO.ID, nil
 }
 
-func UpdateReview(ctx context.Context, review dto.UpdateReviewDTO, user *user.UserDetail) error {
+func UpdateReview(ctx context.Context, review olddto.UpdateReviewDTO, user *user.UserDetail) error {
 	if review.ID == 0 {
 		return errors.New("no review id")
 	}
@@ -199,7 +199,7 @@ func DeleteReview(ctx context.Context, reviewID int64, user *user.UserDetail) er
 	return err
 }
 
-func validateReview(ctx context.Context, review dto.UpdateReviewDTO, user *user.UserDetail) bool {
+func validateReview(ctx context.Context, review olddto.UpdateReviewDTO, user *user.UserDetail) bool {
 	// 1. validate course and semester exists
 
 	oc := repository.Q.OfferedCoursePO

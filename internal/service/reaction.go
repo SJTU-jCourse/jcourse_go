@@ -10,7 +10,7 @@ import (
 	"jcourse_go/internal/interface/dto"
 )
 
-func CreateReviewReaction(ctx context.Context, request dto.CreateReviewReactionRequest, user *user.UserDetail) (int64, error) {
+func CreateReviewReaction(ctx context.Context, request olddto.CreateReviewReactionRequest, user *user.UserDetail) (int64, error) {
 
 	if user == nil {
 		return 0, errors.New("user not login")

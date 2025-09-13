@@ -17,9 +17,9 @@ import (
 func GetSuggestedUserHandler(c *gin.Context) {}
 
 func GetUserListHandler(c *gin.Context) {
-	var request dto.UserListRequest
+	var request olddto.UserListRequest
 	if err := c.ShouldBindQuery(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 
@@ -28,10 +28,10 @@ func GetUserListHandler(c *gin.Context) {
 	}
 	users, err := service.GetUserList(c, filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 	}
 	total, _ := service.GetUserCount(c, filter)
-	response := dto.UserListResponse{
+	response := olddto.UserListResponse{
 		Page:     request.Page,
 		PageSize: request.PageSize,
 		Total:    total,
@@ -53,24 +53,24 @@ func getUserIDFromRequest(c *gin.Context) (int64, error) {
 func GetUserActivityHandler(c *gin.Context) {
 	userID, err := getUserIDFromRequest(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "非法用户ID"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "非法用户ID"})
 		return
 	}
 
 	user := middleware.GetCurrentUser(c)
 	if user == nil {
-		c.JSON(http.StatusUnauthorized, dto.BaseResponse{Message: "用户未登录！"})
+		c.JSON(http.StatusUnauthorized, olddto.BaseResponse{Message: "用户未登录！"})
 		return
 	}
 
 	if user.ID != userID {
-		c.JSON(http.StatusForbidden, dto.BaseResponse{Message: "无权查看他人信息！"})
+		c.JSON(http.StatusForbidden, olddto.BaseResponse{Message: "无权查看他人信息！"})
 		return
 	}
 
 	userSummary, err := service.GetUserActivityByID(c, user.ID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "此用户不存在！"})
+		c.JSON(http.StatusNotFound, olddto.BaseResponse{Message: "此用户不存在！"})
 		return
 	}
 	c.JSON(http.StatusOK, userSummary)
@@ -80,7 +80,7 @@ func GetUserActivityHandler(c *gin.Context) {
 func GetUserDetailHandler(c *gin.Context) {
 	userID, err := getUserIDFromRequest(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "非法用户ID"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "非法用户ID"})
 		return
 	}
 
@@ -92,7 +92,7 @@ func GetUserDetailHandler(c *gin.Context) {
 
 	user, err := service.GetUserDetailByID(c, userID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "此用户不存在！"})
+		c.JSON(http.StatusNotFound, olddto.BaseResponse{Message: "此用户不存在！"})
 		return
 	}
 	converter.RemoveUserEmail(user, currentUserID)
@@ -106,20 +106,20 @@ func UnWatchUserHandler(c *gin.Context) {}
 func UpdateUserProfileHandler(c *gin.Context) {
 	user := middleware.GetCurrentUser(c)
 	if user == nil {
-		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "用户未登录！"})
+		c.JSON(http.StatusNotFound, olddto.BaseResponse{Message: "用户未登录！"})
 		return
 	}
 
-	var request dto.UserProfileDTO
+	var request olddto.UserProfileDTO
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 
 	err := service.UpdateUserProfileByID(c, request, user.ID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "用户信息更新失败。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "用户信息更新失败。"})
 		return
 	}
-	c.JSON(http.StatusOK, dto.BaseResponse{Message: "用户信息更新成功。"})
+	c.JSON(http.StatusOK, olddto.BaseResponse{Message: "用户信息更新成功。"})
 }

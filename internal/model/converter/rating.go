@@ -20,7 +20,7 @@ func BuildRatingFromReview(review entity2.Review) entity2.Rating {
 	}
 }
 
-func ConvertRatingDTOToPO(userID int64, dto dto.RatingDTO) entity2.Rating {
+func ConvertRatingDTOToPO(userID int64, dto olddto.RatingDTO) entity2.Rating {
 	return entity2.Rating{
 		UserID:      userID,
 		RelatedType: dto.RelatedType,

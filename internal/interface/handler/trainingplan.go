@@ -12,35 +12,35 @@ import (
 )
 
 func GetTrainingPlanHandler(c *gin.Context) {
-	var request dto.TrainingPlanDetailRequest
+	var request olddto.TrainingPlanDetailRequest
 	if err := c.ShouldBindUri(&request); err != nil {
-		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusNotFound, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 	trainingPlan, err := service.GetTrainingPlanDetail(c, request.TrainingPlanID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 	c.JSON(http.StatusOK, trainingPlan)
 }
 
 func SearchTrainingPlanHandler(c *gin.Context) {
-	var request dto.TrainingPlanListQueryRequest
+	var request olddto.TrainingPlanListQueryRequest
 	if err := c.ShouldBind(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 	filter := convTrainingPlanFilter(request)
 	trainingPlanList, err := service.SearchTrainingPlanList(c, filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 	}
 	count, err := service.GetTrainingPlanCount(c, filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 	}
-	response := dto.TrainingPlanListResponse{
+	response := olddto.TrainingPlanListResponse{
 		Page:     int64(request.Page),
 		PageSize: int64(len(trainingPlanList)),
 		Total:    count,
@@ -52,13 +52,13 @@ func SearchTrainingPlanHandler(c *gin.Context) {
 func GetTrainingPlanFilter(c *gin.Context) {
 	filter, err := service.GetTrainingPlanFilter(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 	c.JSON(http.StatusOK, filter)
 }
 
-func convTrainingPlanFilter(request dto.TrainingPlanListQueryRequest) course.TrainingPlanListQuery {
+func convTrainingPlanFilter(request olddto.TrainingPlanListQueryRequest) course.TrainingPlanListQuery {
 	filter := course.TrainingPlanListQuery{
 		Major:           request.MajorName,
 		EntryYears:      make([]string, 0),

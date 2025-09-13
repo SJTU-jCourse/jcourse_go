@@ -15,9 +15,9 @@ import (
 )
 
 func GetCourseDetailHandler(c *gin.Context) {
-	var request dto.CourseDetailRequest
+	var request olddto.CourseDetailRequest
 	if err := c.ShouldBindUri(&request); err != nil {
-		c.JSON(http.StatusNotFound, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusNotFound, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 
@@ -29,14 +29,14 @@ func GetCourseDetailHandler(c *gin.Context) {
 
 	course, err := service.GetCourseDetail(c, request.CourseID, userID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 
 	c.JSON(http.StatusOK, course)
 }
 
-func convertCourseListFilter(request dto.CourseListRequest) course.CourseListQuery {
+func convertCourseListFilter(request olddto.CourseListRequest) course.CourseListQuery {
 	filter := course.CourseListQuery{
 		PaginationQuery: request.PaginationFilterForQuery,
 		Categories:      make([]string, 0),
@@ -75,30 +75,30 @@ func convertCourseListFilter(request dto.CourseListRequest) course.CourseListQue
 }
 
 func GetCourseListHandler(c *gin.Context) {
-	request := dto.CourseListRequest{
+	request := olddto.CourseListRequest{
 		PaginationFilterForQuery: course.PaginationFilterForQuery{
 			Page:     constant.DefaultPage,
 			PageSize: constant.DefaultPageSize,
 		},
 	}
 	if err := c.ShouldBindQuery(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 	filter := convertCourseListFilter(request)
 
 	courses, err := service.GetCourseList(c, filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 	total, err := service.GetCourseCount(c, filter)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 
-	resp := dto.CourseListResponse{
+	resp := olddto.CourseListResponse{
 		Total:    total,
 		Data:     courses,
 		Page:     request.Page,
@@ -108,14 +108,14 @@ func GetCourseListHandler(c *gin.Context) {
 }
 
 func GetBaseCourse(c *gin.Context) {
-	var request dto.BaseCourseDetailRequest
+	var request olddto.BaseCourseDetailRequest
 	if err := c.ShouldBindUri(&request); err != nil {
-		c.JSON(http.StatusBadRequest, dto.BaseResponse{Message: "参数错误"})
+		c.JSON(http.StatusBadRequest, olddto.BaseResponse{Message: "参数错误"})
 		return
 	}
 	baseCourse, err := service.GetBaseCourse(c, request.Code)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 	c.JSON(http.StatusOK, baseCourse)
@@ -124,7 +124,7 @@ func GetBaseCourse(c *gin.Context) {
 func GetCourseFilterHandler(c *gin.Context) {
 	filter, err := service.GetCourseFilter(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.BaseResponse{Message: "内部错误。"})
+		c.JSON(http.StatusInternalServerError, olddto.BaseResponse{Message: "内部错误。"})
 		return
 	}
 	c.JSON(http.StatusOK, filter)

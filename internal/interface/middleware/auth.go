@@ -24,7 +24,7 @@ func RequireAuth() gin.HandlerFunc {
 		session := sessions.Default(c)
 		user := session.Get(constant.SessionUserAuthKey)
 		if user == nil {
-			c.JSON(http.StatusUnauthorized, dto.BaseResponse{Message: "未授权的请求"})
+			c.JSON(http.StatusUnauthorized, olddto.BaseResponse{Message: "未授权的请求"})
 			c.Abort()
 		}
 		c.Set(constant.CtxKeyUser, user)
@@ -37,16 +37,16 @@ func RequireAdmin() gin.HandlerFunc {
 		session := sessions.Default(c)
 		user := session.Get(constant.SessionUserAuthKey)
 		if user == nil {
-			c.JSON(http.StatusUnauthorized, dto.BaseResponse{Message: "未授权的请求"})
+			c.JSON(http.StatusUnauthorized, olddto.BaseResponse{Message: "未授权的请求"})
 			c.Abort()
 		}
 		userDomain, ok := user.(user.UserDetail)
 		if !ok {
-			c.JSON(http.StatusUnauthorized, dto.BaseResponse{Message: "未授权的请求"})
+			c.JSON(http.StatusUnauthorized, olddto.BaseResponse{Message: "未授权的请求"})
 			c.Abort()
 		}
 		if userDomain.Role != user.UserRoleAdmin {
-			c.JSON(http.StatusForbidden, dto.BaseResponse{Message: "未授权的请求"})
+			c.JSON(http.StatusForbidden, olddto.BaseResponse{Message: "未授权的请求"})
 			c.Abort()
 		}
 		c.Set(constant.CtxKeyUser, user)

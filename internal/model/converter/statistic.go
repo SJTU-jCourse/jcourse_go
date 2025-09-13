@@ -17,10 +17,10 @@ func ConvertDailyInfoFromPO(po *entity2.Statistic) statistic.DailyStatistic {
 		Date:             po.Date,
 		UVCount:          po.UVCount,
 		PVCount:          po.PVCount,
-		NewUserCount:     po.NewUsers,
-		NewReviewCount:   po.NewReviews,
-		TotalReviewCount: po.TotalReviews,
-		TotalUserCount:   po.TotalUsers,
+		NewUserCount:     po.DailyNewUser,
+		NewReviewCount:   po.DailyNewReview,
+		TotalReviewCount: po.TotalReview,
+		TotalUserCount:   po.TotalUser,
 	}
 }
 

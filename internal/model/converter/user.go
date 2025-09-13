@@ -28,7 +28,7 @@ func ConvertUserMinimalFromPO(po *entity.User) user.UserMinimal {
 	}
 }
 
-func ConvertUserProfileToPO(dto dto.UserProfileDTO) entity.User {
+func ConvertUserProfileToPO(dto olddto.UserProfileDTO) entity.User {
 	return entity.User{
 		Username: dto.Username,
 		Type:     dto.Type,

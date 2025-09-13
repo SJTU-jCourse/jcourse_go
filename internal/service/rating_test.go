@@ -57,14 +57,14 @@ func TestCreateRating(t *testing.T) {
 	tests := []struct {
 		name          string
 		userID        int64
-		ratingDTO     dto.RatingDTO
+		ratingDTO     olddto.RatingDTO
 		expectedError bool
 		verify        func(*testing.T)
 	}{
 		{
 			name:   "create new course rating",
 			userID: 1,
-			ratingDTO: dto.RatingDTO{
+			ratingDTO: olddto.RatingDTO{
 				RelatedType: string(types.RelatedTypeCourse),
 				RelatedID:   1,
 				Rating:      5,
@@ -80,7 +80,7 @@ func TestCreateRating(t *testing.T) {
 		{
 			name:   "update existing course rating",
 			userID: 1,
-			ratingDTO: dto.RatingDTO{
+			ratingDTO: olddto.RatingDTO{
 				RelatedType: string(types.RelatedTypeCourse),
 				RelatedID:   1,
 				Rating:      3,
@@ -96,7 +96,7 @@ func TestCreateRating(t *testing.T) {
 		{
 			name:   "invalid type",
 			userID: 1,
-			ratingDTO: dto.RatingDTO{
+			ratingDTO: olddto.RatingDTO{
 				RelatedType: "invalid",
 				RelatedID:   1,
 				Rating:      4,
