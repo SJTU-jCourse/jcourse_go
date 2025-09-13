@@ -33,7 +33,6 @@ type CourseOffering struct {
 	Semester     string        `json:"semester"`
 	Department   string        `json:"department"`
 	Language     string        `json:"language"`
-	Grade        []string      `json:"grade"`
 	Categories   []string      `json:"categories"`
 	TeacherGroup []Teacher     `json:"teacher_group"`
 

@@ -25,3 +25,5 @@ func (c *TrainingPlanController) GetTrainingPlanList(ctx *gin.Context) {
 func (c *TrainingPlanController) GetTrainingPlanDetail(ctx *gin.Context) {
 
 }
+
+func (c *TrainingPlanController) GetTrainingPlanFilter(ctx *gin.Context) {}

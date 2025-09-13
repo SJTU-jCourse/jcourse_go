@@ -9,6 +9,7 @@ type CourseListQuery struct {
 	Departments   []string
 	Categories    []string
 	Credits       []float64
+	Semesters     []string
 }
 
 type TeacherListQuery struct {

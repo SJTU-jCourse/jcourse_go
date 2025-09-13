@@ -8,7 +8,6 @@ type OfferingInfoVO struct {
 	Categories []string `json:"categories"`
 	Department string   `json:"department"`
 	Language   string   `json:"language"`
-	Grade      []string `json:"grade"`
 }
 
 func NewOfferingInfoVO(co *course.CourseOffering) OfferingInfoVO {
@@ -16,7 +15,6 @@ func NewOfferingInfoVO(co *course.CourseOffering) OfferingInfoVO {
 		Categories: co.Categories,
 		Department: co.Department,
 		Language:   co.Language,
-		Grade:      co.Grade,
 	}
 }
 
@@ -92,7 +90,6 @@ type CourseOfferingVO struct {
 	Categories []string `json:"categories"`
 	Department string   `json:"department"`
 	Language   string   `json:"language"`
-	Grade      []string `json:"grade"`
 }
 
 func NewCourseOfferingVO(co *course.CourseOffering) CourseOfferingVO {
@@ -107,7 +104,6 @@ func NewCourseOfferingVO(co *course.CourseOffering) CourseOfferingVO {
 		Categories:   co.Categories,
 		Department:   co.Department,
 		Language:     co.Language,
-		Grade:        co.Grade,
 	}
 }
 

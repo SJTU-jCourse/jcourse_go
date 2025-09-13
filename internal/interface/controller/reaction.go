@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"github.com/gin-gonic/gin"
+
 	"jcourse_go/internal/application/command"
 )
 
@@ -14,4 +16,10 @@ func NewReviewReactionController(
 	return &ReviewReactionController{
 		reactionService: reactionService,
 	}
+}
+
+func (c *ReviewReactionController) CreateReaction(ctx *gin.Context) {
+}
+
+func (c *ReviewReactionController) DeleteReaction(ctx *gin.Context) {
 }

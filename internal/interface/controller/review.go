@@ -22,6 +22,8 @@ func NewReviewController(
 	}
 }
 
+func (c *ReviewController) GetReview(ctx *gin.Context) {}
+
 func (c *ReviewController) CreateReview(ctx *gin.Context) {
 
 }

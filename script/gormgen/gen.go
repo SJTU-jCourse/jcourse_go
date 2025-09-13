@@ -14,11 +14,12 @@ func main() {
 
 	// Generate basic type-safe DAO API for struct `model.User` following conventions
 	g.ApplyBasic(&entity.User{},
-		&entity.Curriculum{}, &entity.Course{}, &entity.Teacher{},
+		&entity.Semester{}, &entity.Department{},
+		&entity.Course{}, &entity.Teacher{},
 		&entity.CourseOffering{}, &entity.CourseOfferingTeacher{}, &entity.CourseOfferingCategory{},
-		&entity.TrainingPlan{}, &entity.TrainingPlanCurriculum{},
-		&entity.Review{}, &entity.Rating{}, &entity.ReviewRevision{}, &entity.ReviewReaction{},
-		&entity.UserPointDetail{}, &entity.Statistic{})
+		&entity.TrainingPlan{}, &entity.TrainingPlanCurriculum{}, &entity.Curriculum{},
+		&entity.Review{}, &entity.ReviewRevision{}, &entity.ReviewReaction{},
+		&entity.UserPoint{}, &entity.Statistic{})
 
 	// Generate the code
 	g.Execute()

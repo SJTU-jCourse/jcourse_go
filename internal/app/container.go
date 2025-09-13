@@ -4,15 +4,27 @@ import (
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 
+	"jcourse_go/internal/application/command"
+	"jcourse_go/internal/application/query"
 	"jcourse_go/internal/config"
 	"jcourse_go/internal/infrastructure/dal"
-	"jcourse_go/internal/service/auth"
 )
 
 type ServiceContainer struct {
-	DB    *gorm.DB
-	Redis *redis.Client
-	Auth  auth.AuthService
+	DB            *gorm.DB
+	Redis         *redis.Client
+	Auth          command.AuthService
+	Reaction      command.ReactionService
+	ReviewCommand command.ReviewCommandService
+	Subscription  command.SubscriptionService
+
+	CourseQuery       query.CourseQueryService
+	ReviewQuery       query.ReviewQueryService
+	StatisticQuery    query.StatisticQueryService
+	TeacherQuery      query.TeacherQueryService
+	TrainingPlanQuery query.TrainingPlanQueryService
+	UserQuery         query.UserQueryService
+	UserPointQuery    query.UserPointQueryService
 }
 
 func NewServiceContainer(c config.AppConfig) (*ServiceContainer, error) {

@@ -25,3 +25,5 @@ func (c *TeacherController) GetTeacherList(ctx *gin.Context) {
 func (c *TeacherController) GetTeacherDetail(ctx *gin.Context) {
 
 }
+
+func (c *TeacherController) GetTeacherFilter(ctx *gin.Context) {}
