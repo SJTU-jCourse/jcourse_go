@@ -4,40 +4,32 @@ import "jcourse_go/internal/domain/shared"
 
 type CourseListQuery struct {
 	shared.PaginationQuery
-	Code          string
-	MainTeacherID int64
-	Departments   []string
-	Categories    []string
-	Credits       []float64
-	Semesters     []string
+	Code          string    `json:"code" form:"code"`
+	MainTeacherID int64     `json:"main_teacher_id" form:"main_teacher_id"`
+	Departments   []string  `json:"departments" form:"departments"`
+	Categories    []string  `json:"categories" form:"categories"`
+	Credits       []float64 `json:"credits" form:"credits"`
+	Semesters     []string  `json:"semesters" form:"semesters"`
 }
 
 type TeacherListQuery struct {
 	shared.PaginationQuery
-	Name             string
-	Code             string
-	Departments      []string
-	Titles           []string
-	Pinyin           string
-	PinyinAbbr       string
-	ContainCourseIDs []int64
+	Name        string   `json:"name" form:"name"`
+	Code        string   `json:"code" form:"code"`
+	Departments []string `json:"departments" form:"departments"`
+	Titles      []string `json:"titles" form:"titles"`
 }
 
 type TrainingPlanListQuery struct {
 	shared.PaginationQuery
-	Major            string
-	Degrees          []string
-	Departments      []string
-	EntryYears       []string
-	ContainCourseIDs []int64
+	Major       string   `json:"major" form:"major"`
+	Degrees     []string `json:"degrees" form:"degrees"`
+	Departments []string `json:"departments" form:"departments"`
+	EntryYears  []string `json:"entry_years" form:"entry_years"`
 }
 
 type ReviewQuery struct {
 	shared.PaginationQuery
-	CourseID         int64
-	Semester         string
-	UserID           int64
-	ReviewID         int64
-	Rating           int64
-	ExcludeAnonymous bool
+	Semester string `json:"semester" form:"semester"`
+	Rating   int64  `json:"rating" form:"rating"`
 }
