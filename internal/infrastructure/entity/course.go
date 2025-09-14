@@ -33,10 +33,10 @@ type CourseOffering struct {
 
 	Semester   string `gorm:"index;index:uniq_offering,unique"`
 	Language   string `gorm:"index"`
-	Department string `gorm:"index;index:uniq_offering,unique"`
+	Department string `gorm:"index"`
 
 	Categories   []CourseOfferingCategory
-	TeacherGroup []*Teacher `gorm:"many2many:course_offering_teacher"`
+	TeacherGroup []CourseOfferingTeacher
 
 	CreatedAt time.Time
 }
@@ -46,8 +46,9 @@ func (po *CourseOffering) TableName() string {
 }
 
 type CourseOfferingCategory struct {
-	ID               int64  `gorm:"primaryKey"`
-	CourseOfferingID int64  `gorm:"index:uniq_offering_category,unique"`
+	ID               int64 `gorm:"primaryKey"`
+	CourseOfferingID int64 `gorm:"index:uniq_offering_category,unique"`
+	CourseOffering   *CourseOffering
 	Category         string `gorm:"index:uniq_offering_category,unique"`
 	CourseID         int64  `gorm:"index"`
 	Course           *Course
@@ -61,8 +62,10 @@ func (po *CourseOfferingCategory) TableName() string {
 type CourseOfferingTeacher struct {
 	ID int64 `gorm:"primaryKey"`
 
-	CourseOfferingID int64 `gorm:"index:uniq_offering_category,unique"`
-	TeacherID        int64 `gorm:"index:uniq_offering_category,unique"`
+	CourseOfferingID int64 `gorm:"index:uniq_offering_teacher,unique"`
+	CourseOffering   *CourseOffering
+	TeacherID        int64 `gorm:"index:uniq_offering_teacher,unique"`
+	Teacher          *Teacher
 	CourseID         int64 `gorm:"index"`
 	Course           *Course
 	CreatedAt        time.Time

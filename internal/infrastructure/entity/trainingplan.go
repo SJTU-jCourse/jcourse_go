@@ -27,7 +27,7 @@ type TrainingPlan struct {
 	MinCredits float64 `gorm:"index;"`                                // 最小学分
 	MajorClass string  `gorm:"index;"`                                // 学位类型（e.g. 工学）
 
-	Curriculums []*Curriculum `gorm:"many2many:training_plan_curriculum"`
+	Curriculums []TrainingPlanCurriculum
 
 	CreatedAt time.Time `gorm:"index"`
 	UpdatedAt time.Time `gorm:"index"`
@@ -41,7 +41,9 @@ type TrainingPlanCurriculum struct {
 	ID int64 `gorm:"primaryKey"`
 
 	CurriculumCode  string `gorm:"index:uniq_training_plan_course,unique"`
-	TrainingPlanID  int64  `gorm:"index:uniq_training_plan_course,unique"`
+	Curriculum      *Curriculum
+	TrainingPlanID  int64 `gorm:"index:uniq_training_plan_course,unique"`
+	TrainingPlan    *TrainingPlan
 	SuggestSemester string `gorm:"index;"` // e.g. 2023-2024-2
 	Category        string `gorm:"index;"`
 

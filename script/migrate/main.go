@@ -20,11 +20,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = db.SetupJoinTable(&entity.TrainingPlan{}, "Curriculums", &entity.TrainingPlanCurriculum{})
-	err = db.SetupJoinTable(&entity.CourseOffering{}, "TeacherGroup", &entity.CourseOfferingTeacher{})
-	if err != nil {
-		log.Fatal(err)
-	}
 	err = db.AutoMigrate(&entity.User{},
 		&entity.Semester{}, &entity.Department{},
 		&entity.Course{}, &entity.Teacher{},

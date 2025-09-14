@@ -3,430 +3,334 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
+	"log"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
-	"github.com/joho/godotenv"
-	pinyin2 "github.com/mozillazg/go-pinyin"
+	"github.com/mozillazg/go-pinyin"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
-	"jcourse_go/internal/dal"
-	entity2 "jcourse_go/internal/infrastructure/entity"
-	"jcourse_go/pkg/util"
+	"jcourse_go/internal/config"
+	"jcourse_go/internal/infrastructure/dal"
+	"jcourse_go/internal/infrastructure/entity"
 )
 
-const Semester = "2024-2025-2"
+const Semester = "2025-2026-1"
 
 var (
-	db                         *gorm.DB
-	baseCourseKeyMap           = make(map[string]entity2.Curriculum)
-	baseCourseIDMap            = make(map[int64]entity2.Curriculum)
-	courseKeyMap               = make(map[string]entity2.Course)
-	courseIDMap                = make(map[int64]entity2.Course)
-	teacherKeyMap              = make(map[string]entity2.Teacher)
-	teacherIDMap               = make(map[int64]entity2.Teacher)
-	courseCategoryMap          = make(map[string]entity2.CourseCategoryPO)
-	offeredCourseKeyMap        = make(map[string]entity2.CourseOffering)
-	offeredCourseIDMap         = make(map[int64]entity2.CourseOffering)
-	offeredCourseTeacherKeyMap = make(map[string]entity2.CourseOfferingTeacher)
+	db *gorm.DB
 )
 
-func initDB() {
-	_ = godotenv.Load()
-	dal.InitDBClient()
-	db = dal.GetDBClient()
-	_ = util.InitSegWord()
+type teacherGroupItem struct {
+	Code       string
+	Name       string
+	Department string
+	Title      string
 }
 
-func readRawCSV(filename string) [][]string {
+func (t teacherGroupItem) uniqueKey() string {
+	return t.Code
+}
+
+var teacherItemPattern = regexp.MustCompile(`([^/]+)/([^/]+)/([^[]+)\[([^]]+)\]`)
+
+func parseTeacherGroup(s string) []teacherGroupItem {
+	match := teacherItemPattern.FindAllStringSubmatch(s, -1)
+	result := make([]teacherGroupItem, 0, len(match))
+	for _, m := range match {
+		result = append(result, teacherGroupItem{
+			Code:       strings.Trim(m[1], ";"),
+			Name:       m[2],
+			Title:      m[3],
+			Department: m[4],
+		})
+	}
+	return result
+}
+
+type mainTeacherItem struct {
+	Code string
+	Name string
+}
+
+func parseMainTeacher(s string) mainTeacherItem {
+	slice := strings.Split(s, "|")
+	if len(slice) < 2 {
+		return mainTeacherItem{}
+	}
+	return mainTeacherItem{
+		Code: slice[0],
+		Name: slice[1],
+	}
+}
+
+type teachCourse struct {
+	Code         string             // 课程号
+	Name         string             // 课程名称
+	TeachHour    int                // 学时
+	TeacherGroup []teacherGroupItem // 合上教师
+	MainTeacher  mainTeacherItem    // 任课教师
+	Department   string             // 开课院系
+	AttendTime   string             // 课程安排
+	ClassName    string             // 教学班名称
+	EnrollCount  int                // 选课人数
+	Credit       float64            // 学分
+	ClassRoom    string             // 教室
+	Language     string             // 授课语言
+	IsGeneral    bool               // 是否通识课
+	Categories   []string           // 通识课归属模块
+	Grade        []string           // 年级
+}
+
+func (c teachCourse) uniqueKey() string {
+	return fmt.Sprintf("%s:%s", c.Code, c.MainTeacher.Code)
+}
+
+func (c teachCourse) toCurriculum() entity.Curriculum {
+	return entity.Curriculum{
+		Code:   c.Code,
+		Name:   c.Name,
+		Credit: c.Credit,
+	}
+}
+
+func (c teachCourse) getTeachers() []entity.Teacher {
+	teachers := make([]entity.Teacher, 0, len(c.TeacherGroup))
+	for _, teacher := range c.TeacherGroup {
+		teachers = append(teachers, entity.Teacher{
+			Code:       teacher.Code,
+			Name:       teacher.Name,
+			Pinyin:     generatePinyin(teacher.Name),
+			PinyinAbbr: generatePinyinAbbr(teacher.Name),
+			Department: teacher.Department,
+			Title:      teacher.Title,
+		})
+	}
+	return teachers
+}
+
+func parseLine(line []string) (teachCourse, bool) {
+	teachHour, _ := strconv.Atoi(line[2])
+	teacherGroup := parseTeacherGroup(line[3])
+	mainTeacher := parseMainTeacher(line[4])
+	if mainTeacher.Code == "" {
+		if len(teacherGroup) > 0 {
+			mainTeacher = mainTeacherItem{teacherGroup[0].Code, teacherGroup[0].Name}
+		} else {
+			return teachCourse{}, false
+		}
+	}
+	categories := make([]string, 0)
+	if line[13] != "" {
+		categories = strings.Split(line[13], ",")
+	}
+	credit, _ := strconv.ParseFloat(line[9], 64)
+	return teachCourse{
+		Code:         line[0],
+		Name:         line[1],
+		TeachHour:    teachHour,
+		TeacherGroup: teacherGroup,
+		MainTeacher:  mainTeacher,
+		Department:   line[5],
+		AttendTime:   line[6],
+		ClassName:    line[7],
+		EnrollCount:  0,
+		Credit:       credit,
+		ClassRoom:    line[10],
+		Language:     line[11],
+		IsGeneral:    line[12] == "是",
+		Categories:   categories,
+		Grade:        strings.Split(line[14], ","),
+	}, true
+}
+
+func readRawCSV(filename string) []teachCourse {
 	fs, err := os.Open(filename)
-	defer func(fs *os.File) {
-		_ = fs.Close()
-	}(fs)
 	if err != nil {
 		panic(err)
 	}
+	defer fs.Close()
+
 	reader := csv.NewReader(fs)
 	lines, err := reader.ReadAll()
 	if err != nil {
 		panic(err)
 	}
-	return lines
-}
 
-func main() {
-	initDB()
-	data := readRawCSV(fmt.Sprintf("./data/%s.csv", Semester))
-	// 课程号,课程名称,学时,合上教师,任课教师,开课院系,课程安排,教学班名称,选课人数,学分,教室,授课语言,是否通识课,通识课归属模块,年级
-
-	// init
-	queryAllBaseCourse()
-	queryAllTeacher()
-	queryAllCourse()
-	queryAllOfferedCourse()
-	queryAllOfferedCourseTeacherGroup()
-	queryAllCourseCategory()
-
-	// first import
-	importBaseCourse(data)
-	importTeacher(data)
-
-	// refresh
-	queryAllBaseCourse()
-	queryAllTeacher()
-
-	importCourse(data)
-	queryAllCourse()
-
-	importCourseCategory(data)
-
-	importOfferedCourse(data)
-	queryAllOfferedCourse()
-
-	importOfferedCourseTeacher(data)
-}
-
-func importBaseCourse(data [][]string) {
-	baseCourses := make([]entity2.Curriculum, 0)
-	baseCourseDedup := make(map[string]struct{})
-	for _, line := range data[1:] {
-		baseCourse := parseBaseCourseFromLine(line)
-		if _, exists := baseCourseDedup[baseCourse.Code]; exists {
-			continue
-		}
-		baseCourseDedup[baseCourse.Code] = struct{}{}
-		baseCourses = append(baseCourses, baseCourse)
-	}
-	println("base course count: ", len(baseCourses))
-	result := db.Model(&entity2.Curriculum{}).Clauses(clause.OnConflict{UpdateAll: true}).CreateInBatches(&baseCourses, 100)
-	println("base course rows affected: ", result.RowsAffected)
-}
-
-func importTeacher(data [][]string) {
-	teachers := make([]entity2.Teacher, 0)
-	teacherSet := make(map[string]bool)
-	for _, line := range data[1:] {
-		for _, t := range parseTeacherGroupFromLine(line) {
-			if _, ok := teacherSet[t.Code]; ok {
-				continue
-			}
-			teachers = append(teachers, t)
-			teacherSet[t.Code] = true
-		}
-	}
-	println("teacher count: ", len(teachers))
-	result := db.Model(&entity2.Teacher{}).Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "code"}},
-		DoUpdates: clause.AssignmentColumns([]string{"department", "title"}),
-	}).CreateInBatches(&teachers, 100)
-	println("teacher rows affected: ", result.RowsAffected)
-}
-
-func importCourse(data [][]string) {
-	courses := make([]entity2.Course, 0)
-	courseDedup := make(map[string]struct{})
-	for _, line := range data[1:] {
-		course := parseCourseFromLine(line)
-		if course.MainTeacherID == 0 {
-			println("no main teacher id: ", strings.Join(line, ","))
-			continue
-		}
-		key := makeCourseKey(course.Code, course.MainTeacherName)
-		if _, exists := courseDedup[key]; exists {
-			continue
-		}
-		courseDedup[key] = struct{}{}
-		courses = append(courses, course)
-	}
-	println("course count: ", len(courses))
-	result := db.Model(&entity2.Course{}).Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "id"}},
-		DoUpdates: clause.AssignmentColumns([]string{"name", "credit", "main_teacher_name"}),
-	}).CreateInBatches(&courses, 100)
-	println("course rows affected: ", result.RowsAffected)
-}
-
-func importOfferedCourse(data [][]string) {
-	offeredCourses := make([]entity2.CourseOffering, 0)
-	offeredDedup := make(map[string]struct{})
-	for _, line := range data[1:] {
-		offered := parseOfferedCourseFromLine(line)
-		key := makeOfferedCourseKey(offered.CourseID, offered.Semester)
-		if _, exists := offeredDedup[key]; exists {
-			continue
-		}
-		offeredDedup[key] = struct{}{}
-		offeredCourses = append(offeredCourses, offered)
-	}
-	println("offered course count: ", len(offeredCourses))
-	result := db.Model(&entity2.CourseOffering{}).Clauses(clause.OnConflict{UpdateAll: true}).CreateInBatches(&offeredCourses, 100)
-	println("offered course rows affected: ", result.RowsAffected)
-}
-
-func importCourseCategory(data [][]string) {
-	categories := make([]entity2.CourseCategoryPO, 0)
-	for _, line := range data[1:] {
-		categories = append(categories, parseCourseCategories(line)...)
-	}
-	result := db.Model(&entity2.CourseCategoryPO{}).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(&categories, 100)
-	println("course category rows affected: ", result.RowsAffected)
-}
-
-func importOfferedCourseTeacher(data [][]string) {
-	offeredCourseTeachers := make([]entity2.CourseOfferingTeacher, 0)
-	for _, line := range data[1:] {
-		teacherGroup := parseOfferedCourseTeacherGroup(line)
-		for _, t := range teacherGroup {
-			if t.TeacherID == 0 {
-				continue
-			}
-			offeredCourseTeachers = append(offeredCourseTeachers, t)
-		}
-	}
-	result := db.Model(&entity2.CourseOfferingTeacher{}).Clauses(clause.OnConflict{DoNothing: true}).CreateInBatches(&offeredCourseTeachers, 100)
-	println("offered course teacher rows affected: ", result.RowsAffected)
-}
-
-func parseBaseCourseFromLine(line []string) entity2.Curriculum {
-	credit, _ := strconv.ParseFloat(line[9], 32)
-	baseCourse := entity2.Curriculum{
-		Code:   line[0],
-		Name:   line[1],
-		Credit: credit,
-	}
-	if baseCourseFromDB, ok := baseCourseKeyMap[makeBaseCourseKey(baseCourse.Code)]; ok {
-		baseCourse.ID = baseCourseFromDB.ID
-	}
-	return baseCourse
-}
-
-func makeBaseCourseKey(courseCode string) string {
-	return courseCode
-}
-
-func queryAllBaseCourse() {
-	baseCourses := make([]entity2.Curriculum, 0)
-	result := db.Model(&entity2.Curriculum{}).Find(&baseCourses)
-	if result.Error != nil {
-		return
-	}
-	for _, baseCourse := range baseCourses {
-		baseCourseKeyMap[makeBaseCourseKey(baseCourse.Code)] = baseCourse
-		baseCourseIDMap[baseCourse.ID] = baseCourse
-	}
-}
-
-func parseMainTeacherFromLine(line []string) entity2.Teacher {
-	if line[4] == "" {
-		groups := parseTeacherGroupFromLine(line)
-		if len(groups) == 0 {
-			return entity2.Teacher{}
-		}
-		return groups[0]
-	}
-	teacherInfo := strings.Split(line[4], "|")
-	if len(teacherInfo) <= 1 {
-		return entity2.Teacher{}
-	}
-	teacher := entity2.Teacher{
-		Name:       teacherInfo[1],
-		Code:       teacherInfo[0],
-		Pinyin:     generatePinyin(teacherInfo[1]),
-		PinyinAbbr: generatePinyinAbbr(teacherInfo[1]),
-	}
-	if teacherFromDB, ok := teacherKeyMap[makeTeacherKey(teacher.Code)]; ok {
-		teacher.Department = teacherFromDB.Department
-		teacher.Title = teacherFromDB.Title
-		teacher.ID = teacherFromDB.ID
-	}
-	return teacher
-}
-
-func parseSingleTeacherFromLine(teacherInfo string) entity2.Teacher {
-	l := strings.Split(teacherInfo, "/")
-	s := strings.Split(l[2], "[")
-	dept, _ := strings.CutSuffix(s[1], "]")
-	teacher := entity2.Teacher{
-		Name:       l[1],
-		Code:       l[0],
-		Department: dept,
-		Title:      s[0],
-		Pinyin:     generatePinyin(l[1]),
-		PinyinAbbr: generatePinyinAbbr(l[1]),
-	}
-	if teacherFromDB, ok := teacherKeyMap[makeTeacherKey(teacher.Code)]; ok {
-		teacher.ID = teacherFromDB.ID
-	}
-	return teacher
-}
-
-func parseTeacherGroupFromLine(line []string) []entity2.Teacher {
-	replaced := strings.ReplaceAll(line[3], "THIERRY; Fine; VAN CHUNG", "THIERRY, Fine, VAN CHUNG")
-	teacherInfos := strings.Split(replaced, ";")
-
-	teachers := make([]entity2.Teacher, 0)
-	for _, teacherInfo := range teacherInfos {
-		teachers = append(teachers, parseSingleTeacherFromLine(teacherInfo))
-	}
-	return teachers
-}
-
-func makeTeacherKey(teacherCode string) string {
-	return teacherCode
-}
-
-func queryAllTeacher() {
-	teachers := make([]entity2.Teacher, 0)
-
-	result := db.Model(&entity2.Teacher{}).Find(&teachers)
-	if result.Error != nil {
-		return
-	}
-	for _, teacher := range teachers {
-		teacherKeyMap[makeTeacherKey(teacher.Code)] = teacher
-		teacherIDMap[teacher.ID] = teacher
-	}
-}
-
-func parseCourseFromLine(line []string) entity2.Course {
-	baseCourse := parseBaseCourseFromLine(line)
-	mainTeacher := parseMainTeacherFromLine(line)
-	course := entity2.Course{
-		Code:            baseCourse.Code,
-		Name:            baseCourse.Name,
-		Credit:          baseCourse.Credit,
-		MainTeacherID:   int64(mainTeacher.ID),
-		MainTeacherName: mainTeacher.Name,
-		Department:      line[5],
-	}
-	if courseFromDB, ok := courseKeyMap[makeCourseKey(course.Code, mainTeacher.Name)]; ok {
-		course.ID = courseFromDB.ID
-	}
-	return course
-}
-
-func makeCourseKey(courseCode, mainTeacherName string) string {
-	return fmt.Sprintf("%s:%s", courseCode, mainTeacherName)
-}
-
-func queryAllCourse() {
-	courses := make([]entity2.Course, 0)
-	result := db.Model(&entity2.Course{}).Find(&courses)
-	if result.Error != nil {
-		return
-	}
-	for _, course := range courses {
-		courseKeyMap[makeCourseKey(course.Code, course.MainTeacherName)] = course
-		courseIDMap[course.ID] = course
-	}
-}
-
-func parseOfferedCourseFromLine(line []string) entity2.CourseOffering {
-	course := parseCourseFromLine(line)
-	mainTeacher := parseMainTeacherFromLine(line)
-	offeredCourse := entity2.CourseOffering{
-		CourseID:      int64(course.ID),
-		MainTeacherID: int64(mainTeacher.ID),
-		Semester:      Semester,
-		// Department:    line[5],
-		Language: line[11],
-		Grade:    line[14],
-	}
-	if offeredCourseFromDB, ok := offeredCourseKeyMap[makeOfferedCourseKey(int64(course.ID), Semester)]; ok {
-		offeredCourse.ID = offeredCourseFromDB.ID
-	}
-	return offeredCourse
-}
-
-func makeOfferedCourseKey(courseID int64, semester string) string {
-	return fmt.Sprintf("%d:%s", courseID, semester)
-}
-
-func queryAllOfferedCourse() {
-	offeredCourses := make([]entity2.CourseOffering, 0)
-	result := db.Model(&entity2.CourseOffering{}).Find(&offeredCourses)
-	if result.Error != nil {
-		return
-	}
-	for _, offeredCourse := range offeredCourses {
-		offeredCourseIDMap[offeredCourse.ID] = offeredCourse
-		offeredCourseKeyMap[makeOfferedCourseKey(offeredCourse.CourseID, offeredCourse.Semester)] = offeredCourse
-	}
-}
-
-func parseOfferedCourseTeacherGroup(line []string) []entity2.CourseOfferingTeacher {
-	teacherGroup := parseTeacherGroupFromLine(line)
-	offeredCourse := parseOfferedCourseFromLine(line)
-	teachers := make([]entity2.CourseOfferingTeacher, 0)
-	for _, teacher := range teacherGroup {
-		teachers = append(teachers, entity2.CourseOfferingTeacher{
-			CourseID:         offeredCourse.CourseID,
-			CourseOfferingID: int64(offeredCourse.ID),
-			MainTeacherID:    offeredCourse.MainTeacherID,
-			TeacherID:        int64(teacher.ID),
-			TeacherName:      teacher.Name,
-		})
-	}
-	return teachers
-}
-
-func makeOfferedCourseTeacherKey(offeredCourseID int64, teacherID int64) string {
-	return fmt.Sprintf("%d:%d", offeredCourseID, teacherID)
-}
-
-func queryAllOfferedCourseTeacherGroup() {
-	offeredCourseTeachers := make([]entity2.CourseOfferingTeacher, 0)
-	result := db.Model(&entity2.CourseOfferingTeacher{}).Find(&offeredCourseTeachers)
-	if result.Error != nil {
-		return
-	}
-	for _, offeredCourseTeacher := range offeredCourseTeachers {
-		offeredCourseTeacherKeyMap[makeOfferedCourseTeacherKey(offeredCourseTeacher.CourseOfferingID, offeredCourseTeacher.TeacherID)] = offeredCourseTeacher
-	}
-}
-
-func parseCourseCategories(line []string) []entity2.CourseCategoryPO {
-	course := parseCourseFromLine(line)
-	categories := strings.Split(line[13], ",")
-	courseCategories := make([]entity2.CourseCategoryPO, 0)
-	for _, category := range categories {
-		if category == "" {
-			continue
-		}
-		courseCategories = append(courseCategories, entity2.CourseCategoryPO{
-			CourseID: int64(course.ID),
-			Category: category,
-		})
-	}
-	return courseCategories
-}
-func makeCourseCategoryKey(courseID int64, category string) string {
-	return fmt.Sprintf("%d:%s", courseID, category)
-}
-
-func queryAllCourseCategory() {
-	courseCategories := make([]entity2.CourseCategoryPO, 0)
-	result := db.Model(&entity2.CourseCategoryPO{}).Find(&courseCategories)
-	if result.Error != nil {
-		return
-	}
-	for _, courseCategory := range courseCategories {
-		course, ok := courseIDMap[(courseCategory.CourseID)]
+	courses := make([]teachCourse, 0, len(lines))
+	for _, line := range lines[1:] {
+		course, ok := parseLine(line)
 		if !ok {
 			continue
 		}
-		courseCategoryMap[makeCourseCategoryKey(int64(course.ID), courseCategory.Category)] = courseCategory
+		courses = append(courses, course)
+	}
+	return courses
+}
+
+func main() {
+	var err error
+	conf := config.InitConfig("./config/config.yaml")
+	db, err = dal.NewPostgresSQL(conf.DB)
+	if err != nil {
+		panic(err)
+	}
+	rawCourses := readRawCSV(fmt.Sprintf("./data/%s.csv", Semester))
+	rawCourses = removeDuplicatedCourses(rawCourses)
+
+	// 1. 写入没有任何依赖项的两个模型
+
+	curriculumMaps := make(map[string]entity.Curriculum)
+	curriculums := make([]entity.Curriculum, 0)
+	for _, course := range rawCourses {
+		if _, ok := curriculumMaps[course.Code]; ok {
+			continue
+		}
+		curriculum := course.toCurriculum()
+		curriculumMaps[course.Code] = curriculum
+		curriculums = append(curriculums, curriculum)
+	}
+
+	teachers := make([]entity.Teacher, 0)
+	teacherMap := make(map[string]entity.Teacher)
+	for _, course := range rawCourses {
+		for _, teacher := range course.getTeachers() {
+			if _, ok := teacherMap[teacher.Code]; ok {
+				continue
+			}
+			teacherMap[teacher.Code] = teacher
+			teachers = append(teachers, teacher)
+		}
+	}
+
+	if err = db.Model(&entity.Curriculum{}).
+		Clauses(clause.OnConflict{UpdateAll: true}).
+		CreateInBatches(&curriculums, 100).Error; err != nil {
+		log.Fatal(err)
+	}
+	if err = db.Model(&entity.Teacher{}).Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "code"}}, // 以 code 为唯一键
+		DoUpdates: clause.AssignmentColumns([]string{"name", "department", "title"}),
+	}).CreateInBatches(&teachers, 100).Error; err != nil {
+		log.Fatal(err)
+	}
+
+	// 2. 查询现有的所有 teacher，获取 teacher_id
+	clear(teachers)
+	if err = db.Model(&entity.Teacher{}).Find(&teachers).Error; err != nil {
+		log.Fatal(err)
+	}
+	teacherCode2IDMap := make(map[string]entity.Teacher)
+	for _, teacher := range teachers {
+		teacherCode2IDMap[teacher.Code] = teacher
+	}
+
+	// 3. 构建 course 模型
+
+	courses := make([]entity.Course, 0)
+	for _, c := range rawCourses {
+		t, ok := teacherCode2IDMap[c.MainTeacher.Code]
+		if !ok {
+			log.Printf("teacher %s not found", c.MainTeacher.Code)
+			continue
+		}
+		course := entity.Course{
+			Code:          c.Code,
+			Name:          c.Name,
+			Credit:        c.Credit,
+			MainTeacherID: t.ID,
+			Offerings:     nil,
+		}
+		courses = append(courses, course)
+	}
+
+	if err := db.Model(&entity.Course{}).
+		Clauses(clause.OnConflict{DoNothing: true}).
+		CreateInBatches(&courses, 100).Error; err != nil {
+		log.Fatal(err)
+	}
+	clear(courses)
+	if err := db.Model(&entity.Course{}).
+		Joins("MainTeacher").
+		Find(&courses).Error; err != nil {
+		log.Fatal(err)
+	}
+
+	courseMaps := make(map[string]entity.Course)
+	for _, course := range courses {
+		courseMaps[fmt.Sprintf("%s:%s", course.Code, course.MainTeacher.Code)] = course
+	}
+
+	// 写入 course_offering 模型
+	courseOfferings := make([]entity.CourseOffering, 0)
+	for _, c := range rawCourses {
+		course, ok := courseMaps[fmt.Sprintf("%s:%s", c.Code, c.MainTeacher.Code)]
+		if !ok {
+			log.Printf("course %s not found", c.Code)
+			continue
+		}
+		co := entity.CourseOffering{
+			CourseID:      course.ID,
+			MainTeacherID: course.MainTeacherID,
+			Semester:      Semester,
+			Department:    c.Department,
+			Language:      c.Language,
+			Categories:    make([]entity.CourseOfferingCategory, 0),
+			TeacherGroup:  make([]entity.CourseOfferingTeacher, 0),
+		}
+		for _, teacher := range c.getTeachers() {
+			t, ok := teacherCode2IDMap[teacher.Code]
+			if !ok {
+				log.Printf("teacher %s not found", teacher.Code)
+				continue
+			}
+			co.TeacherGroup = append(co.TeacherGroup, entity.CourseOfferingTeacher{
+				TeacherID: t.ID,
+				CourseID:  course.ID,
+			})
+		}
+		for _, category := range c.Categories {
+			co.Categories = append(co.Categories, entity.CourseOfferingCategory{
+				Category: category,
+				CourseID: course.ID,
+			})
+		}
+		courseOfferings = append(courseOfferings, co)
+	}
+
+	if err := db.Model(&entity.CourseOffering{}).
+		Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "course_id"}, {Name: "semester"}},
+			UpdateAll: true,
+		}).
+		CreateInBatches(&courseOfferings, 100).Error; err != nil {
+		log.Fatal(err)
 	}
 }
 
+func removeDuplicatedCourses(courses []teachCourse) []teachCourse {
+	m := make(map[string]teachCourse)
+	result := make([]teachCourse, 0, len(m))
+
+	for _, course := range courses {
+		if _, ok := m[course.uniqueKey()]; ok {
+			continue
+		}
+		m[course.uniqueKey()] = course
+		result = append(result, course)
+	}
+	return result
+}
+
 func generatePinyin(name string) string {
-	result := pinyin2.LazyPinyin(name, pinyin2.NewArgs())
+	result := pinyin.LazyPinyin(name, pinyin.NewArgs())
 	return strings.Join(result, "")
 }
 
 func generatePinyinAbbr(name string) string {
-	result := pinyin2.LazyPinyin(name, pinyin2.Args{Style: pinyin2.FirstLetter})
+	result := pinyin.LazyPinyin(name, pinyin.Args{Style: pinyin.FirstLetter})
 	return strings.Join(result, "")
 }

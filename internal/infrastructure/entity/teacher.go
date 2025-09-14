@@ -9,7 +9,7 @@ type Teacher struct {
 	Pinyin     string `gorm:"index"`
 	PinyinAbbr string `gorm:"index"`
 
-	Code       string `gorm:"index:unique"`
+	Code       string `gorm:"uniqueIndex"`
 	Email      string `gorm:"index"`
 	Department string `gorm:"index"`
 	Title      string
