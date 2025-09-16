@@ -50,7 +50,9 @@ func (s *courseQueryService) GetCourseList(ctx context.Context, q course.CourseL
 	offset := (page - 1) * limit
 
 	// Subquery: latest semester per course
-	latestSub := db.Table("course_offering as co").Select("co.course_id, MAX(co.semester) as latest_semester").Group("co.course_id")
+	latestSub := db.Table("course_offering as co").
+		Select("co.course_id, MAX(co.semester) as latest_semester").
+		Group("co.course_id")
 
 	// Base query joining latest offering and main teacher
 	base := db.Table("course as c").
@@ -95,11 +97,23 @@ func (s *courseQueryService) GetCourseList(ctx context.Context, q course.CourseL
 		OfferingID         int64   `json:"offering_id"`
 		OfferingDepartment string  `json:"offering_department"`
 		OfferingLanguage   string  `json:"offering_language"`
+		LatestSemester     string  `json:"latest_semester"`
 	}, 0)
 
-	err := base.Select("DISTINCT c.id as id, c.code, c.name, c.credit, c.main_teacher_id, t.name as teacher_name, t.department as teacher_department, lo.id as offering_id, lo.department as offering_department, lo.language as offering_language").
+	err := base.Select("DISTINCT " +
+		"c.id as id, " +
+		"c.code, " +
+		"c.name, " +
+		"c.credit, " +
+		"c.main_teacher_id, " +
+		"t.name as teacher_name, " +
+		"t.department as teacher_department, " +
+		"lo.id as offering_id, " +
+		"lo.department as offering_department, " +
+		"lo.language as offering_language, " +
+		"latest.latest_semester").
 		Limit(limit).Offset(offset).
-		Order("latest.latest_semester DESC, c.id ASC").
+		Order("c.code ASC").
 		Scan(&rows).Error
 	if err != nil {
 		return nil, err
