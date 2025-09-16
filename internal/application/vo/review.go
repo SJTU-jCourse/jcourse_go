@@ -35,10 +35,8 @@ func NewReviewVOFromDomain(r *course.Review) ReviewVO {
 }
 
 func NewReviewVOFromEntity(e *entity.Review) ReviewVO {
-	courseVO := NewCourseInReviewVOFromEntity(e.Course)
-	return ReviewVO{
+	reviewVO := ReviewVO{
 		ID:        e.ID,
-		Course:    &courseVO,
 		Comment:   e.Comment,
 		Rating:    e.Rating,
 		Score:     e.Score,
@@ -46,4 +44,11 @@ func NewReviewVOFromEntity(e *entity.Review) ReviewVO {
 		CreatedAt: e.CreatedAt.Unix(),
 		UpdatedAt: e.UpdatedAt.Unix(),
 	}
+
+	if e.Course != nil {
+		courseVO := NewCourseInReviewVOFromEntity(e.Course)
+		reviewVO.Course = &courseVO
+	}
+
+	return reviewVO
 }

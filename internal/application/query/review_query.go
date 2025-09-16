@@ -24,8 +24,8 @@ func (r *reviewQueryService) GetLatestReviews(ctx context.Context, query shared.
 	rs := make([]entity.Review, 0)
 	if err := r.db.WithContext(ctx).
 		Model(&entity.Review{}).
-		Joins("Course").
-		Joins("Teacher").
+		Joins("Course.MainTeacher").
+		Preload("Reactions").
 		Order("updated_at desc").
 		Find(&rs).Error; err != nil {
 		return nil, err
@@ -41,8 +41,7 @@ func (r *reviewQueryService) GetCourseReviews(ctx context.Context, courseID shar
 	rs := make([]entity.Review, 0)
 	if err := r.db.WithContext(ctx).
 		Model(&entity.Review{}).
-		Joins("Course").
-		Joins("Teacher").
+		Preload("Reactions").
 		Where("course_id = ?", courseID).
 		Order("updated_at desc").
 		Find(&rs).Error; err != nil {
@@ -59,8 +58,8 @@ func (r *reviewQueryService) GetUserReviews(ctx context.Context, userID shared.I
 	rs := make([]entity.Review, 0)
 	if err := r.db.WithContext(ctx).
 		Model(&entity.Review{}).
-		Joins("Course").
-		Joins("Teacher").
+		Joins("Course.MainTeacher").
+		Preload("Reactions").
 		Where("user_id = ?", userID).
 		Order("updated_at desc").
 		Find(&rs).Error; err != nil {

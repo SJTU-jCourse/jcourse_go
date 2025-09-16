@@ -59,6 +59,7 @@ func RegisterRouter(s *app.ServiceContainer) *gin.Engine {
 	userGroup := needAuthGroup.Group("/user")
 	userGroup.GET("/profile", userController.GetUserInfo)
 	userGroup.PUT("/profile", userController.UpdateUserInfo)
+	userGroup.GET("/review", reviewController.GetUserReviews)
 
 	userPointGroup := userGroup.Group("/point")
 	userPointGroup.GET("", userPointController.GetUserPoints)
