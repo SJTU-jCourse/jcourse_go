@@ -4,3 +4,4 @@ db:
   user: jcourse
   password: jcourse
   db_name: jcourse_v2
+  debug: true

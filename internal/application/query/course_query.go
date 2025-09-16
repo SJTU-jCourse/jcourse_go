@@ -185,24 +185,15 @@ func (s *courseQueryService) GetCourseDetail(ctx context.Context, courseID share
 	c := entity.Course{}
 	if err := s.db.WithContext(ctx).
 		Model(&entity.Course{}).
-		Joins("Teacher").
-		Preload("CourseOffering").
-		Where("id = ?", courseID).Take(&c).Error; err != nil {
-		return nil, err
-	}
-
-	offerings := make([]*entity.CourseOffering, 0)
-
-	if err := s.db.WithContext(ctx).
-		Model(&entity.CourseOffering{}).
-		Joins("Teacher").
-		Joins("CourseOfferingCategory").
-		Find(&offerings).Error; err != nil {
+		Joins("MainTeacher").
+		Preload("Offerings.TeacherGroup.Teacher").
+		Preload("Offerings.Categories").
+		Where("course.id = ?", courseID).Take(&c).Error; err != nil {
 		return nil, err
 	}
 
 	offeringVOs := make([]vo.CourseOfferingVO, 0)
-	for _, o := range offerings {
+	for _, o := range c.Offerings {
 		categories := make([]string, 0)
 		for _, ct := range o.Categories {
 			categories = append(categories, ct.Category)
@@ -210,9 +201,9 @@ func (s *courseQueryService) GetCourseDetail(ctx context.Context, courseID share
 		teacherGroup := make([]vo.TeacherInCourseVO, 0)
 		for _, t := range o.TeacherGroup {
 			teacherGroup = append(teacherGroup, vo.TeacherInCourseVO{
-				ID:         t.ID,
-				Name:       t.Name,
-				Department: t.Department,
+				ID:         t.Teacher.ID,
+				Name:       t.Teacher.Name,
+				Department: t.Teacher.Department,
 			})
 		}
 		offeringVOs = append(offeringVOs, vo.CourseOfferingVO{
@@ -248,9 +239,11 @@ func (s *courseQueryService) GetCourseFilter(ctx context.Context) (*course.Cours
 		Select("course_id, MAX(semester) as latest_semester").
 		Group("course_id")
 
-	db := s.db.WithContext(ctx).Model(&entity.Course{}).
-		Joins("JOIN (?) latest ON latest.course_id = id", latestSub).
-		Joins("JOIN course_offering lo ON lo.course_id = c.id AND lo.semester = latest.latest_semester")
+	getBase := func() *gorm.DB {
+		return s.db.WithContext(ctx).Table("course as c").
+			Joins("JOIN (?) latest ON latest.course_id = c.id", latestSub).
+			Joins("JOIN course_offering lo ON lo.course_id = c.id AND lo.semester = latest.latest_semester")
+	}
 
 	filter := &course.CourseFilter{
 		Departments: make([]course.FilterAggregateItem, 0),
@@ -259,35 +252,39 @@ func (s *courseQueryService) GetCourseFilter(ctx context.Context) (*course.Cours
 		Categories:  make([]course.FilterAggregateItem, 0),
 	}
 
-	if err := db.
+	if err := getBase().
 		Select("c.credit as value, COUNT(DISTINCT c.id) as count").
 		Group("c.credit").
+		Order("c.credit ASC").
 		Scan(&filter.Credits).Error; err != nil {
 		return nil, err
 	}
 
 	// Departments from latest offering only
 
-	if err := db.
+	if err := getBase().
 		Select("lo.department as value, COUNT(DISTINCT c.id) as count").
 		Group("lo.department").
+		Order("lo.department ASC").
 		Scan(&filter.Departments).Error; err != nil {
 		return nil, err
 	}
 
 	// Semesters: latest semester value per course
-	if err := db.
+	if err := getBase().
 		Select("latest.latest_semester as value, COUNT(DISTINCT c.id) as count").
 		Group("latest.latest_semester").
+		Order("latest.latest_semester DESC").
 		Scan(&filter.Semesters).Error; err != nil {
 		return nil, err
 	}
 
 	// Categories from latest offering only
-	if err := db.
+	if err := getBase().
 		Joins("JOIN course_offering_category coc ON coc.course_offering_id = lo.id").
 		Select("coc.category as value, COUNT(DISTINCT c.id) as count").
 		Group("coc.category").
+		Order("coc.category ASC").
 		Scan(&filter.Categories).Error; err != nil {
 		return nil, err
 	}

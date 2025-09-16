@@ -30,6 +30,7 @@ type DBConfig struct {
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
 	DBName   string `yaml:"db_name"`
+	Debug    bool   `yaml:"debug"`
 }
 
 type RedisConfig struct {

@@ -16,5 +16,8 @@ func NewPostgresSQL(c config.DBConfig) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	if c.Debug {
+		db = db.Debug()
+	}
 	return db, nil
 }

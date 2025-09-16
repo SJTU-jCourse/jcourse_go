@@ -23,7 +23,7 @@ func NewCourseController(
 
 func (c *CourseController) GetCourseDetail(ctx *gin.Context) {
 	var req dto.CourseDetailRequest
-	if err := ctx.ShouldBind(&req); err != nil {
+	if err := ctx.ShouldBindUri(&req); err != nil {
 		dto.WriteBadArgumentResponse(ctx)
 		return
 	}

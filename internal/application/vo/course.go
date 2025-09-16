@@ -163,7 +163,7 @@ func NewCourseOfferingVO(co *course.CourseOffering) CourseOfferingVO {
 func NewCourseOfferingVOFromEntity(co *entity.CourseOffering) CourseOfferingVO {
 	teacherGroup := make([]TeacherInCourseVO, 0)
 	for _, t := range co.TeacherGroup {
-		teacher := NewTeacherInCourseVOFromEntity(t)
+		teacher := NewTeacherInCourseVOFromEntity(t.Teacher)
 		teacherGroup = append(teacherGroup, teacher)
 	}
 	categories := make([]string, 0)
