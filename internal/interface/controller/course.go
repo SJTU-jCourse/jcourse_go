@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 
 	"jcourse_go/internal/application/query"
@@ -22,13 +24,18 @@ func NewCourseController(
 }
 
 func (c *CourseController) GetCourseDetail(ctx *gin.Context) {
-	var req dto.CourseDetailRequest
-	if err := ctx.ShouldBindUri(&req); err != nil {
+	courseIDStr := ctx.Param("courseID")
+	if courseIDStr == "" {
+		dto.WriteBadArgumentResponse(ctx)
+		return
+	}
+	courseID, err := strconv.Atoi(courseIDStr)
+	if err != nil || courseID == 0 {
 		dto.WriteBadArgumentResponse(ctx)
 		return
 	}
 
-	course, err := c.courseQuery.GetCourseDetail(ctx, shared.IDType(req.CourseID))
+	course, err := c.courseQuery.GetCourseDetail(ctx, shared.IDType(courseID))
 	if err != nil {
 		dto.WriteErrorResponse(ctx, err)
 		return
