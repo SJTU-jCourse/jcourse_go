@@ -16,7 +16,7 @@ type ServiceContainer struct {
 	Auth          command.AuthService
 	Reaction      command.ReactionService
 	ReviewCommand command.ReviewCommandService
-	Subscription  command.SubscriptionService
+	Notification  command.CourseNotificationService
 
 	CourseQuery       query.CourseQueryService
 	ReviewQuery       query.ReviewQueryService
@@ -36,6 +36,7 @@ func NewServiceContainer(c config.AppConfig) (*ServiceContainer, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return &ServiceContainer{
 		DB:                db,
 		Redis:             rdb,

@@ -11,7 +11,7 @@ func RegisterRouter(s *app.ServiceContainer) *gin.Engine {
 	r := gin.Default()
 
 	authController := controller.NewAuthController(s.Auth)
-	courseController := controller.NewCourseController(s.CourseQuery)
+	courseController := controller.NewCourseController(s.CourseQuery, s.Notification)
 	teacherController := controller.NewTeacherController(s.TeacherQuery)
 	reviewController := controller.NewReviewController(s.ReviewQuery, s.ReviewCommand)
 	reactionController := controller.NewReviewReactionController(s.Reaction)
@@ -34,6 +34,7 @@ func RegisterRouter(s *app.ServiceContainer) *gin.Engine {
 	courseGroup.GET("", courseController.GetCourseList)
 	courseGroup.GET("/filter", courseController.GetCourseFilter)
 	courseGroup.GET("/:courseID", courseController.GetCourseDetail)
+	courseGroup.POST("/:courseID/notification", courseController.ChangeNotification)
 
 	teacherGroup := needAuthGroup.Group("/teacher")
 	teacherGroup.GET("", teacherController.GetTeacherList)

@@ -5,21 +5,26 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"jcourse_go/internal/application/command"
 	"jcourse_go/internal/application/query"
 	"jcourse_go/internal/domain/course"
+	"jcourse_go/internal/domain/notification"
 	"jcourse_go/internal/domain/shared"
 	"jcourse_go/internal/interface/dto"
 )
 
 type CourseController struct {
-	courseQuery query.CourseQueryService
+	courseQuery        query.CourseQueryService
+	courseNotification command.CourseNotificationService
 }
 
 func NewCourseController(
 	courseQuery query.CourseQueryService,
+	courseNotification command.CourseNotificationService,
 ) *CourseController {
 	return &CourseController{
-		courseQuery: courseQuery,
+		courseQuery:        courseQuery,
+		courseNotification: courseNotification,
 	}
 }
 
@@ -67,6 +72,16 @@ func (c *CourseController) GetCourseFilter(ctx *gin.Context) {
 	dto.WriteDataResponse(ctx, filter)
 }
 
-func (c *CourseController) SubscribeCourse(ctx *gin.Context) {
-
+func (c *CourseController) ChangeNotification(ctx *gin.Context) {
+	var req notification.CourseNotificationCommand
+	if err := ctx.ShouldBind(&req); err != nil {
+		dto.WriteErrorResponse(ctx, err)
+		return
+	}
+	reqCtx := shared.NewRequestCtx(0, shared.UserRoleNormal)
+	if err := c.courseNotification.Change(ctx, reqCtx, req); err != nil {
+		dto.WriteErrorResponse(ctx, err)
+		return
+	}
+	dto.WriteDataResponse(ctx, nil)
 }
