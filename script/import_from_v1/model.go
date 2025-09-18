@@ -2,47 +2,64 @@ package main
 
 import "time"
 
-type DepartmentV1 struct {
+type Department struct {
 	ID   int64
 	Name string
 }
 
-func (p *DepartmentV1) TableName() string {
+func (p *Department) TableName() string {
 	return "jcourse_api_department"
 }
 
-type SemesterV1 struct {
-	ID   int64
-	Name string
+type Semester struct {
+	ID        int64
+	Name      string
+	Available bool
 }
 
-func (p *SemesterV1) TableName() string {
+func (p *Semester) TableName() string {
 	return "jcourse_api_semester"
 }
 
-type CategoryV1 struct {
+type Category struct {
 	ID   int64
 	Name string
 }
 
-func (p *CategoryV1) TableName() string {
-	return "jcourse_api_categories"
+func (p *Category) TableName() string {
+	return "jcourse_api_category"
 }
 
-type CourseV1 struct {
-	ID            int64
-	Code          string
-	Name          string
-	Credit        float64
-	DepartmentID  int64
-	MainTeacherID int64
+type Course struct {
+	ID             int64
+	Code           string
+	Name           string
+	Credit         float64
+	DepartmentID   int64
+	Department     *Department
+	MainTeacherID  int64
+	MainTeacher    *Teacher
+	Categories     []Category `gorm:"many2many:jcourse_api_course_categories;"`
+	TeacherGroup   []Teacher  `gorm:"many2many:jcourse_api_course_teacher_group;"`
+	LastSemesterID int64
+	LastSemester   *Semester
 }
 
-func (p *CourseV1) TableName() string {
+func (p *Course) TableName() string {
 	return "jcourse_api_course"
 }
 
-type TeacherV1 struct {
+type CourseNotificationLevel struct {
+	CourseID int64
+	UserID   int64
+	Level    int64
+}
+
+func (p *CourseNotificationLevel) TableName() string {
+	return "jcourse_api_course_notification_level"
+}
+
+type Teacher struct {
 	ID           int64
 	Tid          string
 	Name         string
@@ -50,89 +67,107 @@ type TeacherV1 struct {
 	Pinyin       string
 	AbbrPinyin   string
 	DepartmentID int64
+	Department   *Department
 }
 
-func (p *TeacherV1) TableName() string {
+func (p *Teacher) TableName() string {
 	return "jcourse_api_teacher"
 }
 
-type ReviewV1 struct {
+type Review struct {
 	ID         int64
 	CourseID   int64
+	Course     *Course
 	UserID     int64
+	User       *User
 	SemesterID int64
+	Semester   *Semester
 	Comment    string
 	Score      string
 	Rating     int64
 	CreatedAt  time.Time
 	ModifiedAt time.Time
+
+	Revisions []ReviewRevision
+	Reactions []ReviewReaction
 }
 
-func (p *ReviewV1) TableName() string {
+func (p *Review) TableName() string {
 	return "jcourse_api_review"
 }
 
-type ReviewRevisionV1 struct {
+type ReviewRevision struct {
 	ID         int64
 	CourseID   int64
+	Course     *Course
 	UserID     int64
+	User       *User
 	ReviewID   int64
+	Review     *Review
 	SemesterID int64
+	Semester   *Semester
 	Comment    string
 	Score      string
 	Rating     int64
 	CreatedAt  time.Time
 }
 
-func (p *ReviewRevisionV1) TableName() string {
+func (p *ReviewRevision) TableName() string {
 	return "jcourse_api_reviewrevision"
 }
 
-type UserV1 struct {
-	ID         int64
-	Password   string
-	Username   string
-	DateJoined time.Time
-	LastLogin  time.Time
+type User struct {
+	ID          int64
+	Password    string
+	Username    string
+	UserProfile *UserProfile
+	DateJoined  time.Time
+	LastLogin   time.Time
+
+	Points []UserPoint
 }
 
-func (p *UserV1) TableName() string {
+func (p *User) TableName() string {
 	return "auth_user"
 }
 
-type ReviewReactionV1 struct {
+type ReviewReaction struct {
 	ID         int64
 	ReviewID   int64
+	Review     *Review
 	UserID     int64
+	User       *User
 	Reaction   int64
 	ModifiedAt time.Time
 }
 
-func (p *ReviewReactionV1) TableName() string {
+func (p *ReviewReaction) TableName() string {
 	return "jcourse_api_reviewreaction"
 }
 
-type UserPointV1 struct {
+type UserPoint struct {
 	ID          int64
 	UserID      int64
+	User        *User
 	Value       int64
 	Description string
 	Time        time.Time
 }
 
-func (p *UserPointV1) TableName() string {
+func (p *UserPoint) TableName() string {
 	return "jcourse_api_userpoint"
 }
 
-type UserProfileV1 struct {
+type UserProfile struct {
 	ID            int64
 	UserType      string
 	UserID        int64
-	LowerCase     bool
-	SuspendedTill time.Time
+	User          *User
+	LowerCase     bool `gorm:"column:lowercase"`
+	SuspendedTill *time.Time
 	LastSeenAt    time.Time
 }
 
-func (p *UserProfileV1) TableName() string {
+func (p *UserProfile) TableName() string {
 	return "oauth_userprofile"
 }
