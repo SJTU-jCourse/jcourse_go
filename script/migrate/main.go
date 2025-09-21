@@ -22,7 +22,8 @@ func main() {
 	}
 	err = db.AutoMigrate(&entity.User{},
 		&entity.Semester{}, &entity.Department{},
-		&entity.Course{}, &entity.Teacher{}, &entity.CourseNotification{},
+		&entity.Course{}, &entity.Teacher{},
+		&entity.CourseNotification{}, &entity.UserCourseEnrollment{},
 		&entity.CourseOffering{}, &entity.CourseOfferingCategory{}, &entity.CourseOfferingTeacher{},
 		&entity.TrainingPlan{}, &entity.Curriculum{}, &entity.TrainingPlanCurriculum{},
 		&entity.Review{}, &entity.ReviewRevision{}, &entity.ReviewReaction{},

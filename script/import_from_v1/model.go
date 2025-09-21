@@ -49,16 +49,6 @@ func (p *Course) TableName() string {
 	return "jcourse_api_course"
 }
 
-type CourseNotificationLevel struct {
-	CourseID int64
-	UserID   int64
-	Level    int64
-}
-
-func (p *CourseNotificationLevel) TableName() string {
-	return "jcourse_api_course_notification_level"
-}
-
 type Teacher struct {
 	ID           int64
 	Tid          string
@@ -170,4 +160,29 @@ type UserProfile struct {
 
 func (p *UserProfile) TableName() string {
 	return "oauth_userprofile"
+}
+
+type CourseNotificationLevel struct {
+	ID                int64
+	NotificationLevel int64 // 0 正常，1 关注，2 忽略
+	CourseID          int64
+	UserID            int64
+	ModifiedAt        time.Time
+}
+
+func (c *CourseNotificationLevel) TableName() string {
+	return "jcourse_api_coursenotificationlevel"
+}
+
+type EnrollCourse struct {
+	ID         int64
+	CourseID   int64
+	UserID     int64
+	SemesterID int64
+	Semester   *Semester
+	CreatedAt  time.Time
+}
+
+func (p *EnrollCourse) TableName() string {
+	return "jcourse_api_enrollcourse"
 }

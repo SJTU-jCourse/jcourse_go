@@ -9,6 +9,7 @@ type OfferingInfoVO struct {
 	Categories []string `json:"categories"`
 	Department string   `json:"department"`
 	Language   string   `json:"language"`
+	Semester   string   `json:"semester"`
 }
 
 func NewOfferingInfoVOFromDomain(co *course.CourseOffering) OfferingInfoVO {

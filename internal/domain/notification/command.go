@@ -3,8 +3,8 @@ package notification
 import "jcourse_go/internal/domain/shared"
 
 type CourseNotificationCommand struct {
-	CourseID shared.IDType     `json:"course_id"`
-	Level    NotificationLevel `json:"level"`
+	CourseID shared.IDType `json:"course_id"`
+	Level    Level         `json:"level"`
 }
 
 func (cmd *CourseNotificationCommand) Validate() error {

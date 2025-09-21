@@ -49,72 +49,42 @@ func (s *courseQueryService) GetCourseList(ctx context.Context, q course.CourseL
 	}
 	offset := (page - 1) * limit
 
-	// Subquery: latest semester per course
-	latestSub := db.Table("course_offering as co").
-		Select("co.course_id, MAX(co.semester) as latest_semester").
-		Group("co.course_id")
-
 	// Base query joining latest offering and main teacher
-	base := db.Table("course as c").
-		Joins("JOIN (?) latest ON latest.course_id = c.id", latestSub).
-		Joins("JOIN course_offering lo ON lo.course_id = c.id AND lo.semester = latest.latest_semester").
-		Joins("JOIN teacher t ON t.id = c.main_teacher_id")
+	base := db.Model(&entity.Course{}).
+		Joins("LastOffering").
+		Joins("MainTeacher")
 
 	// Filters
 	if q.Code != "" {
-		base = base.Where("c.code = ?", q.Code)
+		base = base.Where("code = ?", q.Code)
 	}
 	if q.MainTeacherID > 0 {
-		base = base.Where("c.main_teacher_id = ?", q.MainTeacherID)
+		base = base.Where("main_teacher_id = ?", q.MainTeacherID)
 	}
 	if len(q.Credits) > 0 {
-		base = base.Where("c.credit IN ?", q.Credits)
+		base = base.Where("credit IN ?", q.Credits)
 	}
 	// Filter courses that have offerings in any of the specified semesters
 	if len(q.Semesters) > 0 {
-		existsSub := db.Table("course_offering co2").Select("1").
-			Where("co2.course_id = c.id AND co2.semester IN ?", q.Semesters)
+		existsSub := db.Table("course_offering co").Select("1").
+			Where("co.course_id = c.id AND co.semester IN ?", q.Semesters)
 		base = base.Where("EXISTS (?)", existsSub)
 	}
 	// Departments/Categories filter on latest offering only
 	if len(q.Departments) > 0 {
-		base = base.Where("lo.department IN ?", q.Departments)
+		base = base.Where("last_offering.department IN ?", q.Departments)
 	}
 	if len(q.Categories) > 0 {
-		base = base.Joins("JOIN course_offering_category coc ON coc.course_offering_id = lo.id").
+		base = base.Joins("JOIN course_offering_category coc ON coc.course_offering_id = last_offering_id").
 			Where("coc.category IN ?", q.Categories)
 	}
 
 	// Select distinct to avoid duplication due to category joins
-	rows := make([]struct {
-		ID                 int64   `json:"id"`
-		Code               string  `json:"code"`
-		Name               string  `json:"name"`
-		Credit             float64 `json:"credit"`
-		MainTeacherID      int64   `json:"main_teacher_id"`
-		TeacherName        string  `json:"teacher_name"`
-		TeacherDepartment  string  `json:"teacher_department"`
-		OfferingID         int64   `json:"offering_id"`
-		OfferingDepartment string  `json:"offering_department"`
-		OfferingLanguage   string  `json:"offering_language"`
-		LatestSemester     string  `json:"latest_semester"`
-	}, 0)
-
-	err := base.Select("DISTINCT " +
-		"c.id as id, " +
-		"c.code, " +
-		"c.name, " +
-		"c.credit, " +
-		"c.main_teacher_id, " +
-		"t.name as teacher_name, " +
-		"t.department as teacher_department, " +
-		"lo.id as offering_id, " +
-		"lo.department as offering_department, " +
-		"lo.language as offering_language, " +
-		"latest.latest_semester").
+	rows := make([]entity.Course, 0)
+	err := base.
 		Limit(limit).Offset(offset).
-		Order("c.code ASC").
-		Scan(&rows).Error
+		Order("code ASC").
+		Find(&rows).Error
 	if err != nil {
 		return nil, err
 	}
@@ -122,55 +92,15 @@ func (s *courseQueryService) GetCourseList(ctx context.Context, q course.CourseL
 		return []vo.CourseListItemVO{}, nil
 	}
 
-	// Collect offering IDs and course IDs
-	offeringIDs := make([]int64, 0, len(rows))
-	courseIDs := make([]int64, 0, len(rows))
-	for _, r := range rows {
-		offeringIDs = append(offeringIDs, r.OfferingID)
-		courseIDs = append(courseIDs, r.ID)
-	}
-
-	// Fetch categories for the latest offerings
-	catRows := make([]struct {
-		CourseOfferingID int64  `json:"course_offering_id"`
-		Category         string `json:"category"`
-	}, 0)
-	catMap := make(map[int64][]string)
-	if len(offeringIDs) > 0 {
-		err = db.Table("course_offering_category").
-			Select("course_offering_id, category").
-			Where("course_offering_id IN ?", offeringIDs).
-			Scan(&catRows).Error
-		if err != nil {
-			return nil, err
-		}
-		for _, cr := range catRows {
-			catMap[cr.CourseOfferingID] = append(catMap[cr.CourseOfferingID], cr.Category)
-		}
-	}
-
-	// Compute rating from reviews
-	ratingRows := make([]struct {
-		CourseID int64   `json:"course_id"`
-		Count    int64   `json:"count"`
-		Average  float64 `json:"average"`
-	}, 0)
-	ratingMap := make(map[int64]vo.RatingVO)
-	err = db.Table("review").
-		Select("course_id, COUNT(*) as count, AVG(rating) as average").
-		Where("course_id IN ?", courseIDs).
-		Group("course_id").
-		Scan(&ratingRows).Error
-	if err != nil {
-		return nil, err
-	}
-	for _, rr := range ratingRows {
-		ratingMap[rr.CourseID] = vo.RatingVO{Average: rr.Average, Count: rr.Count}
-	}
-
 	// Build result
 	result := make([]vo.CourseListItemVO, 0, len(rows))
 	for _, r := range rows {
+
+		catagories := make([]string, 0)
+		for _, ct := range r.LastOffering.Categories {
+			catagories = append(catagories, ct.Category)
+		}
+
 		item := vo.CourseListItemVO{
 			ID:     r.ID,
 			Code:   r.Code,
@@ -178,15 +108,19 @@ func (s *courseQueryService) GetCourseList(ctx context.Context, q course.CourseL
 			Credit: r.Credit,
 			MainTeacher: vo.TeacherInCourseVO{
 				ID:         r.MainTeacherID,
-				Name:       r.TeacherName,
-				Department: r.TeacherDepartment,
+				Name:       r.MainTeacher.Name,
+				Department: r.MainTeacher.Department,
 			},
 			LatestOffering: vo.OfferingInfoVO{
-				Categories: catMap[r.OfferingID],
-				Department: r.OfferingDepartment,
-				Language:   r.OfferingLanguage,
+				Categories: catagories,
+				Department: r.LastOffering.Department,
+				Language:   r.LastOffering.Language,
+				Semester:   r.LastOffering.Semester,
 			},
-			RatingInfo: ratingMap[r.ID],
+			RatingInfo: vo.RatingVO{
+				Average: r.ReviewAvg,
+				Count:   r.ReviewCount,
+			},
 		}
 		result = append(result, item)
 	}
@@ -195,11 +129,11 @@ func (s *courseQueryService) GetCourseList(ctx context.Context, q course.CourseL
 }
 
 func (s *courseQueryService) GetCourseDetail(ctx context.Context, courseID shared.IDType) (*vo.CourseDetailVO, error) {
-
 	c := entity.Course{}
 	if err := s.db.WithContext(ctx).
 		Model(&entity.Course{}).
 		Joins("MainTeacher").
+		Joins("LastOffering").
 		Preload("Offerings.TeacherGroup.Teacher").
 		Preload("Offerings.Categories").
 		Where("course.id = ?", courseID).Take(&c).Error; err != nil {

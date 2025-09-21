@@ -7,12 +7,12 @@ import (
 	"jcourse_go/internal/domain/shared"
 )
 
-type NotificationLevel string
+type Level int64
 
 const (
-	NotificationLevelNormal NotificationLevel = "normal"
-	NotificationLevelWatch  NotificationLevel = "watch"
-	NotificationLevelIgnore NotificationLevel = "ignore"
+	LevelNormal Level = iota
+	LevelWatch
+	LevelIgnore
 )
 
 type CourseNotification struct {
@@ -21,7 +21,7 @@ type CourseNotification struct {
 	UserID   shared.IDType
 	CourseID shared.IDType
 
-	Level NotificationLevel
+	Level Level
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

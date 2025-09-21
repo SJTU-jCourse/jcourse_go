@@ -14,7 +14,12 @@ type Course struct {
 	MainTeacherID int64 `gorm:"index;index:uniq_course,unique"`
 	MainTeacher   *Teacher
 
-	Offerings []*CourseOffering
+	LastOfferingID int64
+	LastOffering   *CourseOffering
+	Offerings      []*CourseOffering
+
+	ReviewCount int64
+	ReviewAvg   float64
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -73,17 +78,4 @@ type CourseOfferingTeacher struct {
 
 func (po *CourseOfferingTeacher) TableName() string {
 	return "course_offering_teacher"
-}
-
-type CourseNotification struct {
-	ID        int64
-	CourseID  int64
-	UserID    int64
-	Level     string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
-
-func (po *CourseNotification) TableName() string {
-	return "course_notification"
 }
