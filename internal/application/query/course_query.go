@@ -12,15 +12,6 @@ import (
 	"jcourse_go/internal/infrastructure/entity"
 )
 
-// 设计说明（Query 层为何只用 GORM 而非 gorm/gen）
-// 本文件中的查询服务遵循 CQRS 的“读侧只为展示塑形”的目标：
-// - 直接用 GORM Table/Joins/Where/Select/Scan 构造包含 MAX、EXISTS 等子查询与聚合的 SQL，
-//   可读性更强、拼装更灵活，便于实现“最新学期”“按存在学期过滤”等复杂筛选。
-// - 只选择必要列并扫描到轻量 VO/临时结构，避免实体预加载带来的冗余 IO 与字段。
-// - 降低对代码生成器的耦合，读侧需求频繁变动时无需反复生成代码。
-// - 写侧/仓储仍可使用 gen；读侧为适配跨表聚合与视图化塑形采用更自由的 GORM。
-// 详细说明见 README.md 中《为什么查询层只使用 GORM，而不直接使用 gorm/gen？》一节。
-
 type CourseQueryService interface {
 	GetCourseList(ctx context.Context, query course.CourseListQuery) ([]vo.CourseListItemVO, error)
 	GetCourseDetail(ctx context.Context, courseID shared.IDType) (*vo.CourseDetailVO, error)
