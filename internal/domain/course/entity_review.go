@@ -36,11 +36,12 @@ func (r *Review) Validate() error {
 func (r *Review) MakeRevision(updatedUserID shared.IDType, now time.Time) ReviewRevision {
 	return ReviewRevision{
 		ReviewID:  r.ID,
+		UserID:    r.UserID,
 		Comment:   r.Comment,
 		Rating:    r.Rating,
 		Semester:  r.Semester,
 		IsPublic:  r.IsPublic,
-		Grade:     r.Score,
+		Score:     r.Score,
 		CreatedAt: now,
 		UpdatedBy: updatedUserID,
 	}
@@ -58,11 +59,12 @@ func (r *Review) BeUpdated(cmd UpdateReviewCommand, now time.Time) error {
 type ReviewRevision struct {
 	ID       shared.IDType `json:"id"`
 	ReviewID shared.IDType `json:"review_id"`
+	UserID   shared.IDType `json:"user_id"`
 	Comment  string        `json:"comment"`
 	Rating   int64         `json:"rating"`
 	Semester string        `json:"semester"`
 	IsPublic bool          `json:"is_public"`
-	Grade    string        `json:"grade"`
+	Score    string        `json:"score"`
 
 	UpdatedBy shared.IDType `json:"updated_by"`
 	CreatedAt time.Time     `json:"created_at"`

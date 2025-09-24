@@ -53,7 +53,7 @@ type AuthUser struct {
 	ID       shared.IDType
 	Email    string
 	Password string
-	Role     shared.UserRole
+	UserRole shared.UserRole
 
 	LastSeenAt time.Time
 

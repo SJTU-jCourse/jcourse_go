@@ -6,7 +6,7 @@ import (
 	"jcourse_go/internal/domain/shared"
 )
 
-type UserRepository interface {
+type UserProfileRepository interface {
 	Get(ctx context.Context, id shared.IDType) (*User, error)
 	Save(ctx context.Context, user *User) error
 }

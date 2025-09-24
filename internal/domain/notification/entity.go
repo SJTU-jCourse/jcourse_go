@@ -28,6 +28,6 @@ type CourseNotification struct {
 }
 
 type CourseNotificationRepository interface {
-	Save(ctx context.Context, subscribe *CourseNotification) error
-	Delete(ctx context.Context, subscribe *CourseNotification) error
+	Save(ctx context.Context, notification *CourseNotification) error
+	Delete(ctx context.Context, notification *CourseNotification) error
 }

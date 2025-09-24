@@ -20,6 +20,7 @@ type User struct {
 // UserPoint 用户积分明细
 type UserPoint struct {
 	ID          shared.IDType  `json:"id"`
+	UserID      shared.IDType  `json:"user_id"`
 	Value       int64          `json:"value"` // 积分变化值: +1, -3
 	Event       PointEventType `json:"event"`
 	Description string         `json:"description"`
