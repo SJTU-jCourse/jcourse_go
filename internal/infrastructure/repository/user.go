@@ -33,7 +33,7 @@ func (r *UserProfileRepository) Save(ctx context.Context, user *user.User) error
 	return nil
 }
 
-func NewUserRepository(db *gorm.DB) user.UserProfileRepository {
+func NewUserProfileRepository(db *gorm.DB) user.UserProfileRepository {
 	return &UserProfileRepository{db: db}
 }
 
