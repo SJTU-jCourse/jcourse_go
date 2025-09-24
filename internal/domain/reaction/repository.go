@@ -7,8 +7,7 @@ import (
 )
 
 type ReactionRepository interface {
-	FindByReviewID(ctx context.Context, reviewID shared.IDType) ([]Reaction, error)
-	FindByUserID(ctx context.Context, userID shared.IDType) ([]Reaction, error)
+	Get(ctx context.Context, reactionID shared.IDType) (*Reaction, error)
 	Save(ctx context.Context, reaction *Reaction) error
-	Delete(ctx context.Context, reaction *Reaction) error
+	Delete(ctx context.Context, reactionID shared.IDType) error
 }

@@ -14,17 +14,17 @@ func TestRemoveReviewUserInfo(t *testing.T) {
 	expected := []int64{0, 1, 1, 1}
 	user := user.UserMinimal{ID: 1}
 	reviews := []course.Review{{
-		User:        user,
-		IsAnonymous: true,
+		User:     user,
+		IsPublic: true,
 	}, {
-		User:        user,
-		IsAnonymous: true,
+		User:     user,
+		IsPublic: true,
 	}, {
-		User:        user,
-		IsAnonymous: false,
+		User:     user,
+		IsPublic: false,
 	}, {
-		User:        user,
-		IsAnonymous: false,
+		User:     user,
+		IsPublic: false,
 	}}
 	for i := range reviews {
 		r := reviews[i]
@@ -36,8 +36,8 @@ func TestRemoveReviewUserInfo(t *testing.T) {
 
 func TestRemoveReviewsUserInfo(t *testing.T) {
 	reviews := []course.Review{{
-		User:        user.UserMinimal{ID: 1},
-		IsAnonymous: true,
+		User:     user.UserMinimal{ID: 1},
+		IsPublic: true,
 	}}
 	RemoveReviewsUserInfo(reviews, 0, true)
 	assert.Equal(t, int64(0), reviews[0].User.ID)

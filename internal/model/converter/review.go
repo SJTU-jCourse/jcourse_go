@@ -9,16 +9,16 @@ import (
 
 func ConvertReviewFromPO(po *entity.Review) course.Review {
 	review := course.Review{
-		ID:          po.ID,
-		Course:      ConvertCourseMinimalFromPO(po.Course),
-		User:        ConvertUserMinimalFromPO(po.User),
-		Comment:     po.Comment,
-		Rating:      po.Rating,
-		Semester:    po.Semester,
-		IsAnonymous: po.IsAnonymous,
-		CreatedAt:   po.CreatedAt,
-		UpdatedAt:   po.UpdatedAt,
-		Score:       po.Score,
+		ID:        po.ID,
+		Course:    ConvertCourseMinimalFromPO(po.Course),
+		User:      ConvertUserMinimalFromPO(po.User),
+		Comment:   po.Comment,
+		Rating:    po.Rating,
+		Semester:  po.Semester,
+		IsPublic:  po.IsAnonymous,
+		CreatedAt: po.CreatedAt,
+		UpdatedAt: po.UpdatedAt,
+		Score:     po.Score,
 	}
 	return review
 }
@@ -28,7 +28,7 @@ func RemoveReviewUserInfo(review *course.Review, userID int64, hideUser bool) {
 		return
 	}
 	// 本人点评不隐藏
-	if hideUser && review.IsAnonymous && review.User.ID != userID {
+	if hideUser && review.IsPublic && review.User.ID != userID {
 		review.User = user.UserMinimal{}
 	}
 }

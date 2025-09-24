@@ -34,4 +34,5 @@ var (
 	ErrSomethingWrong = &AppError{Code: -1000, Msg: "Something went wrong", HTTPStatus: http.StatusInternalServerError}
 	ErrBadRequest     = &AppError{Code: -1001, Msg: "Input wrong", HTTPStatus: http.StatusBadRequest}
 	ErrNotFound       = &AppError{Code: -1002, Msg: "Not Found", HTTPStatus: http.StatusNotFound}
+	ErrNoPermission   = &AppError{Code: -1004, Msg: "No Permission", HTTPStatus: http.StatusUnauthorized}
 )
