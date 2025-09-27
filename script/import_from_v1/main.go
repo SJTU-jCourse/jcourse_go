@@ -17,7 +17,7 @@ var (
 
 func main() {
 	var err error
-	oldDB, err = dal.NewPostgresSQL(config.DBConfig{
+	oldDB, err = dal.NewPostgresSQL(config.PostgresConfig{
 		Host:     "localhost",
 		Port:     5432,
 		User:     "jcourse",
@@ -28,7 +28,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	newDB, err = dal.NewPostgresSQL(config.DBConfig{
+	newDB, err = dal.NewPostgresSQL(config.PostgresConfig{
 		Host:     "localhost",
 		Port:     5432,
 		User:     "jcourse",

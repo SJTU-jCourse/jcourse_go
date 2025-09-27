@@ -32,7 +32,7 @@ type ServiceContainer struct {
 }
 
 func NewServiceContainer(c config.AppConfig) (*ServiceContainer, error) {
-	db, err := dal.NewPostgresSQL(c.DB)
+	db, err := dal.NewPostgresSQL(c.Postgres)
 	if err != nil {
 		return nil, err
 	}

@@ -174,7 +174,7 @@ func readRawCSV(filename string) []teachCourse {
 func main() {
 	var err error
 	conf := config.InitConfig("./config/config.yaml")
-	db, err = dal.NewPostgresSQL(conf.DB)
+	db, err = dal.NewPostgresSQL(conf.Postgres)
 	if err != nil {
 		panic(err)
 	}

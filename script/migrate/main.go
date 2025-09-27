@@ -16,18 +16,11 @@ func main() {
 
 	c := config.InitConfig(*configPath)
 
-	db, err := dal.NewPostgresSQL(c.DB)
+	db, err := dal.NewPostgresSQL(c.Postgres)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = db.AutoMigrate(&entity.User{},
-		&entity.Semester{}, &entity.Department{},
-		&entity.Course{}, &entity.Teacher{},
-		&entity.CourseNotification{}, &entity.UserCourseEnrollment{},
-		&entity.CourseOffering{}, &entity.CourseOfferingCategory{}, &entity.CourseOfferingTeacher{},
-		&entity.TrainingPlan{}, &entity.Curriculum{}, &entity.TrainingPlanCurriculum{},
-		&entity.Review{}, &entity.ReviewRevision{}, &entity.ReviewReaction{},
-		&entity.UserPoint{}, &entity.Statistic{})
+	err = entity.Migrate(db)
 	if err != nil {
 		log.Fatal(err)
 	}

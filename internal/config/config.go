@@ -8,10 +8,11 @@ import (
 )
 
 type AppConfig struct {
-	Server ServerConfig `yaml:"server"`
-	DB     DBConfig     `yaml:"db"`
-	Redis  RedisConfig  `yaml:"redis"`
-	SMTP   SMTPConfig   `yaml:"smtp"`
+	Server   ServerConfig   `yaml:"server"`
+	Postgres PostgresConfig `yaml:"postgres"`
+	Sqlite   SqliteConfig   `yaml:"sqlite"`
+	Redis    RedisConfig    `yaml:"redis"`
+	SMTP     SMTPConfig     `yaml:"smtp"`
 }
 
 type ServerConfig struct {
@@ -24,13 +25,17 @@ type SecurityConfig struct {
 	CSRFSecret    string `yaml:"csrf_secret"`
 }
 
-type DBConfig struct {
+type PostgresConfig struct {
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
 	DBName   string `yaml:"db_name"`
 	Debug    bool   `yaml:"debug"`
+}
+
+type SqliteConfig struct {
+	Path string `yaml:"path"`
 }
 
 type RedisConfig struct {
