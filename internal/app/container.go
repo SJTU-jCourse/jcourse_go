@@ -29,6 +29,7 @@ type ServiceContainer struct {
 	TrainingPlanQuery query.TrainingPlanQueryService
 	UserQuery         query.UserQueryService
 	UserPointQuery    query.UserPointQueryService
+	AnnouncementQuery query.AnnouncementQueryService
 }
 
 func NewServiceContainer(c config.AppConfig) (*ServiceContainer, error) {
@@ -70,6 +71,7 @@ func NewServiceContainer(c config.AppConfig) (*ServiceContainer, error) {
 		TrainingPlanQuery: query.NewTrainingPlanQueryService(db),
 		UserQuery:         query.NewUserQueryService(db),
 		UserPointQuery:    query.NewUserPointQueryService(db),
+		AnnouncementQuery: query.NewAnnouncementQueryService(db),
 
 		Auth:               authCommandService,
 		Reaction:           reactionService,

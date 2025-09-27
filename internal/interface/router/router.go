@@ -19,6 +19,7 @@ func RegisterRouter(s *app.ServiceContainer) *gin.Engine {
 	userController := controller.NewUserController(s.UserQuery, s.UserProfileCommand)
 	userPointController := controller.NewUserPointController(s.UserPointQuery)
 	statisticController := controller.NewStatisticController(s.StatisticQuery)
+	announcementController := controller.NewAnnouncementController(s.AnnouncementQuery)
 
 	api := r.Group("/api")
 	authGroup := api.Group("/auth")
@@ -67,6 +68,9 @@ func RegisterRouter(s *app.ServiceContainer) *gin.Engine {
 
 	statisticGroup := needAuthGroup.Group("/statistic")
 	statisticGroup.GET("", statisticController.GetStatistics)
+
+	announcementGroup := needAuthGroup.Group("/announcement")
+	announcementGroup.GET("", announcementController.GetAnnouncements)
 
 	return r
 }
