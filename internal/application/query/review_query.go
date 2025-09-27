@@ -11,6 +11,7 @@ import (
 )
 
 type ReviewQueryService interface {
+	GetReview(ctx context.Context, reviewID shared.IDType) (*vo.ReviewVO, error)
 	GetLatestReviews(ctx context.Context, query shared.PaginationQuery) ([]vo.ReviewVO, error)
 	GetCourseReviews(ctx context.Context, courseID shared.IDType, query shared.PaginationQuery) ([]vo.ReviewVO, error)
 	GetUserReviews(ctx context.Context, userID shared.IDType, query shared.PaginationQuery) ([]vo.ReviewVO, error)
@@ -18,6 +19,21 @@ type ReviewQueryService interface {
 
 type reviewQueryService struct {
 	db *gorm.DB
+}
+
+func (r *reviewQueryService) GetReview(ctx context.Context, reviewID shared.IDType) (*vo.ReviewVO, error) {
+	review := entity.Review{}
+	if err := r.db.WithContext(ctx).
+		Model(&entity.Review{}).
+		Joins("Course").
+		Preload("Course.MainTeacher").
+		Preload("Reactions").
+		Where("id = ?", reviewID).
+		Take(&review).Error; err != nil {
+		return nil, err
+	}
+	reviewVO := vo.NewReviewVOFromEntity(&review)
+	return &reviewVO, nil
 }
 
 func (r *reviewQueryService) GetLatestReviews(ctx context.Context, query shared.PaginationQuery) ([]vo.ReviewVO, error) {

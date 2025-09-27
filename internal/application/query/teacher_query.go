@@ -13,6 +13,7 @@ import (
 
 type TeacherQueryService interface {
 	GetTeacherList(ctx context.Context, query course.TeacherListQuery) ([]vo.TeacherListItemVO, error)
+	GetTeacherDetail(ctx context.Context, teacherID shared.IDType) (*vo.TeacherDetailVO, error)
 	GetTeacherFilter(ctx context.Context) (*course.TeacherFilter, error)
 }
 

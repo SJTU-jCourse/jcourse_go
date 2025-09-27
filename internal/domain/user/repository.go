@@ -9,6 +9,7 @@ import (
 type UserProfileRepository interface {
 	Get(ctx context.Context, id shared.IDType) (*User, error)
 	Save(ctx context.Context, user *User) error
+	UpdateUserInfo(ctx context.Context, userID shared.IDType, cmd UpdateUserInfoCommand) error
 }
 
 type UserPointRepository interface {

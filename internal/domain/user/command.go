@@ -13,3 +13,9 @@ type UserPointQuery struct {
 	StartTime         int64
 	EndTime           int64
 }
+
+type UpdateUserInfoCommand struct {
+	Nickname string `json:"nickname" binding:"required"`
+	Avatar   string `json:"avatar"`
+	Bio      string `json:"bio"`
+}

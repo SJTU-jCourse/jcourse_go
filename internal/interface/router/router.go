@@ -16,7 +16,7 @@ func RegisterRouter(s *app.ServiceContainer) *gin.Engine {
 	reviewController := controller.NewReviewController(s.ReviewQuery, s.ReviewCommand)
 	reactionController := controller.NewReviewReactionController(s.Reaction)
 	trainingPlanController := controller.NewTrainingPlanController(s.TrainingPlanQuery)
-	userController := controller.NewUserController(s.UserQuery)
+	userController := controller.NewUserController(s.UserQuery, s.UserProfileCommand)
 	userPointController := controller.NewUserPointController(s.UserPointQuery)
 	statisticController := controller.NewStatisticController(s.StatisticQuery)
 
@@ -66,7 +66,7 @@ func RegisterRouter(s *app.ServiceContainer) *gin.Engine {
 	userPointGroup.GET("", userPointController.GetUserPoints)
 
 	statisticGroup := needAuthGroup.Group("/statistic")
-	statisticGroup.GET("", statisticController.GetLatestStatistics)
+	statisticGroup.GET("", statisticController.GetStatistics)
 
 	return r
 }

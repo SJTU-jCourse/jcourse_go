@@ -27,7 +27,25 @@ func NewReviewController(
 	}
 }
 
-func (c *ReviewController) GetReview(ctx *gin.Context) {}
+func (c *ReviewController) GetReview(ctx *gin.Context) {
+	reviewIDStr := ctx.Param("reviewID")
+	if reviewIDStr == "" {
+		dto.WriteBadArgumentResponse(ctx)
+		return
+	}
+	reviewID, err := strconv.Atoi(reviewIDStr)
+	if err != nil || reviewID == 0 {
+		dto.WriteBadArgumentResponse(ctx)
+		return
+	}
+
+	review, err := c.reviewQuery.GetReview(ctx, shared.IDType(reviewID))
+	if err != nil {
+		dto.WriteErrorResponse(ctx, err)
+		return
+	}
+	dto.WriteDataResponse(ctx, review)
+}
 
 func (c *ReviewController) CreateReview(ctx *gin.Context) {
 	var req course.WriteReviewCommand

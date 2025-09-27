@@ -33,6 +33,22 @@ func (r *UserProfileRepository) Save(ctx context.Context, user *user.User) error
 	return nil
 }
 
+func (r *UserProfileRepository) UpdateUserInfo(ctx context.Context, userID shared.IDType, cmd user.UpdateUserInfoCommand) error {
+	updates := map[string]interface{}{
+		"nickname": cmd.Nickname,
+		"bio":      cmd.Bio,
+	}
+	if cmd.Avatar != "" {
+		updates["avatar"] = cmd.Avatar
+	}
+	if err := r.db.Model(&entity.User{}).
+		Where("id = ?", userID).
+		Updates(updates).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func NewUserProfileRepository(db *gorm.DB) user.UserProfileRepository {
 	return &UserProfileRepository{db: db}
 }

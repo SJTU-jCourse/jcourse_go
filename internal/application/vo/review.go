@@ -27,10 +27,6 @@ func NewReviewVOFromDomain(r *course.Review) ReviewVO {
 		CreatedAt: r.CreatedAt.Unix(),
 		UpdatedAt: r.UpdatedAt.Unix(),
 	}
-	if r.Course != nil {
-		c := NewCourseInReviewVOFromDomain(r.Course)
-		reviewVO.Course = &c
-	}
 	return reviewVO
 }
 
