@@ -10,7 +10,6 @@ import (
 	"jcourse_go/internal/domain/course"
 	"jcourse_go/internal/domain/notification"
 	"jcourse_go/internal/domain/shared"
-	"jcourse_go/internal/interface/dto"
 )
 
 type CourseController struct {
@@ -31,57 +30,57 @@ func NewCourseController(
 func (c *CourseController) GetCourseDetail(ctx *gin.Context) {
 	courseIDStr := ctx.Param("courseID")
 	if courseIDStr == "" {
-		dto.WriteBadArgumentResponse(ctx)
+		WriteBadArgumentResponse(ctx)
 		return
 	}
 	courseID, err := strconv.Atoi(courseIDStr)
 	if err != nil || courseID == 0 {
-		dto.WriteBadArgumentResponse(ctx)
+		WriteBadArgumentResponse(ctx)
 		return
 	}
 
 	course, err := c.courseQuery.GetCourseDetail(ctx, shared.IDType(courseID))
 	if err != nil {
-		dto.WriteErrorResponse(ctx, err)
+		WriteErrorResponse(ctx, err)
 		return
 	}
 
-	dto.WriteDataResponse(ctx, course)
+	WriteDataResponse(ctx, course)
 }
 
 func (c *CourseController) GetCourseList(ctx *gin.Context) {
 	var req course.CourseListQuery
 	if err := ctx.ShouldBind(&req); err != nil {
-		dto.WriteBadArgumentResponse(ctx)
+		WriteBadArgumentResponse(ctx)
 		return
 	}
 	courses, err := c.courseQuery.GetCourseList(ctx, req)
 	if err != nil {
-		dto.WriteErrorResponse(ctx, err)
+		WriteErrorResponse(ctx, err)
 		return
 	}
-	dto.WriteDataResponse(ctx, courses)
+	WriteDataResponse(ctx, courses)
 }
 
 func (c *CourseController) GetCourseFilter(ctx *gin.Context) {
 	filter, err := c.courseQuery.GetCourseFilter(ctx)
 	if err != nil {
-		dto.WriteErrorResponse(ctx, err)
+		WriteErrorResponse(ctx, err)
 		return
 	}
-	dto.WriteDataResponse(ctx, filter)
+	WriteDataResponse(ctx, filter)
 }
 
 func (c *CourseController) ChangeNotification(ctx *gin.Context) {
 	var req notification.CourseNotificationCommand
 	if err := ctx.ShouldBind(&req); err != nil {
-		dto.WriteErrorResponse(ctx, err)
+		WriteErrorResponse(ctx, err)
 		return
 	}
 	reqCtx := shared.NewRequestCtx(0, shared.UserRoleNormal)
 	if err := c.courseNotification.Change(ctx, reqCtx, req); err != nil {
-		dto.WriteErrorResponse(ctx, err)
+		WriteErrorResponse(ctx, err)
 		return
 	}
-	dto.WriteDataResponse(ctx, nil)
+	WriteDataResponse(ctx, nil)
 }

@@ -7,7 +7,6 @@ import (
 	"jcourse_go/internal/application/query"
 	"jcourse_go/internal/domain/shared"
 	"jcourse_go/internal/domain/user"
-	"jcourse_go/internal/interface/dto"
 )
 
 type UserController struct {
@@ -30,23 +29,23 @@ func (c *UserController) GetUserInfo(ctx *gin.Context) {
 
 	userInfo, err := c.userQuery.GetUserInfo(ctx, userID)
 	if err != nil {
-		dto.WriteErrorResponse(ctx, err)
+		WriteErrorResponse(ctx, err)
 		return
 	}
-	dto.WriteDataResponse(ctx, userInfo)
+	WriteDataResponse(ctx, userInfo)
 }
 
 func (c *UserController) UpdateUserInfo(ctx *gin.Context) {
 	var req user.UpdateUserInfoCommand
 	if err := ctx.ShouldBind(&req); err != nil {
-		dto.WriteBadArgumentResponse(ctx)
+		WriteBadArgumentResponse(ctx)
 		return
 	}
 
 	reqCtx := shared.NewRequestCtx(0, shared.UserRoleNormal)
 	if err := c.userProfileService.UpdateUserInfo(ctx, reqCtx, req); err != nil {
-		dto.WriteErrorResponse(ctx, err)
+		WriteErrorResponse(ctx, err)
 		return
 	}
-	dto.WriteDataResponse(ctx, nil)
+	WriteDataResponse(ctx, nil)
 }

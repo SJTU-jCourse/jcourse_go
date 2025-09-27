@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"jcourse_go/internal/application/query"
-	"jcourse_go/internal/interface/dto"
 )
 
 type StatisticController struct {
@@ -27,22 +26,22 @@ func (c *StatisticController) GetStatistics(ctx *gin.Context) {
 	if date != "" {
 		statistic, err := c.statisticQuery.GetDailyStatistic(ctx, date)
 		if err != nil {
-			dto.WriteErrorResponse(ctx, err)
+			WriteErrorResponse(ctx, err)
 			return
 		}
-		dto.WriteDataResponse(ctx, statistic)
+		WriteDataResponse(ctx, statistic)
 		return
 	}
 
 	if startDate != "" && endDate != "" {
 		statistics, err := c.statisticQuery.GetRangeStatistic(ctx, startDate, endDate)
 		if err != nil {
-			dto.WriteErrorResponse(ctx, err)
+			WriteErrorResponse(ctx, err)
 			return
 		}
-		dto.WriteDataResponse(ctx, statistics)
+		WriteDataResponse(ctx, statistics)
 		return
 	}
 
-	dto.WriteBadArgumentResponse(ctx)
+	WriteBadArgumentResponse(ctx)
 }

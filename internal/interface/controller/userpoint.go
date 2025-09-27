@@ -5,7 +5,6 @@ import (
 
 	"jcourse_go/internal/application/query"
 	"jcourse_go/internal/domain/shared"
-	"jcourse_go/internal/interface/dto"
 )
 
 type UserPointController struct {
@@ -23,7 +22,7 @@ func (c *UserPointController) GetUserPoints(ctx *gin.Context) {
 
 	totalValue, userPoints, err := c.userPointQuery.GetUserPoint(ctx, userID)
 	if err != nil {
-		dto.WriteErrorResponse(ctx, err)
+		WriteErrorResponse(ctx, err)
 		return
 	}
 
@@ -31,5 +30,5 @@ func (c *UserPointController) GetUserPoints(ctx *gin.Context) {
 		"total_value": totalValue,
 		"user_points": userPoints,
 	}
-	dto.WriteDataResponse(ctx, response)
+	WriteDataResponse(ctx, response)
 }

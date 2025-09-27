@@ -1,4 +1,4 @@
-package dto
+package controller
 
 import (
 	"errors"
