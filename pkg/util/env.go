@@ -14,12 +14,6 @@ func GetEnvDefault(key, defaultValue string) string {
 	return val
 }
 
-// === auth ===
-
-func IsNoLoginMode() bool {
-	return GetEnvDefault("NO_LOGIN_MODE", "") != ""
-}
-
 //  === db ===
 
 func GetPostgresHost() string {
@@ -42,41 +36,6 @@ func GetPostgresDBName() string {
 	return GetEnvDefault("POSTGRES_DBNAME", "postgres")
 }
 
-// === redis ===
-
-func GetRedisHost() string {
-	return GetEnvDefault("REDIS_HOST", "localhost")
-}
-
-func GetRedisPort() string {
-	return GetEnvDefault("REDIS_PORT", "6379")
-}
-func GetRedisPassword() string {
-	return GetEnvDefault("REDIS_PASSWORD", "")
-}
-
-// === SMTP ===
-
-func GetSMTPHost() string {
-	return GetEnvDefault("SMTP_HOST", "localhost")
-}
-
-func GetSMTPPort() string {
-	return GetEnvDefault("SMTP_PORT", "465")
-}
-
-func GetSMTPUser() string {
-	return GetEnvDefault("SMTP_USERNAME", "user")
-}
-
-func GetSMTPPassword() string {
-	return GetEnvDefault("SMTP_PASSWORD", "pass")
-}
-
-func GetSMTPSender() string {
-	return GetEnvDefault("SMTP_SENDER", "user")
-}
-
 // === Session ===
 
 func GetSessionSecret() string {
@@ -92,14 +51,4 @@ func GetCSRFSecret() string {
 // === Time ===
 func GetTimeLocationStr() string {
 	return GetEnvDefault("TIME_ZONE", "Asia/Shanghai")
-}
-
-// === SJTU Feature ===
-
-func IsEnableSJTUFeature() bool {
-	return GetEnvDefault("ENABLE_SJTU_FEATURE", "") != ""
-}
-
-func GetHashSalt() string {
-	return GetEnvDefault("HASH_SALT", "")
 }
