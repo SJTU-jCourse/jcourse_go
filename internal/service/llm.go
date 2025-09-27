@@ -9,14 +9,13 @@ import (
 	"github.com/tmc/langchaingo/llms/openai"
 	"github.com/tmc/langchaingo/schema"
 
-	"jcourse_go/internal/constant"
+	"jcourse_go/internal/model/converter"
+	"jcourse_go/internal/model/types"
+
 	"jcourse_go/internal/domain/course"
 	"jcourse_go/internal/domain/review"
 	"jcourse_go/internal/infrastructure/repository"
 	"jcourse_go/internal/infrastructure/rpc"
-	"jcourse_go/internal/interface/dto"
-	"jcourse_go/internal/model/converter"
-	"jcourse_go/internal/model/types"
 )
 
 var llm *openai.LLM
@@ -43,7 +42,7 @@ func OptCourseReview(ctx context.Context, courseName string, reviewContent strin
 	})
 
 	content := []llms.MessageContent{
-		llms.TextParts(llms.ChatMessageTypeSystem, constant.OptCourseReviewPrompt),
+		llms.TextParts(llms.ChatMessageTypeSystem, review.OptimizeReviewPrompt),
 		llms.TextParts(llms.ChatMessageTypeHuman, string(inputJson)),
 	}
 
@@ -68,7 +67,7 @@ func trimLLMJSON(raw string) string {
 	return s
 }
 
-func buildCourseSummaryPrompt(course *course.CourseDetail, reviews []course.Review) string {
+func buildCourseSummaryPrompt(course *course.CourseDetail, reviews []review.Review) string {
 	type tinyReview struct {
 		Rating  int64  `json:"rating,omitempty"`
 		Comment string `json:"comment,omitempty"`
@@ -127,7 +126,7 @@ func GetCourseSummary(ctx context.Context, courseID int64) (*olddto.GetCourseSum
 	inputJson := buildCourseSummaryPrompt(courseDetail, reviews)
 
 	content := []llms.MessageContent{
-		llms.TextParts(llms.ChatMessageTypeSystem, constant.GetCourseSummaryPrompt),
+		llms.TextParts(llms.ChatMessageTypeSystem, review.GenerateCourseSummaryPrompt),
 		llms.TextParts(llms.ChatMessageTypeHuman, inputJson),
 	}
 

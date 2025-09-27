@@ -27,9 +27,3 @@ type TrainingPlanListQuery struct {
 	Departments []string `json:"departments" form:"departments"`
 	EntryYears  []string `json:"entry_years" form:"entry_years"`
 }
-
-type ReviewQuery struct {
-	shared.PaginationQuery
-	Semester string `json:"semester" form:"semester"`
-	Rating   int64  `json:"rating" form:"rating"`
-}

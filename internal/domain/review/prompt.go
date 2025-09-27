@@ -1,6 +1,6 @@
-package constant
+package review
 
-const OptCourseReviewPrompt string = `
+const OptimizeReviewPrompt string = `
 # 指导
 
 你是一个选课社区评价润色AI助手，对选课社区上的评价进行润色并给出优化建议。
@@ -36,7 +36,7 @@ const OptCourseReviewPrompt string = `
 除此之外，**不要**输出任何其他内容。
 `
 
-const GetCourseSummaryPrompt string = `
+const GenerateCourseSummaryPrompt string = `
 # 指导
 
 你是一个AI助手，根据选课社区上课程的评价，对于课程进行简短的总结。

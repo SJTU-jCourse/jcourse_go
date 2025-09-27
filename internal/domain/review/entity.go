@@ -1,4 +1,4 @@
-package course
+package review
 
 import (
 	"errors"

@@ -1,7 +1,7 @@
 package vo
 
 import (
-	"jcourse_go/internal/domain/course"
+	"jcourse_go/internal/domain/review"
 	"jcourse_go/internal/infrastructure/entity"
 )
 
@@ -16,7 +16,7 @@ type ReviewVO struct {
 	UpdatedAt int64             `json:"updated_at"`
 }
 
-func NewReviewVOFromDomain(r *course.Review) ReviewVO {
+func NewReviewVOFromDomain(r *review.Review) ReviewVO {
 	reviewVO := ReviewVO{
 		ID:        r.ID.Int64(),
 		Course:    nil,

@@ -7,7 +7,7 @@ import (
 
 	"jcourse_go/internal/application/command"
 	"jcourse_go/internal/application/query"
-	"jcourse_go/internal/domain/course"
+	"jcourse_go/internal/domain/review"
 	"jcourse_go/internal/domain/shared"
 )
 
@@ -47,7 +47,7 @@ func (c *ReviewController) GetReview(ctx *gin.Context) {
 }
 
 func (c *ReviewController) CreateReview(ctx *gin.Context) {
-	var req course.WriteReviewCommand
+	var req review.WriteReviewCommand
 	if ctx.ShouldBind(&req) != nil {
 		WriteBadArgumentResponse(ctx)
 		return
@@ -63,7 +63,7 @@ func (c *ReviewController) CreateReview(ctx *gin.Context) {
 }
 
 func (c *ReviewController) UpdateReview(ctx *gin.Context) {
-	var req course.UpdateReviewCommand
+	var req review.UpdateReviewCommand
 	if ctx.ShouldBind(&req) != nil {
 		WriteBadArgumentResponse(ctx)
 		return
@@ -80,7 +80,7 @@ func (c *ReviewController) UpdateReview(ctx *gin.Context) {
 }
 
 func (c *ReviewController) DeleteReview(ctx *gin.Context) {
-	var req course.DeleteReviewCommand
+	var req review.DeleteReviewCommand
 	if ctx.ShouldBind(&req) != nil {
 		WriteBadArgumentResponse(ctx)
 		return

@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 
 	"jcourse_go/internal/domain/course"
+	"jcourse_go/internal/domain/review"
 	"jcourse_go/internal/domain/shared"
 	"jcourse_go/internal/infrastructure/entity"
 )
@@ -14,7 +15,7 @@ type ReviewRepository struct {
 	db *gorm.DB
 }
 
-func (r *ReviewRepository) Get(ctx context.Context, id shared.IDType) (*course.Review, error) {
+func (r *ReviewRepository) Get(ctx context.Context, id shared.IDType) (*review.Review, error) {
 	e := &entity.Review{}
 	if err := r.db.Model(&entity.Review{}).Where("id = ?", id).First(&e).Error; err != nil {
 		return nil, err
@@ -23,7 +24,7 @@ func (r *ReviewRepository) Get(ctx context.Context, id shared.IDType) (*course.R
 	return &d, nil
 }
 
-func (r *ReviewRepository) Create(ctx context.Context, review *course.Review) error {
+func (r *ReviewRepository) Create(ctx context.Context, review *review.Review) error {
 	e := newReviewEntityFromDomain(review)
 	if err := r.db.Model(&entity.Review{}).Create(&e).Error; err != nil {
 		return err
@@ -32,7 +33,7 @@ func (r *ReviewRepository) Create(ctx context.Context, review *course.Review) er
 	return nil
 }
 
-func (r *ReviewRepository) Update(ctx context.Context, review *course.Review, revision *course.ReviewRevision) error {
+func (r *ReviewRepository) Update(ctx context.Context, review *review.Review, revision *review.ReviewRevision) error {
 	re := newReviewEntityFromDomain(review)
 	rve := newRevisionEntityFromDomain(revision)
 	if err := r.db.Transaction(func(tx *gorm.DB) error {
@@ -69,8 +70,8 @@ func NewReviewRepository(db *gorm.DB) course.ReviewRepository {
 	return &ReviewRepository{db: db}
 }
 
-func newReviewDomainFromEntity(r *entity.Review) course.Review {
-	return course.Review{
+func newReviewDomainFromEntity(r *entity.Review) review.Review {
+	return review.Review{
 		ID:        shared.IDType(r.ID),
 		CourseID:  shared.IDType(r.CourseID),
 		UserID:    shared.IDType(r.UserID),
@@ -83,7 +84,7 @@ func newReviewDomainFromEntity(r *entity.Review) course.Review {
 	}
 }
 
-func newReviewEntityFromDomain(r *course.Review) entity.Review {
+func newReviewEntityFromDomain(r *review.Review) entity.Review {
 	return entity.Review{
 		ID:        int64(r.ID),
 		CourseID:  int64(r.CourseID),
@@ -97,7 +98,7 @@ func newReviewEntityFromDomain(r *course.Review) entity.Review {
 	}
 }
 
-func newRevisionEntityFromDomain(rv *course.ReviewRevision) entity.ReviewRevision {
+func newRevisionEntityFromDomain(rv *review.ReviewRevision) entity.ReviewRevision {
 	return entity.ReviewRevision{
 		ID:        int64(rv.ID),
 		ReviewID:  int64(rv.ReviewID),

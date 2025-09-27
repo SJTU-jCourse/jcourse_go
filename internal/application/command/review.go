@@ -5,22 +5,23 @@ import (
 	"time"
 
 	"jcourse_go/internal/domain/course"
+	"jcourse_go/internal/domain/review"
 	"jcourse_go/internal/domain/shared"
 	"jcourse_go/pkg/apperror"
 )
 
 type ReviewCommandService interface {
-	WriteReview(ctx context.Context, reqCtx shared.RequestCtx, cmd course.WriteReviewCommand) error
-	UpdateReview(ctx context.Context, reqCtx shared.RequestCtx, cmd course.UpdateReviewCommand) error
-	DeleteReview(ctx context.Context, reqCtx shared.RequestCtx, cmd course.DeleteReviewCommand) error
+	WriteReview(ctx context.Context, reqCtx shared.RequestCtx, cmd review.WriteReviewCommand) error
+	UpdateReview(ctx context.Context, reqCtx shared.RequestCtx, cmd review.UpdateReviewCommand) error
+	DeleteReview(ctx context.Context, reqCtx shared.RequestCtx, cmd review.DeleteReviewCommand) error
 }
 
 type reviewCommandService struct {
 	courseRepo course.CourseRepository
-	reviewRepo course.ReviewRepository
+	reviewRepo review.ReviewRepository
 }
 
-func (r *reviewCommandService) WriteReview(ctx context.Context, reqCtx shared.RequestCtx, cmd course.WriteReviewCommand) error {
+func (r *reviewCommandService) WriteReview(ctx context.Context, reqCtx shared.RequestCtx, cmd review.WriteReviewCommand) error {
 	c, err := r.courseRepo.Get(ctx, cmd.CourseID)
 	if err != nil {
 		return err
@@ -29,7 +30,7 @@ func (r *reviewCommandService) WriteReview(ctx context.Context, reqCtx shared.Re
 		return apperror.ErrNotFound
 	}
 	now := time.Now()
-	rv, err := course.NewReview(cmd, reqCtx.User.UserID, now)
+	rv, err := review.NewReview(cmd, reqCtx.User.UserID, now)
 	if err != nil {
 		return err
 	}
@@ -39,7 +40,7 @@ func (r *reviewCommandService) WriteReview(ctx context.Context, reqCtx shared.Re
 	return nil
 }
 
-func (r *reviewCommandService) UpdateReview(ctx context.Context, reqCtx shared.RequestCtx, cmd course.UpdateReviewCommand) error {
+func (r *reviewCommandService) UpdateReview(ctx context.Context, reqCtx shared.RequestCtx, cmd review.UpdateReviewCommand) error {
 	rv, err := r.reviewRepo.Get(ctx, cmd.ReviewID)
 	if err != nil {
 		return err
@@ -58,7 +59,7 @@ func (r *reviewCommandService) UpdateReview(ctx context.Context, reqCtx shared.R
 	return r.reviewRepo.Update(ctx, rv, &revision)
 }
 
-func (r *reviewCommandService) DeleteReview(ctx context.Context, reqCtx shared.RequestCtx, cmd course.DeleteReviewCommand) error {
+func (r *reviewCommandService) DeleteReview(ctx context.Context, reqCtx shared.RequestCtx, cmd review.DeleteReviewCommand) error {
 	rv, err := r.reviewRepo.Get(ctx, cmd.ReviewID)
 	if err != nil || rv == nil {
 		return err
@@ -71,7 +72,7 @@ func (r *reviewCommandService) DeleteReview(ctx context.Context, reqCtx shared.R
 
 func NewReviewCommandService(
 	courseRepo course.CourseRepository,
-	reviewRepo course.ReviewRepository,
+	reviewRepo review.ReviewRepository,
 ) ReviewCommandService {
 	return &reviewCommandService{
 		courseRepo: courseRepo,
