@@ -1,4 +1,4 @@
-package event
+package async_task
 
 import "context"
 
@@ -9,12 +9,12 @@ const (
 	TypeReviewCreated Type = "review.created"
 )
 
-type Event struct {
+type AsyncTask struct {
 	ID      string
 	Type    Type
 	Payload any
 }
 
-type Publisher interface {
-	Publish(ctx context.Context, event Event) error
+type TaskQueue interface {
+	Enqueue(ctx context.Context, t AsyncTask) error
 }

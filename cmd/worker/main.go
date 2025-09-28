@@ -6,41 +6,23 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/joho/godotenv"
+	flag "github.com/spf13/pflag"
 
-	"jcourse_go/internal/dal"
-
-	"jcourse_go/internal/infrastructure/repository"
+	"jcourse_go/internal/app"
+	"jcourse_go/internal/config"
 	"jcourse_go/internal/interface/task"
-	"jcourse_go/internal/interface/task/base"
-	"jcourse_go/internal/service"
-	"jcourse_go/pkg/util"
 )
 
-func Init() {
-	_ = godotenv.Load()
-	dal.InitRedisClient()
-	dal.InitDBClient()
-	repository.SetDefault(dal.GetDBClient())
+func main() {
+	configPath := flag.StringP("config", "c", "config/config.yaml", "config file path")
+	flag.Parse()
 
-	task.InitTaskManager(base.RedisConfig{
-		DSN:      dal.GetRedisDSN(),
-		Password: dal.GetRedisPassWord(),
-	})
+	c := config.InitConfig(*configPath)
 
-	if err := util.InitSegWord(); err != nil {
-		panic(err)
-	}
-
-	err := service.InitLLM()
+	s, err := app.NewServiceContainer(c)
 	if err != nil {
 		panic(err)
 	}
-}
-
-func main() {
-	// 1. Initialize all components
-	Init()
 
 	// 2. Listen for signals to gracefully shut down
 	c := make(chan os.Signal, 1)

@@ -25,6 +25,6 @@ func main() {
 	}
 
 	// 3. Start serving
-	r := router.RegisterRouter(s)
+	r := web.RegisterRouter(s)
 	_ = r.Run()
 }

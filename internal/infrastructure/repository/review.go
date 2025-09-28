@@ -5,7 +5,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"jcourse_go/internal/domain/course"
 	"jcourse_go/internal/domain/review"
 	"jcourse_go/internal/domain/shared"
 	"jcourse_go/internal/infrastructure/entity"
@@ -66,7 +65,7 @@ func (r *ReviewRepository) Delete(ctx context.Context, reviewID shared.IDType) e
 	return nil
 }
 
-func NewReviewRepository(db *gorm.DB) course.ReviewRepository {
+func NewReviewRepository(db *gorm.DB) review.ReviewRepository {
 	return &ReviewRepository{db: db}
 }
 

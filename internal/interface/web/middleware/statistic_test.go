@@ -18,6 +18,7 @@ import (
 	"github.com/RoaringBitmap/roaring"
 
 	"jcourse_go/internal/constant"
+
 	"jcourse_go/internal/domain/user"
 )
 

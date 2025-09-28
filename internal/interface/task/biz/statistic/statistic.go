@@ -7,8 +7,8 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 
-	"jcourse_go/internal/interface/middleware"
 	"jcourse_go/internal/interface/task/base"
+	"jcourse_go/internal/interface/web/middleware"
 	"jcourse_go/internal/service"
 	"jcourse_go/pkg/util"
 )

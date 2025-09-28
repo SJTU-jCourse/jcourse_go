@@ -9,11 +9,12 @@ import (
 
 	"jcourse_go/internal/dal"
 
+	"jcourse_go/internal/model/converter"
+
 	dal2 "jcourse_go/internal/infrastructure/dal"
 	"jcourse_go/internal/infrastructure/entity"
 	repository2 "jcourse_go/internal/infrastructure/repository"
-	"jcourse_go/internal/interface/middleware"
-	"jcourse_go/internal/model/converter"
+	"jcourse_go/internal/interface/web/middleware"
 	"jcourse_go/pkg/util"
 )
 

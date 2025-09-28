@@ -1,10 +1,10 @@
-package router
+package web
 
 import (
 	"github.com/gin-gonic/gin"
 
 	"jcourse_go/internal/app"
-	"jcourse_go/internal/interface/controller"
+	controller "jcourse_go/internal/interface/web/controller"
 )
 
 func RegisterRouter(s *app.ServiceContainer) *gin.Engine {
