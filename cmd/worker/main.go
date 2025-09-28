@@ -1,11 +1,6 @@
 package main
 
 import (
-	"log"
-	"os"
-	"os/signal"
-	"syscall"
-
 	flag "github.com/spf13/pflag"
 
 	"jcourse_go/internal/app"
@@ -24,17 +19,8 @@ func main() {
 		panic(err)
 	}
 
-	// 2. Listen for signals to gracefully shut down
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-
-	sig := <-c
-	log.Printf("[main] Caught signal: %v. Starting graceful shutdown...", sig)
-	err := task.GlobalTaskManager.Shutdown()
-	if err != nil {
-		log.Printf("[main] Error while shutting down TaskManager: %v\n", err)
+	srv, mux := task.NewAsyncTaskServer(s)
+	if err = srv.Run(mux); err != nil {
+		panic(err)
 	}
-	log.Println("[main] Graceful shutdown complete. Exiting.")
-	os.Exit(0)
-
 }

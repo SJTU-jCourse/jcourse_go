@@ -1,16 +1,8 @@
-package async_task
+package task
 
 import "context"
 
-type Type string
-
-const (
-	TypeUserCreated   Type = "user.created"
-	TypeReviewCreated Type = "review.created"
-)
-
 type AsyncTask struct {
-	ID      string
 	Type    Type
 	Payload any
 }

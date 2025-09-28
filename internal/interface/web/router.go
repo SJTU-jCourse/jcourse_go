@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"jcourse_go/internal/app"
-	controller "jcourse_go/internal/interface/web/controller"
+	"jcourse_go/internal/interface/web/controller"
 )
 
 func RegisterRouter(s *app.ServiceContainer) *gin.Engine {
