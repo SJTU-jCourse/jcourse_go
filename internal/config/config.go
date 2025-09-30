@@ -8,11 +8,12 @@ import (
 )
 
 type AppConfig struct {
-	Server   ServerConfig   `yaml:"server"`
-	Postgres PostgresConfig `yaml:"postgres"`
-	Sqlite   SqliteConfig   `yaml:"sqlite"`
-	Redis    RedisConfig    `yaml:"redis"`
-	SMTP     SMTPConfig     `yaml:"smtp"`
+	Server     ServerConfig     `yaml:"server"`
+	Postgres   PostgresConfig   `yaml:"postgres"`
+	Sqlite     SqliteConfig     `yaml:"sqlite"`
+	Redis      RedisConfig      `yaml:"redis"`
+	SMTP       SMTPConfig       `yaml:"smtp"`
+	Middleware MiddlewareConfig `yaml:"middleware"`
 }
 
 type ServerConfig struct {
@@ -20,9 +21,11 @@ type ServerConfig struct {
 	Port  int  `yaml:"port"`
 }
 
-type SecurityConfig struct {
-	SessionSecret string `yaml:"session_secret"`
-	CSRFSecret    string `yaml:"csrf_secret"`
+type MiddlewareConfig struct {
+	SessionSecret string   `yaml:"session_secret"`
+	CSRFSecret    string   `yaml:"csrf_secret"`
+	SecureCookie  bool     `yaml:"secure_cookie"`
+	CORSOrigin    []string `yaml:"cors_origin"`
 }
 
 type PostgresConfig struct {

@@ -4,11 +4,19 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"jcourse_go/internal/app"
+	"jcourse_go/internal/config"
 	"jcourse_go/internal/interface/web/controller"
+	"jcourse_go/internal/interface/web/middleware"
 )
 
-func RegisterRouter(s *app.ServiceContainer) *gin.Engine {
+func RegisterRouter(conf config.AppConfig, s *app.ServiceContainer) *gin.Engine {
 	r := gin.Default()
+	r.Use(
+		middleware.CORS(conf.Middleware),
+		middleware.Session(conf.Redis, conf.Middleware),
+		middleware.CSRF(conf.Middleware),
+		middleware.CSRFToken(conf.Middleware),
+	)
 
 	authController := controller.NewAuthController(s.Auth)
 	courseController := controller.NewCourseController(s.CourseQuery, s.Notification)
@@ -31,6 +39,7 @@ func RegisterRouter(s *app.ServiceContainer) *gin.Engine {
 	authGroup.POST("/reset-password", authController.ResetPasswordHandler)
 
 	needAuthGroup := api.Group("")
+	needAuthGroup.Use(middleware.RequireAuth())
 
 	courseGroup := needAuthGroup.Group("/course")
 	courseGroup.GET("", courseController.GetCourseList)

@@ -6,50 +6,44 @@ import (
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 
-	"jcourse_go/internal/constant"
-	"jcourse_go/internal/domain/user"
-	"jcourse_go/internal/interface/dto"
+	"jcourse_go/internal/config"
+	"jcourse_go/internal/domain/auth"
 )
 
-func GetCurrentUser(c *gin.Context) *user.UserDetail {
-	user, exists := c.Get(constant.CtxKeyUser)
+const (
+	CtxKeyUserSession string = "user_session"
+)
+
+const (
+	CookieKeySession = "session_id"
+)
+
+func Session(redisConf config.RedisConfig, conf config.MiddlewareConfig) gin.HandlerFunc {
+	store, err := sessions.NewRedisStore(10, "tcp", redisConf.Addr, redisConf.Password, []byte(conf.SessionSecret))
+	if err != nil {
+		panic(err)
+	}
+	return sessions.Sessions(CookieKeySession, store)
+
+}
+
+func GetCurrentUser(c *gin.Context) *auth.Session {
+	s, exists := c.Get(CtxKeyUserSession)
 	if !exists {
 		return nil
 	}
-	return user.(*user.UserDetail)
+	return s.(*auth.Session)
 }
 
 func RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
-		user := session.Get(constant.SessionUserAuthKey)
+		user := session.Get(CookieKeySession)
 		if user == nil {
-			c.JSON(http.StatusUnauthorized, olddto.BaseResponse{Message: "未授权的请求"})
+			c.JSON(http.StatusUnauthorized, nil)
 			c.Abort()
 		}
-		c.Set(constant.CtxKeyUser, user)
-		c.Next()
-	}
-}
-
-func RequireAdmin() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		session := sessions.Default(c)
-		user := session.Get(constant.SessionUserAuthKey)
-		if user == nil {
-			c.JSON(http.StatusUnauthorized, olddto.BaseResponse{Message: "未授权的请求"})
-			c.Abort()
-		}
-		userDomain, ok := user.(user.UserDetail)
-		if !ok {
-			c.JSON(http.StatusUnauthorized, olddto.BaseResponse{Message: "未授权的请求"})
-			c.Abort()
-		}
-		if userDomain.Role != user.UserRoleAdmin {
-			c.JSON(http.StatusForbidden, olddto.BaseResponse{Message: "未授权的请求"})
-			c.Abort()
-		}
-		c.Set(constant.CtxKeyUser, user)
+		c.Set(CtxKeyUserSession, user)
 		c.Next()
 	}
 }
