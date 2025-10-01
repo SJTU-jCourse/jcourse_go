@@ -7,8 +7,6 @@ import (
 
 	"github.com/RoaringBitmap/roaring"
 	"github.com/gin-gonic/gin"
-
-	"jcourse_go/internal/domain/course"
 )
 
 var UV = NewUVMiddleware()
@@ -67,14 +65,6 @@ func IsInternalRequest(c *gin.Context) bool {
 	return false
 }
 
-func IsPaginateRequest(c *gin.Context) int64 {
-	var req course.PaginationFilterForQuery
-	if c.ShouldBind(&req) != nil {
-		return -1
-	}
-	return req.Page
-}
-
 type IUVMiddleware interface {
 	UVStatistic() gin.HandlerFunc
 	UVStatisticMock() gin.HandlerFunc // // 用于测试, 仅删去底部的c.Next()
@@ -126,7 +116,7 @@ func (m *UVMiddleware) UVStatisticWithLogin() gin.HandlerFunc {
 			if user == nil {
 				return
 			}
-			m.AddUser(user.ID)
+			m.AddUser(int64(user.UserID))
 		} else {
 			c.Next()
 		}
@@ -139,7 +129,7 @@ func (m *UVMiddleware) UVStatisticMock() gin.HandlerFunc {
 		if user == nil {
 			return
 		}
-		m.AddUser(user.ID) // 如果id需要用64位int,则修改rbm;add 自带去重
+		m.AddUser(int64(user.UserID)) // 如果id需要用64位int,则修改rbm;add 自带去重
 	}
 }
 func (m *UVMiddleware) UVStatistic() gin.HandlerFunc {
@@ -149,7 +139,7 @@ func (m *UVMiddleware) UVStatistic() gin.HandlerFunc {
 		if user == nil {
 			return
 		}
-		m.AddUser(user.ID) // 如果id需要用64位int,则修改rbm;add 自带去重
+		m.AddUser(int64(user.UserID)) // 如果id需要用64位int,则修改rbm;add 自带去重
 		c.Next()
 	}
 }
@@ -260,16 +250,16 @@ func (m *PVMiddleware) SetIfNoDuplicate(c *gin.Context) bool {
 		return false
 	}
 	m.RequestUserCacheMutex.RLock()
-	userCache, ok := m.RequestUserCache[user.ID]
+	userCache, ok := m.RequestUserCache[int64(user.UserID)]
 	m.RequestUserCacheMutex.RUnlock()
 	// HINT: 2-stage check
 	if !ok {
 		m.RequestUserCacheMutex.Lock()
 		defer m.RequestUserCacheMutex.Unlock()
-		userCache, ok = m.RequestUserCache[user.ID]
+		userCache, ok = m.RequestUserCache[int64(user.UserID)]
 		if !ok {
 			userCache = &UserRequestCache{lastReqMap: make(map[string]time.Time)}
-			m.RequestUserCache[user.ID] = userCache
+			m.RequestUserCache[int64(user.UserID)] = userCache
 		}
 	}
 	req := c.Request.RequestURI
