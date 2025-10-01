@@ -47,11 +47,12 @@ func NewReactionRepository(db *gorm.DB) reaction.ReactionRepository {
 }
 
 func newReactionDomainFromEntity(r *entity.ReviewReaction) reaction.UserReaction {
+	rr, _ := reaction.ReactionString(r.Reaction)
 	return reaction.UserReaction{
 		ID:        shared.IDType(r.ID),
 		ReviewID:  shared.IDType(r.ReviewID),
 		UserID:    shared.IDType(r.UserID),
-		Reaction:  reaction.Reaction(r.Reaction),
+		Reaction:  rr,
 		CreatedAt: r.CreatedAt,
 	}
 }
@@ -61,7 +62,7 @@ func newReactionEntityFromDomain(r *reaction.UserReaction) entity.ReviewReaction
 		ID:        int64(r.ID),
 		ReviewID:  int64(r.ReviewID),
 		UserID:    int64(r.UserID),
-		Reaction:  string(r.Reaction),
+		Reaction:  r.Reaction.String(),
 		CreatedAt: r.CreatedAt,
 	}
 }

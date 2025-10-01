@@ -137,10 +137,11 @@ func newUserEntityFromDomain(u *user.User) entity.User {
 }
 
 func newUserPointDomainFromEntity(u *entity.UserPoint) user.UserPoint {
+	t, _ := user.PointEventString(u.Type)
 	return user.UserPoint{
 		ID:          shared.IDType(u.ID),
 		Value:       u.Value,
-		Event:       user.PointEventType(u.Type),
+		Event:       t,
 		Description: u.Description,
 		CreatedAt:   u.CreatedAt,
 	}
@@ -150,7 +151,7 @@ func newUserPointEntityFromDomain(u *user.UserPoint) entity.UserPoint {
 	return entity.UserPoint{
 		ID:          int64(u.ID),
 		UserID:      int64(u.UserID),
-		Type:        string(u.Event),
+		Type:        u.Event.String(),
 		Description: u.Description,
 		Value:       u.Value,
 		CreatedAt:   u.CreatedAt,

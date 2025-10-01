@@ -6,13 +6,6 @@ import (
 	"jcourse_go/internal/domain/shared"
 )
 
-type Reaction string
-
-const (
-	ReactionLike    Reaction = "like"
-	ReactionDislike Reaction = "dislike"
-)
-
 type UserReaction struct {
 	ID shared.IDType `json:"id"`
 
