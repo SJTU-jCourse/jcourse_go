@@ -14,7 +14,7 @@ type ReactionRepository struct {
 	db *gorm.DB
 }
 
-func (r *ReactionRepository) Get(ctx context.Context, reactionID shared.IDType) (*reaction.Reaction, error) {
+func (r *ReactionRepository) Get(ctx context.Context, reactionID shared.IDType) (*reaction.UserReaction, error) {
 	e := &entity.ReviewReaction{}
 	if err := r.db.Model(&entity.ReviewReaction{}).
 		Where("id = ?", reactionID).
@@ -25,7 +25,7 @@ func (r *ReactionRepository) Get(ctx context.Context, reactionID shared.IDType) 
 	return &d, nil
 }
 
-func (r *ReactionRepository) Save(ctx context.Context, reaction *reaction.Reaction) error {
+func (r *ReactionRepository) Save(ctx context.Context, reaction *reaction.UserReaction) error {
 	e := newReactionEntityFromDomain(reaction)
 	if err := r.db.Model(&entity.ReviewReaction{}).
 		Create(&e).Error; err != nil {
@@ -46,22 +46,22 @@ func NewReactionRepository(db *gorm.DB) reaction.ReactionRepository {
 	return &ReactionRepository{db: db}
 }
 
-func newReactionDomainFromEntity(r *entity.ReviewReaction) reaction.Reaction {
-	return reaction.Reaction{
+func newReactionDomainFromEntity(r *entity.ReviewReaction) reaction.UserReaction {
+	return reaction.UserReaction{
 		ID:        shared.IDType(r.ID),
 		ReviewID:  shared.IDType(r.ReviewID),
 		UserID:    shared.IDType(r.UserID),
-		Reaction:  r.Reaction,
+		Reaction:  reaction.Reaction(r.Reaction),
 		CreatedAt: r.CreatedAt,
 	}
 }
 
-func newReactionEntityFromDomain(r *reaction.Reaction) entity.ReviewReaction {
+func newReactionEntityFromDomain(r *reaction.UserReaction) entity.ReviewReaction {
 	return entity.ReviewReaction{
 		ID:        int64(r.ID),
 		ReviewID:  int64(r.ReviewID),
 		UserID:    int64(r.UserID),
-		Reaction:  r.Reaction,
+		Reaction:  string(r.Reaction),
 		CreatedAt: r.CreatedAt,
 	}
 }

@@ -3,7 +3,7 @@ package reaction
 import "jcourse_go/internal/domain/shared"
 
 type CreateReactionCommand struct {
-	Reaction string        `json:"reaction,omitempty"`
+	Reaction Reaction      `json:"reaction,omitempty"`
 	ReviewID shared.IDType `json:"review_id,omitempty"`
 }
 

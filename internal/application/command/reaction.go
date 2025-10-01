@@ -27,7 +27,7 @@ func (r *reactionService) CreateReaction(ctx context.Context, req shared.Request
 	if review == nil {
 		return apperror.ErrNotFound
 	}
-	rct := reaction.NewReaction(cmd, req.User.UserID)
+	rct := reaction.NewUserReaction(cmd, req.User.UserID)
 	return r.reactionRepo.Save(ctx, &rct)
 }
 

@@ -6,19 +6,26 @@ import (
 	"jcourse_go/internal/domain/shared"
 )
 
-type Reaction struct {
+type Reaction string
+
+const (
+	ReactionLike    Reaction = "like"
+	ReactionDislike Reaction = "dislike"
+)
+
+type UserReaction struct {
 	ID shared.IDType `json:"id"`
 
 	ReviewID shared.IDType `json:"review_id"`
 	UserID   shared.IDType `json:"user_id"`
-	Reaction string        `json:"reaction"`
+	Reaction Reaction      `json:"reaction"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
 
-func NewReaction(cmd CreateReactionCommand, userID shared.IDType) Reaction {
-	return Reaction{
+func NewUserReaction(cmd CreateReactionCommand, userID shared.IDType) UserReaction {
+	return UserReaction{
 		ReviewID:  cmd.ReviewID,
 		UserID:    userID,
 		Reaction:  cmd.Reaction,
