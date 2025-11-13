@@ -15,7 +15,7 @@ linters:
       - third_party$
       - builtin$
       - examples$
-      - scripts$
+      - script/
 formatters:
   enable:
     - gofmt
@@ -26,4 +26,3 @@ formatters:
       - third_party$
       - builtin$
       - examples$
-      - scripts$
