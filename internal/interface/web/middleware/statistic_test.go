@@ -12,14 +12,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/RoaringBitmap/roaring"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/RoaringBitmap/roaring"
-
-	"jcourse_go/internal/constant"
-
-	"jcourse_go/internal/domain/user"
+	"jcourse_go/internal/domain/auth"
+	"jcourse_go/internal/domain/shared"
 )
 
 type userKeyType = struct{ key string } // make ci happy
@@ -38,12 +36,10 @@ func TestUVStatistic(t *testing.T) {
 		var testParams []*gin.Context
 		for i := 0; i < testNum; i++ {
 			c := &gin.Context{}
-			user := &user.UserDetail{
-				UserMinimal: user.UserMinimal{
-					ID: int64(i),
-				},
+			user := &auth.Session{
+				UserID: shared.IDType(i),
 			}
-			c.Set(constant.CtxKeyUser, user)
+			c.Set(CtxKeyUserSession, user)
 			testParams = append(testParams, c)
 		}
 
@@ -187,12 +183,10 @@ func BenchmarkUVStatistic(b *testing.B) {
 	testCtxs := make([]*gin.Context, userNum)
 	for i := 0; i < userNum; i++ {
 		c := &gin.Context{}
-		user := &user.UserDetail{
-			UserMinimal: user.UserMinimal{
-				ID: int64(i),
-			},
+		user := &auth.Session{
+			UserID: shared.IDType(i),
 		}
-		c.Set(constant.CtxKeyUser, user)
+		c.Set(CtxKeyUserSession, user)
 		testCtxs[i] = c
 	}
 	m := NewUVMiddleware()
@@ -266,12 +260,10 @@ func TestPVStatistic(t *testing.T) {
 	testReqs := GenerateRandomRequest(testNum, testPaths)
 	for i := 0; i < testNum; i++ {
 		c := &gin.Context{}
-		user := &user.UserDetail{
-			UserMinimal: user.UserMinimal{
-				ID: int64(i),
-			},
+		user := &auth.Session{
+			UserID: shared.IDType(i),
 		}
-		c.Set(constant.CtxKeyUser, user)
+		c.Set(CtxKeyUserSession, user)
 		c.Request = testReqs[i]
 		testParams = append(testParams, c)
 	}
@@ -312,12 +304,10 @@ func BenchmarkPVStatistic(b *testing.B) {
 	testReqs := GenerateRandomRequest(testNum, testPaths)
 	for i := 0; i < testNum; i++ {
 		c := &gin.Context{}
-		user := &user.UserDetail{
-			UserMinimal: user.UserMinimal{
-				ID: int64(i),
-			},
+		user := &auth.Session{
+			UserID: shared.IDType(i),
 		}
-		c.Set(constant.CtxKeyUser, user)
+		c.Set(CtxKeyUserSession, user)
 		c.Request = testReqs[i]
 		testParams = append(testParams, c)
 	}
@@ -349,23 +339,23 @@ func TestCtxPass(t *testing.T) {
 		mockLogin := func(c *gin.Context) {
 			// 从gin.Context中获取请求的上下文
 			reqCtx := c.Request.Context()
-			userKey := userKeyType{key: constant.CtxKeyUser}
-			user, ok := reqCtx.Value(userKey).(*user.UserDetail)
+			userKey := userKeyType{key: CtxKeyUserSession}
+			user, ok := reqCtx.Value(userKey).(*auth.Session)
 			assert.True(t, ok)
 
 			// 将用户信息设置回gin.Context的上下文中
-			c.Set(constant.CtxKeyUser, user)
+			c.Set(CtxKeyUserSession, user)
 			c.Next()
 		}
 		r.Use(mockLogin)
 		r.GET("/some-path", func(c *gin.Context) {
-			_, ok := c.Get(constant.CtxKeyUser)
+			_, ok := c.Get(CtxKeyUserSession)
 			assert.True(t, ok)
 			c.Status(http.StatusOK)
 		})
 		req := httptest.NewRequest(http.MethodGet, "/some-path", nil)
-		var userKey = userKeyType{key: constant.CtxKeyUser}
-		req = req.WithContext(context.WithValue(context.Background(), userKey, &user.UserDetail{}))
+		var userKey = userKeyType{key: CtxKeyUserSession}
+		req = req.WithContext(context.WithValue(context.Background(), userKey, &auth.Session{}))
 
 		w := httptest.NewRecorder()
 		r.ServeHTTP(w, req)
@@ -388,10 +378,10 @@ func SimulateHighConcurrency(pvMock gin.HandlerFunc, uvMock gin.HandlerFunc, qps
 		// 因为ServeHTTP只传入Request, 所以将登录的context放在Request中, 需要取出放回context
 		mockLogin := func(c *gin.Context) {
 			reqCtx := c.Request.Context()
-			userKey := userKeyType{key: constant.CtxKeyUser}
-			user, ok := reqCtx.Value(userKey).(*user.UserDetail)
+			userKey := userKeyType{key: CtxKeyUserSession}
+			user, ok := reqCtx.Value(userKey).(*auth.Session)
 			assert.True(b, ok)
-			c.Set(constant.CtxKeyUser, user)
+			c.Set(CtxKeyUserSession, user)
 			c.Next()
 		}
 		endMiddleWare := func(c *gin.Context) { c.Status(http.StatusOK) }
@@ -433,12 +423,10 @@ func SimulateHighConcurrency(pvMock gin.HandlerFunc, uvMock gin.HandlerFunc, qps
 
 		for i := 0; i < totalUserNum; i++ {
 			c := &gin.Context{}
-			user := &user.UserDetail{
-				UserMinimal: user.UserMinimal{
-					ID: int64(i),
-				},
+			user := &auth.Session{
+				UserID: shared.IDType(i),
 			}
-			userKey := userKeyType{key: constant.CtxKeyUser}
+			userKey := userKeyType{key: CtxKeyUserSession}
 			reqCtx := context.WithValue(context.Background(), userKey, user)
 			c.Request = testReqs[i].WithContext(reqCtx)
 			testCtxs[i] = c
