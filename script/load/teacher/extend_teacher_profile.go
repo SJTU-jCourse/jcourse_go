@@ -4,31 +4,38 @@ import (
 	"log"
 	"os"
 
-	"github.com/joho/godotenv"
-
-	"jcourse_go/internal/dal"
+	"jcourse_go/internal/config"
+	"jcourse_go/internal/infrastructure/dal"
 	"jcourse_go/internal/infrastructure/entity"
-	"jcourse_go/pkg/util/selenium-get"
+	seleniumget "jcourse_go/pkg/util/selenium-get"
 )
 
 func main() {
-	_ = godotenv.Load()
-	dal.InitDBClient()
-	db := dal.GetDBClient()
-	extend_teacher_data_path := "./data/teachers.json"
-	log_file, err := os.OpenFile("./data/logfile.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	db, err := dal.NewPostgresSQL(config.PostgresConfig{
+		Host:     "",
+		Port:     0,
+		User:     "",
+		Password: "",
+		DBName:   "",
+		Debug:    false,
+	})
 	if err != nil {
 		panic(err)
 	}
-	defer log_file.Close()
+	extendTeacherDataPath := "./data/teachers.json"
+	logFile, err := os.OpenFile("./data/logfile.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err)
+	}
+	defer logFile.Close()
 	defer log.SetOutput(os.Stdout)
 
-	log.SetOutput(log_file)
+	log.SetOutput(logFile)
 
-	extend_teachers := seleniumget.LoadTeacherProfiles(extend_teacher_data_path)
+	extendTeachers := seleniumget.LoadTeacherProfiles(extendTeacherDataPath)
 
 	// to extend: email, profile_url, profile_desc, picture
-	for _, t := range extend_teachers {
+	for _, t := range extendTeachers {
 		// t.department 是全名，jwc是简称
 		var teachers []entity.Teacher
 		db.Model(entity.Teacher{}).Where("name = ?", t.Name).Find(&teachers)
