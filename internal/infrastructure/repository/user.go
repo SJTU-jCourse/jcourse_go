@@ -84,7 +84,7 @@ func (r *UserPointRepository) Transaction(ctx context.Context, transaction *user
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		fromPoint := entity.UserPoint{
 			UserID:      int64(transaction.FromID),
-			Type:        string(user.PointEventTransferOut),
+			Type:        user.PointEventTransferOut.String(),
 			Description: transaction.Reason,
 			Value:       -transaction.Value,
 			CreatedAt:   transaction.CreatedAt,
@@ -92,7 +92,7 @@ func (r *UserPointRepository) Transaction(ctx context.Context, transaction *user
 
 		toPoint := entity.UserPoint{
 			UserID:      int64(transaction.ToID),
-			Type:        string(user.PointEventTransferIn),
+			Type:        user.PointEventTransferIn.String(),
 			Description: transaction.Reason,
 			Value:       transaction.Value,
 			CreatedAt:   transaction.CreatedAt,
