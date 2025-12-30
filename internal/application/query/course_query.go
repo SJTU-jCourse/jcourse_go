@@ -87,9 +87,9 @@ func (s *courseQueryService) GetCourseList(ctx context.Context, q course.CourseL
 	result := make([]vo.CourseListItemVO, 0, len(rows))
 	for _, r := range rows {
 
-		catagories := make([]string, 0)
+		categories := make([]string, 0)
 		for _, ct := range r.LastOffering.Categories {
-			catagories = append(catagories, ct.Category)
+			categories = append(categories, ct.Category)
 		}
 
 		item := vo.CourseListItemVO{
@@ -103,7 +103,7 @@ func (s *courseQueryService) GetCourseList(ctx context.Context, q course.CourseL
 				Department: r.MainTeacher.Department,
 			},
 			LatestOffering: vo.OfferingInfoVO{
-				Categories: catagories,
+				Categories: categories,
 				Department: r.LastOffering.Department,
 				Language:   r.LastOffering.Language,
 				Semester:   r.LastOffering.Semester,
