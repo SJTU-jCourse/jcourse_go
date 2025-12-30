@@ -19,12 +19,8 @@ type reportQueryService struct {
 }
 
 func (r *reportQueryService) GetUserReports(ctx context.Context, userID shared.IDType, query shared.PaginationQuery) ([]vo.ReportVO, error) {
-	reports := make([]entity.Report, 0)
-	if err := r.db.WithContext(ctx).
-		Model(&entity.Report{}).
-		Where("user_id = ?", userID).
-		Order("created_at desc").
-		Find(&reports).Error; err != nil {
+	reports, err := gorm.G[entity.Report](r.db).Where("user_id = ?", userID).Order("created_at desc").Find(ctx)
+	if err != nil {
 		return nil, err
 	}
 

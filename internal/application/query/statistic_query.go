@@ -19,25 +19,21 @@ type statisticQueryService struct {
 }
 
 func (s *statisticQueryService) GetDailyStatistic(ctx context.Context, date string) (*vo.StatisticVO, error) {
-	st := entity.Statistic{}
-	if err := s.db.WithContext(ctx).
-		Model(&entity.Statistic{}).
-		Where("date = ?", date).
-		Take(&st).Error; err != nil {
+	st, err := gorm.G[entity.Statistic](s.db).Where("date = ?", date).Take(ctx)
+	if err != nil {
 		return nil, err
 	}
+
 	stVO := vo.NewStatisticVOFromEntity(&st)
 	return &stVO, nil
 }
 
 func (s *statisticQueryService) GetRangeStatistic(ctx context.Context, startDate string, endDate string) ([]vo.StatisticVO, error) {
-	sts := make([]entity.Statistic, 0)
-	if err := s.db.WithContext(ctx).
-		Model(&entity.Statistic{}).
-		Where("date >= ? and date <= ?", startDate, endDate).
-		Find(&sts).Error; err != nil {
+	sts, err := gorm.G[entity.Statistic](s.db).Where("date >= ? and date <= ?", startDate, endDate).Find(ctx)
+	if err != nil {
 		return nil, err
 	}
+
 	stVOs := make([]vo.StatisticVO, 0)
 	for _, st := range sts {
 		stVOs = append(stVOs, vo.NewStatisticVOFromEntity(&st))

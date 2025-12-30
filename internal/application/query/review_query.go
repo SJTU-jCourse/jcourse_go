@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"jcourse_go/internal/application/vo"
 	"jcourse_go/internal/domain/shared"
@@ -22,14 +23,12 @@ type reviewQueryService struct {
 }
 
 func (r *reviewQueryService) GetReview(ctx context.Context, reviewID shared.IDType) (*vo.ReviewVO, error) {
-	review := entity.Review{}
-	if err := r.db.WithContext(ctx).
-		Model(&entity.Review{}).
-		Joins("Course").
-		Preload("Course.MainTeacher").
-		Preload("Reactions").
+	review, err := gorm.G[entity.Review](r.db).
+		Joins(clause.JoinTarget{Association: "Course.MainTeacher"}, nil).
+		Preload("Reactions", nil).
 		Where("id = ?", reviewID).
-		Take(&review).Error; err != nil {
+		Take(ctx)
+	if err != nil {
 		return nil, err
 	}
 	reviewVO := vo.NewReviewVOFromEntity(&review)
@@ -37,15 +36,15 @@ func (r *reviewQueryService) GetReview(ctx context.Context, reviewID shared.IDTy
 }
 
 func (r *reviewQueryService) GetLatestReviews(ctx context.Context, query shared.PaginationQuery) ([]vo.ReviewVO, error) {
-	rs := make([]entity.Review, 0)
-	if err := r.db.WithContext(ctx).
-		Model(&entity.Review{}).
-		Joins("Course.MainTeacher").
-		Preload("Reactions").
+	rs, err := gorm.G[entity.Review](r.db).
+		Joins(clause.JoinTarget{Association: "Course.MainTeacher"}, nil).
+		Preload("Reactions", nil).
 		Order("updated_at desc").
-		Find(&rs).Error; err != nil {
+		Find(ctx)
+	if err != nil {
 		return nil, err
 	}
+
 	res := make([]vo.ReviewVO, 0)
 	for _, e := range rs {
 		res = append(res, vo.NewReviewVOFromEntity(&e))
@@ -54,15 +53,15 @@ func (r *reviewQueryService) GetLatestReviews(ctx context.Context, query shared.
 }
 
 func (r *reviewQueryService) GetCourseReviews(ctx context.Context, courseID shared.IDType, query shared.PaginationQuery) ([]vo.ReviewVO, error) {
-	rs := make([]entity.Review, 0)
-	if err := r.db.WithContext(ctx).
-		Model(&entity.Review{}).
-		Preload("Reactions").
+	rs, err := gorm.G[entity.Review](r.db).
+		Preload("Reactions", nil).
 		Where("course_id = ?", courseID).
 		Order("updated_at desc").
-		Find(&rs).Error; err != nil {
+		Find(ctx)
+	if err != nil {
 		return nil, err
 	}
+
 	res := make([]vo.ReviewVO, 0)
 	for _, e := range rs {
 		res = append(res, vo.NewReviewVOFromEntity(&e))
@@ -71,16 +70,16 @@ func (r *reviewQueryService) GetCourseReviews(ctx context.Context, courseID shar
 }
 
 func (r *reviewQueryService) GetUserReviews(ctx context.Context, userID shared.IDType, query shared.PaginationQuery) ([]vo.ReviewVO, error) {
-	rs := make([]entity.Review, 0)
-	if err := r.db.WithContext(ctx).
-		Model(&entity.Review{}).
-		Joins("Course.MainTeacher").
-		Preload("Reactions").
+	rs, err := gorm.G[entity.Review](r.db).
+		Joins(clause.JoinTarget{Association: "Course.MainTeacher"}, nil).
+		Preload("Reactions", nil).
 		Where("user_id = ?", userID).
 		Order("updated_at desc").
-		Find(&rs).Error; err != nil {
+		Find(ctx)
+	if err != nil {
 		return nil, err
 	}
+
 	res := make([]vo.ReviewVO, 0)
 	for _, e := range rs {
 		res = append(res, vo.NewReviewVOFromEntity(&e))

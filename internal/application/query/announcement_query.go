@@ -2,7 +2,6 @@ package query
 
 import (
 	"context"
-	"errors"
 
 	"gorm.io/gorm"
 
@@ -19,15 +18,8 @@ type announcementQueryService struct {
 }
 
 func (s *announcementQueryService) GetAnnouncements(ctx context.Context) ([]vo.AnnouncementVO, error) {
-	if s.db == nil {
-		return nil, errors.New("db not initialized")
-	}
+	announcements, err := gorm.G[entity.Announcement](s.db).Where("available = ?", true).Order("created_at desc").Find(ctx)
 
-	var announcements []entity.Announcement
-	err := s.db.WithContext(ctx).
-		Where("available = ?", true).
-		Order("created_at DESC").
-		Find(&announcements).Error
 	if err != nil {
 		return nil, err
 	}
